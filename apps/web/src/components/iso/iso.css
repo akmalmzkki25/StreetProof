@@ -1,0 +1,313 @@
+/* Isometric figure tokens, mapped to the app theme. Light is the base, .dark overrides. */
+.iso {
+  --iso-paper: var(--background);
+  --iso-top: var(--card);
+  --iso-shade-0: color-mix(in srgb, var(--foreground) 9%, var(--background));
+  --iso-shade-1: color-mix(in srgb, var(--foreground) 7%, var(--background));
+  --iso-shade-2: color-mix(in srgb, var(--foreground) 5%, var(--background));
+  --iso-shade-3: color-mix(in srgb, var(--foreground) 3%, var(--background));
+  --iso-hi: color-mix(in srgb, var(--foreground) 62%, var(--background));
+  --iso-mid: color-mix(in srgb, var(--foreground) 38%, var(--background));
+  --iso-lo: color-mix(in srgb, var(--foreground) 22%, var(--background));
+  --iso-faint: color-mix(in srgb, var(--foreground) 11%, var(--background));
+}
+
+.dark .iso {
+  --iso-top: color-mix(in srgb, var(--foreground) 9%, var(--background));
+  --iso-shade-0: color-mix(in srgb, var(--foreground) 2.5%, var(--background));
+  --iso-shade-1: color-mix(in srgb, var(--foreground) 4%, var(--background));
+  --iso-shade-2: color-mix(in srgb, var(--foreground) 5.5%, var(--background));
+  --iso-shade-3: color-mix(in srgb, var(--foreground) 7%, var(--background));
+  --iso-hi: color-mix(in srgb, var(--foreground) 55%, var(--background));
+  --iso-mid: color-mix(in srgb, var(--foreground) 34%, var(--background));
+  --iso-lo: color-mix(in srgb, var(--foreground) 20%, var(--background));
+  --iso-faint: color-mix(in srgb, var(--foreground) 10%, var(--background));
+}
+
+.iso-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Non-scaling strokes keep 1 device-pixel hairlines at any figure width in Safari and Firefox. */
+.iso-svg path,
+.iso-svg circle {
+  vector-effect: non-scaling-stroke;
+}
+
+.iso-fill {
+  fill: var(--iso-paper);
+  stroke: none;
+}
+.iso-shade,
+.iso-top {
+  stroke: none;
+}
+.iso-shade[data-shade="0"] {
+  fill: var(--iso-shade-0);
+}
+.iso-shade[data-shade="1"] {
+  fill: var(--iso-shade-1);
+}
+.iso-shade[data-shade="2"] {
+  fill: var(--iso-shade-2);
+}
+.iso-shade[data-shade="3"] {
+  fill: var(--iso-shade-3);
+}
+.iso-top {
+  fill: var(--iso-top);
+}
+
+.iso-line {
+  fill: none;
+  stroke: var(--iso-lo);
+  stroke-width: 0.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.iso-line[data-tone="hi"] {
+  stroke: var(--iso-hi);
+}
+.iso-line[data-tone="mid"] {
+  stroke: var(--iso-mid);
+}
+.iso-line[data-tone="lo"] {
+  stroke: var(--iso-lo);
+}
+.iso-line[data-tone="faint"] {
+  stroke: var(--iso-faint);
+}
+.iso-line[data-dashed] {
+  stroke-dasharray: 3 2.5;
+}
+
+.iso-dots circle {
+  fill: var(--iso-mid);
+  stroke: none;
+}
+
+.iso-text {
+  fill: color-mix(in srgb, var(--foreground) 72%, transparent);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  pointer-events: none;
+}
+.iso-text.iso-name {
+  fill: var(--foreground);
+  font-family: var(--font-sans);
+  font-weight: 510;
+  letter-spacing: 0;
+}
+
+.iso-grid {
+  fill: none;
+  stroke: var(--iso-faint);
+  stroke-width: 0.6px;
+}
+
+/* Hues, copied from Halmahera. Every object picks one pair. */
+.iso-hue-rose {
+  --hue: oklch(72% 0.2 15);
+  --hue-end: oklch(58% 0.22 30);
+}
+.iso-hue-blue {
+  --hue: oklch(68% 0.18 255);
+  --hue-end: oklch(52% 0.2 280);
+}
+.iso-hue-amber {
+  --hue: oklch(83% 0.17 85);
+  --hue-end: oklch(67% 0.19 50);
+}
+.iso-hue-green {
+  --hue: oklch(78% 0.18 150);
+  --hue-end: oklch(60% 0.15 180);
+}
+.iso-hue-cyan {
+  --hue: oklch(80% 0.12 205);
+  --hue-end: oklch(62% 0.14 230);
+}
+
+/* Glow: a vivid copy of a part, faded in over the neutral body. Same in both themes. */
+.iso-glow {
+  --iso-paper: var(--hue);
+  --iso-shade-0: color-mix(in oklab, var(--hue-end) 80%, black);
+  --iso-shade-1: var(--hue-end);
+  --iso-shade-2: color-mix(in oklab, var(--hue-end) 50%, var(--hue));
+  --iso-shade-3: var(--hue);
+  --iso-top: var(--hue);
+  pointer-events: none;
+}
+.iso-glow .iso-top {
+  fill: var(--glow-fill);
+}
+.iso-glow .iso-edge {
+  stroke: color-mix(in oklab, var(--hue-end) 70%, black);
+}
+.dark .iso-glow .iso-edge {
+  stroke: color-mix(in oklab, var(--hue) 55%, white);
+}
+.iso-glow-hot {
+  stop-color: color-mix(in oklab, var(--hue) 40%, white);
+}
+.iso-glow-body {
+  stop-color: var(--hue);
+}
+/* The stages before the top one only color their borders, in turn. */
+.iso-trace {
+  stroke: var(--hue-end);
+  stroke-width: 1.2px;
+  pointer-events: none;
+}
+.dark .iso-trace {
+  stroke: var(--hue);
+}
+.iso-halo {
+  pointer-events: none;
+}
+.iso-halo-core {
+  stop-color: var(--hue);
+  stop-opacity: 0.4;
+}
+.iso-halo-mid {
+  stop-color: var(--hue);
+  stop-opacity: 0.45;
+}
+.iso-halo-fade {
+  stop-color: var(--hue);
+  stop-opacity: 0.18;
+}
+.iso-halo-rim {
+  stop-color: var(--hue);
+  stop-opacity: 0;
+}
+.iso-glow-edge {
+  stop-color: var(--hue-end);
+}
+
+.iso-part .iso-edge {
+  transition: stroke 160ms var(--ease-out);
+}
+.iso-part:hover .iso-edge {
+  stroke: var(--iso-hi);
+}
+
+/* Base rules are the still pose: everything neutral. Color appears only while a trace or glow is up. */
+.iso-wave,
+.iso-seal,
+.iso-token,
+.iso-call,
+.iso-burst {
+  opacity: 0;
+}
+.iso-seal {
+  transition: opacity 400ms var(--ease-out);
+}
+[data-closed] .iso-seal {
+  opacity: 0.8;
+}
+
+.iso-accept {
+  cursor: pointer;
+  outline: none;
+}
+.iso-accept .iso-glow {
+  pointer-events: auto;
+}
+.iso-accept:focus-visible .iso-edge {
+  stroke-width: 1.6px;
+}
+.iso-knob {
+  transition: transform 160ms var(--ease-out);
+}
+[data-closed] .iso-knob {
+  transform: translateY(1.5px);
+}
+.iso-call,
+.iso-burst {
+  stroke: var(--hue);
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* Motion: a ticket comes in on the rail, then each stage lights in turn. */
+@media (prefers-reduced-motion: no-preference) {
+  .iso-wave {
+    animation: iso-wave 10s ease-in-out var(--delay, 0s) infinite;
+  }
+  .iso-pulse {
+    animation: iso-pulse 10s ease-in-out var(--delay, 0s) infinite;
+  }
+  [data-closed] .iso-seal.iso-pulse {
+    animation: none;
+  }
+  .iso-token {
+    animation: iso-travel 10s linear infinite;
+  }
+  .iso-call {
+    animation: iso-ring 2.4s ease-out infinite;
+  }
+  [data-closed] .iso-call {
+    animation: none;
+  }
+  [data-closed] .iso-burst {
+    animation: iso-ring 0.9s ease-out 1;
+  }
+}
+
+@keyframes iso-wave {
+  0% {
+    opacity: 0;
+  }
+  3%,
+  10% {
+    opacity: 1;
+  }
+  16%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes iso-pulse {
+  0% {
+    opacity: 0;
+  }
+  3%,
+  10% {
+    opacity: 0.8;
+  }
+  16%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes iso-travel {
+  0% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
+  3%,
+  16% {
+    opacity: 1;
+  }
+  18%,
+  100% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+@keyframes iso-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.7);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
