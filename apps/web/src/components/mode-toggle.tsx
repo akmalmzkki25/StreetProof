@@ -10,9 +10,22 @@ import {
 import { MoonFastWindIcon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "D") {
+        event.preventDefault();
+        setTheme(theme === "dark" ? "light" : "dark");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [theme, setTheme]);
 
   return (
     <DropdownMenu>
