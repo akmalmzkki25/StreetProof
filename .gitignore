@@ -1,7 +1,7 @@
 # --- Secrets -------------------------------------------------------------
 # Every .env variant, then one exception. A wildcard rather than a list:
 # a file name nobody thought of (.env.prod, .env.staging) must be ignored,
-# not committed to a public repo.
+# not committed to the repo.
 .env
 .env.*
 !.env.example
@@ -52,7 +52,7 @@ playwright-report/
 blob-report/
 
 # --- Data -------------------------------------------------------------------
-# Real reports, photos and tenant data never enter this public repo.
+# Real reports, photos and tenant data never enter this repo, private or not.
 # Synthetic fixtures belong under a tracked fixtures/ folder instead.
 data/
 *.sqlite

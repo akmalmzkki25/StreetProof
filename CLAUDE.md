@@ -9,4 +9,4 @@ dengan Read sebelum mengerjakan bagian itu.
 
 Server MCP dipasang dengan scope `local` atau `user`, jangan `project`.
 `.mcp.json` diabaikan git supaya URL, header, dan token server tidak ikut
-ter-push ke repo publik.
+ter-push ke remote, yang bisa dibaca kolaborator mana pun.

@@ -33,4 +33,4 @@ Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `uv run p
 
 ## Data
 
-This repository is public. It holds synthetic or permissioned example data only: no real reports, photos, personal data or credentials.
+This repository is private, but it may be cloned, shared with collaborators or made public later, so it holds synthetic or permissioned example data only: no real reports, photos, personal data or credentials.

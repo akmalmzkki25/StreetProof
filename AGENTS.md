@@ -37,7 +37,8 @@ dengan salah satunya, sebutkan secara eksplisit, jangan diam-diam menimpanya.
 5. **Rencana dua bahasa tetap sinkron.** Mengubah `plan/en/...` berarti
    mengubah `plan/id/...` yang sepadan di commit yang sama, dan sebaliknya.
    Keputusan baru dicatat di `plan/*/00-foundation/decision-register.md`.
-6. **Tidak ada data nyata di repo.** Repo ini publik. Foto laporan, nama
+6. **Tidak ada data nyata di repo.** Repo ini privat, tapi bisa di-clone,
+   dibagikan ke kolaborator, atau dibuka ke publik nanti. Foto laporan, nama
    pelapor, nomor telepon, dan data penyewa hanya boleh sintetis. Rahasia
    hanya di `.env` (diabaikan git); `.env.example` berisi nama variabel saja.
 
