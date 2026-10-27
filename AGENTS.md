@@ -22,24 +22,39 @@ Proposed technical direction (see `plan/en/04-technical/architecture-decisions.m
 Every ADR in `plan/` is still _proposed_. If your work contradicts one, say so
 explicitly instead of silently overriding it.
 
+## Hackathon
+
+StreetProof is being built for the Meta Global AI Developer Hackathon. The
+event page is the reference for dates, tracks, themes, allowed models and
+submission rules; [`docs/hackathon.md`](docs/hackathon.md) summarizes it and
+lists what it means for this project. Submissions are due **Nov 4, 9:00 PM
+ET (Nov 5, 9:00 AM WIB)**. Scope every task against that deadline: the target
+is one working report-to-`verified_closed` flow built on Meta's models, using
+synthetic data.
+
 ## Standing rules
 
-1. **Edit files directly.** Don't wrap changes in Python or shell scripts that
+1. **Everything lives in this monorepo.** Frontend, API, worker, shared
+   packages, Python evaluation, database migrations, infrastructure config,
+   docs and the plan all go in this repository. Don't create separate repos
+   or split services out; add a new unit under `apps/`, `packages/` or `py/`
+   with the `streetproof-scaffold` skill instead.
+2. **Edit files directly.** Don't wrap changes in Python or shell scripts that
    rewrite files. The diff should show the code change, not a script change.
-2. **No multi-agent work unless asked.** No subagents, Workflows, or skills
+3. **No multi-agent work unless asked.** No subagents, Workflows, or skills
    that hand tasks to other agents. If a task seems to need that, ask first.
-3. **Push only when told.** Committing per step is fine; `git push` waits for
+4. **Push only when told.** Committing per step is fine; `git push` waits for
    an explicit instruction from the repo owner.
-4. **Every service has its own `AGENTS.md` and `CLAUDE.md`** in its folder
+5. **Every service has its own `AGENTS.md` and `CLAUDE.md`** in its folder
    (`apps/*`, `packages/*`, `py/*`). `CLAUDE.md` contains only `@AGENTS.md`.
    A new service gets both from the start; follow the `streetproof-scaffold` skill.
-5. **Write in English.** Repo docs, `AGENTS.md`/`CLAUDE.md` files, code
+6. **Write in English.** Repo docs, `AGENTS.md`/`CLAUDE.md` files, code
    comments, commit messages and PR text are in English. The one exception is
    `plan/id/`, the Indonesian twin of the plan.
-6. **Keep the bilingual plan in sync.** Changing `plan/en/...` means changing
+7. **Keep the bilingual plan in sync.** Changing `plan/en/...` means changing
    the matching `plan/id/...` in the same commit, and vice versa. New
    decisions go in `plan/*/00-foundation/decision-register.md`.
-7. **No real data in the repo.** The repo is private, but it can be cloned,
+8. **No real data in the repo.** The repo is private, but it can be cloned,
    shared with collaborators or made public later. Report photos, reporter
    names, phone numbers and tenant data must be synthetic. Secrets live only
    in `.env` (git-ignored); `.env.example` holds variable names only.
@@ -51,7 +66,9 @@ explicitly instead of silently overriding it.
 apps/             deployable apps (Next.js web, Node worker)
 packages/         shared TypeScript packages (domain, contracts, db, ui, config)
 py/               Python packages (AI evaluation, experiments, data scripts)
+supabase/         database migrations and Supabase config, once added
 plan/en, plan/id  planning package, two languages
+docs/hackathon.md hackathon reference (dates, tracks, models, rules)
 docs/adr/         accepted ADRs (proposed ones are still in plan/)
 docs/agents/      config for the to-spec, to-tickets and triage skills
 ```

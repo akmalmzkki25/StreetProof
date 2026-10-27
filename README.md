@@ -2,9 +2,13 @@
 
 StreetProof turns facility damage reports into assigned repair work with completion evidence and supervisor-controlled closure. AI drafts and flags missing context; operators, technicians and supervisors keep the decisions.
 
+Built for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon); submissions are due Nov 4, 9:00 PM ET. See [`docs/hackathon.md`](docs/hackathon.md).
+
 **Status:** planning. No application code yet. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
 
 ## Repository layout
+
+This is a monorepo: the web app, API, worker, shared packages, Python evaluation, database migrations, docs and the plan all live here.
 
 | Path                 | Contents                                                                                       |
 | -------------------- | ---------------------------------------------------------------------------------------------- |
@@ -12,6 +16,8 @@ StreetProof turns facility damage reports into assigned repair work with complet
 | `apps/`              | Deployable apps (planned: Next.js web, Node worker)                                            |
 | `packages/`          | Shared TypeScript packages                                                                     |
 | `py/`                | Python packages for AI evaluation and experiments                                              |
+| `supabase/`          | Database migrations and Supabase config (once added)                                           |
+| `docs/hackathon.md`  | Hackathon reference: dates, tracks, models, rules                                              |
 | `docs/adr/`          | Accepted architecture decisions                                                                |
 | `.agents/skills/`    | Skills for coding agents working on this repo                                                  |
 

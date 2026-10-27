@@ -52,7 +52,7 @@ Suggested first units, matching the high-level design in `plan/`:
 - `apps/web`: Next.js App Router, Supabase SSR auth, `/api/v1` Route Handlers.
 - `apps/worker`: Node process that claims outbox jobs and calls the AI adapter.
 - `packages/domain`: ticket state machine, permissions, pure functions, no I/O.
-- `packages/db`: SQL migrations (`supabase/migrations`), generated types, data-access layer.
+- `packages/db`: generated types and the data-access layer. SQL migrations stay in the root `supabase/migrations` folder, where the Supabase CLI expects them.
 - `packages/contracts`: request/response schemas (Zod) shared by web and worker.
 
 ## Python package
