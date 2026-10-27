@@ -1,12 +1,12 @@
 @AGENTS.md
 
-## Khusus Claude Code
+## Claude Code specifics
 
-Skill proyek ada di `.agents/skills/`, bukan `.claude/skills/`, supaya satu
-salinan dipakai bersama oleh Claude Code dan Codex. Claude Code tidak
-memuatnya otomatis: buka `SKILL.md` yang cocok dari tabel di `AGENTS.md`
-dengan Read sebelum mengerjakan bagian itu.
+Project skills live in `.agents/skills/`, not `.claude/skills/`, so Claude
+Code and Codex share one copy. Claude Code does not load them automatically:
+open the matching `SKILL.md` from the table in `AGENTS.md` with Read before
+working on that area.
 
-Server MCP dipasang dengan scope `local` atau `user`, jangan `project`.
-`.mcp.json` diabaikan git supaya URL, header, dan token server tidak ikut
-ter-push ke remote, yang bisa dibaca kolaborator mana pun.
+Install MCP servers with the `local` or `user` scope, never `project`.
+`.mcp.json` is git-ignored so server URLs, headers and tokens don't get
+pushed to the remote, where any collaborator can read them.

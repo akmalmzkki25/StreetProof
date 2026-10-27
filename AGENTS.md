@@ -1,65 +1,67 @@
-# Cara bekerja di repo ini
+# Working in this repo
 
-Catatan untuk agen (Claude Code, Codex, dan sejenisnya) yang mengerjakan
-StreetProof. Isinya kesepakatan kerja. Rencana produk dan arsitektur ada di
-`plan/` (versi EN dan ID), bukan di sini.
+Notes for agents (Claude Code, Codex and the like) working on StreetProof.
+These are working agreements. The product plan and architecture live in
+`plan/` (EN and ID versions), not here.
 
-## Status repo
+## Repo status
 
-Aplikasinya belum dibangun. Yang sudah ada: paket perencanaan di `plan/`,
-kerangka monorepo JavaScript (pnpm + Turborepo) dan Python (uv), serta skill
-agen di `.agents/skills/`. Folder `apps/`, `packages/`, dan `py/` masih kosong
-sampai spike teknis memutuskan isinya.
+The application has not been built yet. What exists: the planning package in
+`plan/`, a JavaScript (pnpm + Turborepo) and Python (uv) monorepo skeleton,
+and agent skills in `.agents/skills/`. The `apps/`, `packages/` and `py/`
+folders stay empty until the technical spike decides what goes in them.
 
-Arah teknis yang diusulkan (lihat `plan/en/04-technical/architecture-decisions.md`):
+Proposed technical direction (see `plan/en/04-technical/architecture-decisions.md`):
 
-- **Next.js + TypeScript** untuk UI dan `/api/v1` (modular monolith).
-- **Worker Node terpisah** untuk job lambat (AI, media), lewat outbox di PostgreSQL.
-- **Supabase**: Auth, PostgreSQL dengan RLS, Storage privat.
-- **Python** hanya untuk kebutuhan yang memang khas Python: evaluasi AI,
-  eksperimen model, skrip data. Bukan runtime kedua untuk API (ADR-001, D-05).
+- **Next.js + TypeScript** for the UI and `/api/v1` (modular monolith).
+- **A separate Node worker** for slow jobs (AI, media), fed by an outbox in PostgreSQL.
+- **Supabase**: Auth, PostgreSQL with RLS, private Storage.
+- **Python** only for work that is genuinely Python-shaped: AI evaluation,
+  model experiments, data scripts. Not a second API runtime (ADR-001, D-05).
 
-Semua ADR di `plan/` masih berstatus _proposed_. Kalau pekerjaanmu bertentangan
-dengan salah satunya, sebutkan secara eksplisit, jangan diam-diam menimpanya.
+Every ADR in `plan/` is still _proposed_. If your work contradicts one, say so
+explicitly instead of silently overriding it.
 
-## Aturan tetap
+## Standing rules
 
-1. **Sunting berkas langsung.** Jangan membungkus perubahan dalam skrip Python
-   atau shell yang menulis ulang berkas. Diff harus memperlihatkan perubahan
-   kode, bukan perubahan skrip.
-2. **Jangan memakai multi-agen kecuali disuruh.** Tanpa subagen, Workflow, atau
-   skill yang membagi tugas ke agen lain. Kalau tugas terasa butuh itu, tanya dulu.
-3. **Push hanya kalau disuruh.** Commit boleh per langkah; `git push` menunggu
-   perintah eksplisit pemilik repo.
-4. **Setiap service punya `AGENTS.md` dan `CLAUDE.md` sendiri** di foldernya
-   (`apps/*`, `packages/*`, `py/*`). `CLAUDE.md` cukup berisi `@AGENTS.md`.
-   Service baru langsung dibuatkan keduanya; ikuti skill `streetproof-scaffold`.
-5. **Rencana dua bahasa tetap sinkron.** Mengubah `plan/en/...` berarti
-   mengubah `plan/id/...` yang sepadan di commit yang sama, dan sebaliknya.
-   Keputusan baru dicatat di `plan/*/00-foundation/decision-register.md`.
-6. **Tidak ada data nyata di repo.** Repo ini privat, tapi bisa di-clone,
-   dibagikan ke kolaborator, atau dibuka ke publik nanti. Foto laporan, nama
-   pelapor, nomor telepon, dan data penyewa hanya boleh sintetis. Rahasia
-   hanya di `.env` (diabaikan git); `.env.example` berisi nama variabel saja.
+1. **Edit files directly.** Don't wrap changes in Python or shell scripts that
+   rewrite files. The diff should show the code change, not a script change.
+2. **No multi-agent work unless asked.** No subagents, Workflows, or skills
+   that hand tasks to other agents. If a task seems to need that, ask first.
+3. **Push only when told.** Committing per step is fine; `git push` waits for
+   an explicit instruction from the repo owner.
+4. **Every service has its own `AGENTS.md` and `CLAUDE.md`** in its folder
+   (`apps/*`, `packages/*`, `py/*`). `CLAUDE.md` contains only `@AGENTS.md`.
+   A new service gets both from the start; follow the `streetproof-scaffold` skill.
+5. **Write in English.** Repo docs, `AGENTS.md`/`CLAUDE.md` files, code
+   comments, commit messages and PR text are in English. The one exception is
+   `plan/id/`, the Indonesian twin of the plan.
+6. **Keep the bilingual plan in sync.** Changing `plan/en/...` means changing
+   the matching `plan/id/...` in the same commit, and vice versa. New
+   decisions go in `plan/*/00-foundation/decision-register.md`.
+7. **No real data in the repo.** The repo is private, but it can be cloned,
+   shared with collaborators or made public later. Report photos, reporter
+   names, phone numbers and tenant data must be synthetic. Secrets live only
+   in `.env` (git-ignored); `.env.example` holds variable names only.
 
-## Struktur
+## Layout
 
 ```
-.agents/skills/   skill agen untuk stack ini (lihat indeks di bawah)
-apps/             aplikasi yang di-deploy (web Next.js, worker Node)
-packages/         paket TypeScript bersama (domain, kontrak, db, ui, config)
-py/               paket Python (evaluasi AI, eksperimen, skrip data)
-plan/en, plan/id  paket perencanaan, dua bahasa
-docs/adr/         ADR yang sudah diterima (yang diusulkan masih di plan/)
-docs/agents/      konfigurasi untuk skill to-spec, to-tickets, triage
+.agents/skills/   agent skills for this stack (see the index below)
+apps/             deployable apps (Next.js web, Node worker)
+packages/         shared TypeScript packages (domain, contracts, db, ui, config)
+py/               Python packages (AI evaluation, experiments, data scripts)
+plan/en, plan/id  planning package, two languages
+docs/adr/         accepted ADRs (proposed ones are still in plan/)
+docs/agents/      config for the to-spec, to-tickets and triage skills
 ```
 
-## Perintah
+## Commands
 
-JavaScript (Node 22, pnpm 12), dijalankan dari root:
+JavaScript (Node 22, pnpm 12), run from the root:
 
 ```bash
-pnpm install          # selalu dari root, jangan --filter saat install
+pnpm install          # always from the root, never with --filter
 pnpm dev              # turbo run dev
 pnpm build            # turbo run build
 pnpm typecheck
@@ -67,59 +69,60 @@ pnpm lint
 pnpm test
 ```
 
-Python (3.12, uv), juga dari root:
+Python (3.12, uv), also from the root:
 
 ```bash
-uv sync               # buat .venv dan pasang workspace + dev tools
+uv sync               # create .venv and install the workspace + dev tools
 uv run ruff check .
 uv run ruff format .
 uv run pytest
 ```
 
-## Sebelum menyatakan selesai
+## Before calling it done
 
-- JS: `pnpm typecheck && pnpm lint && pnpm test`, lalu `pnpm build` kalau
-  menyentuh aplikasi Next.js. Sebagian kerusakan hanya muncul saat prerender.
+- JS: `pnpm typecheck && pnpm lint && pnpm test`, then `pnpm build` if you
+  touched the Next.js app. Some breakage only shows up during prerender.
 - Python: `uv run ruff check . && uv run ruff format --check . && uv run pytest`.
-- Setiap perubahan perilaku, nama, atau kontrak: `grep` nama dan kalimat lama di
-  seluruh repo (termasuk `plan/`) dan perbarui yang tertinggal di commit yang sama.
-- Pesan commit memakai format conventional commits (`feat:`, `fix:`, `docs:`, ...).
+- Any change to behavior, names or contracts: `grep` the old names and phrases
+  across the repo (including `plan/`) and update stragglers in the same commit.
+- Commit messages follow conventional commits (`feat:`, `fix:`, `docs:`, ...).
 
-## Skill agen
+## Agent skills index
 
-Skill ada di `.agents/skills/<nama>/SKILL.md`. Codex membacanya langsung. Agen
-lain: baca `SKILL.md` yang relevan sebelum mulai, bukan sesudah drafnya jadi.
+Skills live in `.agents/skills/<name>/SKILL.md`. Codex reads them directly.
+Other agents: read the relevant `SKILL.md` before starting, not after the
+draft is done.
 
-| Kebutuhan                                 | Skill                                                                                   |
-| ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| Menambah app, package, atau paket Python  | `streetproof-scaffold`                                                                  |
-| Next.js App Router, RSC, Suspense, cache  | `nextjs-app-architecture`, `vercel-react-best-practices`, `vercel-composition-patterns` |
-| UI: komponen, styling, aksesibilitas      | `shadcn`, `tailwind-design-system`, `web-design-guidelines`, `frontend-patterns`        |
-| Monorepo, pipeline task, cache            | `turborepo`                                                                             |
-| Supabase: Auth, RLS, Storage, CLI         | `supabase`, `supabase-postgres-best-practices`                                          |
-| Skema, migrasi, index                     | `database-migrations`, `supabase-postgres-best-practices`                               |
-| API dan service layer                     | `api-design`, `backend-patterns`, `error-handling`                                      |
-| Python                                    | `python-patterns`, `python-testing`, `fastapi-patterns`                                 |
-| Test dan verifikasi                       | `tdd-workflow`, `e2e-testing`, `verification-loop`                                      |
-| Keamanan (auth, input, data penyewa)      | `security-review`                                                                       |
-| Docker, CI/CD, deploy                     | `docker-patterns`, `deployment-patterns`                                                |
-| Riset sebelum menulis kode baru           | `search-first`                                                                          |
-| Keputusan arsitektur                      | `architecture-decision-records`, `domain-modeling`                                      |
-| Spec, tiket, triase issue                 | `to-spec`, `to-tickets`, `triage`                                                       |
-| Alur git dan PR                           | `git-workflow`                                                                          |
-| Serah terima ke sesi lain, orientasi repo | `handoff`, `codebase-onboarding`                                                        |
-| Standar kode umum                         | `coding-standards`                                                                      |
+| Need                                       | Skill                                                                                   |
+| ------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Add an app, package or Python package      | `streetproof-scaffold`                                                                  |
+| Next.js App Router, RSC, Suspense, caching | `nextjs-app-architecture`, `vercel-react-best-practices`, `vercel-composition-patterns` |
+| UI: components, styling, accessibility     | `shadcn`, `tailwind-design-system`, `web-design-guidelines`, `frontend-patterns`        |
+| Monorepo, task pipelines, caching          | `turborepo`                                                                             |
+| Supabase: Auth, RLS, Storage, CLI          | `supabase`, `supabase-postgres-best-practices`                                          |
+| Schema, migrations, indexes                | `database-migrations`, `supabase-postgres-best-practices`                               |
+| API and service layer                      | `api-design`, `backend-patterns`, `error-handling`                                      |
+| Python                                     | `python-patterns`, `python-testing`, `fastapi-patterns`                                 |
+| Testing and verification                   | `tdd-workflow`, `e2e-testing`, `verification-loop`                                      |
+| Security (auth, input, tenant data)        | `security-review`                                                                       |
+| Docker, CI/CD, deployment                  | `docker-patterns`, `deployment-patterns`                                                |
+| Research before writing new code           | `search-first`                                                                          |
+| Architecture decisions                     | `architecture-decision-records`, `domain-modeling`                                      |
+| Specs, tickets, issue triage               | `to-spec`, `to-tickets`, `triage`                                                       |
+| Git and PR flow                            | `git-workflow`                                                                          |
+| Handing off to another session, onboarding | `handoff`, `codebase-onboarding`                                                        |
+| General code standards                     | `coding-standards`                                                                      |
 
 ## Agent skills
 
 ### Issue tracker
 
-Issue dan spec ada di GitHub Issues repo ini, lewat `gh`. Lihat `docs/agents/issue-tracker.md`.
+Issues and specs live in this repo's GitHub Issues, via `gh`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Lima label kanonis bawaan (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). Lihat `docs/agents/triage-labels.md`.
+The five default canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: glosarium di `plan/en/00-foundation/glossary.md`, ADR di `docs/adr/`. Lihat `docs/agents/domain.md`.
+Single-context: glossary at `plan/en/00-foundation/glossary.md`, ADRs in `docs/adr/`. See `docs/agents/domain.md`.
