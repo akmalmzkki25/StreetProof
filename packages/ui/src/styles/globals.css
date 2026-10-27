@@ -20,12 +20,12 @@
   );
 }
 
-/* Linear. Light mode is derived from the dark source scheme. */
+/* Dark is the source scheme. Light is a warm cream paper (Paddy). */
 :root {
-  --background: #f7f8f8;
-  --card: #fdfdfd;
-  --foreground: #08090a;
-  --muted-foreground: #62666d;
+  --background: #f2f1ed;
+  --card: #f7f7f4;
+  --foreground: #26251e;
+  --muted-foreground: #6b675d;
   --brand: oklch(64.5% 0.246 16.439);
   --brand-foreground: #ffffff;
   --brand-text: oklch(51.4% 0.222 16.935);
@@ -35,8 +35,8 @@
   --chart-3: #d4a72c;
   --chart-4: #3d9a6c;
   --chart-5: #3fa7a7;
-  --shadow-ambient: rgb(8 9 10 / 0.08);
-  --shadow-outline: rgb(8 9 10 / 0.04);
+  --shadow-ambient: rgb(38 37 30 / 0.1);
+  --shadow-outline: rgb(38 37 30 / 0.05);
   --hair-alpha: 8%;
   --radius: 0.5rem;
 }

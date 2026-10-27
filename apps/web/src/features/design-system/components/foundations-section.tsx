@@ -148,7 +148,7 @@ export function FoundationsSection() {
     <ShowcaseSection
       id="foundations"
       title="Foundations"
-      description="Near-black tonal layers, three greys, one rose accent. Every pair below shows its live contrast."
+      description="Near-black dark layers, warm cream light paper, three greys, one rose accent. Every pair below shows its live contrast."
     >
       <ShowcaseBlock
         title="Color roles"

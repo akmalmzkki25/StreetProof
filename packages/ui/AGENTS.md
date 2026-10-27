@@ -1,6 +1,6 @@
 # @streetproof/ui
 
-Shared shadcn/ui (Base UI + Luma) components and design tokens for StreetProof. Icons are Hugeicons. Dark is the source scheme; light is derived. CSS and restyled variants follow the Halmahera design language documented in the repo-root `design.md`.
+Shared shadcn/ui (Base UI + Luma) components and design tokens for StreetProof. Icons are Hugeicons. Dark is the source scheme; light is warm cream paper (Paddy). CSS and restyled variants follow the Halmahera design language documented in the repo-root `design.md`.
 
 ## Run
 

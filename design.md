@@ -2,11 +2,11 @@
 
 Live showcase: `/design-system` in `apps/web`. When the tokens in `packages/ui/src/styles/globals.css` change, update this file in the same change.
 
-This file maps the Halmahera design language to shadcn/ui tokens. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is derived from it. The app defaults to dark.
+This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s warm cream light surfaces. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is cream paper. The app defaults to dark.
 
 ## 1. Character
 
-- **Quiet by default.** Near-black surfaces, three greys, and an 8% hairline. Color is data, not decoration.
+- **Quiet by default.** Near-black dark surfaces, warm cream light paper, three greys, and an 8% hairline. Color is data, not decoration.
 - **One rose accent.** Rose marks state, focus, and small highlights. The main action is a light pill.
 - **Pills for controls, 12px for panels.** Buttons, badges, and nav links are pills. Cards, dialogs, and panels are 12px.
 - **Flat panels.** A panel sits one step above the page and gets a hairline. Only floating layers cast a shadow.
@@ -19,10 +19,10 @@ This file maps the Halmahera design language to shadcn/ui tokens. The values mat
 
 | Token                | Light                       | Dark                        | Use                        |
 | -------------------- | --------------------------- | --------------------------- | -------------------------- |
-| `--background`       | `#f7f8f8`                   | `#08090a`                   | Page                       |
-| `--card`             | `#fdfdfd`                   | `#0f1011`                   | Panel, popover, muted fill |
-| `--foreground`       | `#08090a`                   | `#f7f8f8`                   | Ink                        |
-| `--muted-foreground` | `#62666d`                   | `#8a8f98`                   | Meta and help text         |
+| `--background`       | `#f2f1ed`                   | `#08090a`                   | Page                       |
+| `--card`             | `#f7f7f4`                   | `#0f1011`                   | Panel, popover, muted fill |
+| `--foreground`       | `#26251e`                   | `#f7f8f8`                   | Ink                        |
+| `--muted-foreground` | `#6b675d`                   | `#8a8f98`                   | Meta and help text         |
 | `--brand`            | `oklch(64.5% 0.246 16.439)` | same                        | Rose accent                |
 | `--brand-foreground` | `#ffffff`                   | same                        | Text on a rose fill        |
 | `--brand-text`       | `oklch(51.4% 0.222 16.935)` | `oklch(71.2% 0.194 13.428)` | Small rose text            |
