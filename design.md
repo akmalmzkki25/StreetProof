@@ -125,7 +125,8 @@ Depth is a surface step plus a hairline. Flat panels do not cast a drop shadow.
   --shadow-2xs: 0 0 #0000;
   --shadow-xs: 0 0 #0000;
   --shadow-sm: 0 0 #0000;
-  --shadow-md: 0 2px 32px var(--shadow-ambient), 0 0 0 1px var(--shadow-outline);
+  --shadow-md:
+    0 2px 32px var(--shadow-ambient), 0 0 0 1px var(--shadow-outline);
   --shadow-lg: var(--shadow-md);
   --shadow-xl: var(--shadow-md);
 }
