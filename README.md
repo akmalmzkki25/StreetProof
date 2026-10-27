@@ -4,7 +4,7 @@ StreetProof turns facility damage reports into assigned repair work with complet
 
 Built for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon); submissions are due Nov 4, 9:00 PM ET. See [`docs/hackathon.md`](docs/hackathon.md).
 
-**Status:** planning. No application code yet. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
+**Status:** scaffolding. `apps/web` and `packages/ui` are in place; product flow is not built yet. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
 
 ## Repository layout
 
@@ -13,8 +13,8 @@ This is a monorepo: the web app, API, worker, shared packages, Python evaluation
 | Path                 | Contents                                                                                       |
 | -------------------- | ---------------------------------------------------------------------------------------------- |
 | `plan/en`, `plan/id` | Research, business model, product requirements, technical design, delivery and marketing plans |
-| `apps/`              | Deployable apps (planned: Next.js web, Node worker)                                            |
-| `packages/`          | Shared TypeScript packages                                                                     |
+| `apps/`              | Deployable apps (`web` now; Node worker planned)                                               |
+| `packages/`          | Shared TypeScript packages (`ui` now; domain/db/contracts planned)                             |
 | `py/`                | Python packages for AI evaluation and experiments                                              |
 | `supabase/`          | Database migrations and Supabase config (once added)                                           |
 | `docs/hackathon.md`  | Hackathon reference: dates, tracks, models, rules                                              |
@@ -32,6 +32,10 @@ cp .env.example .env
 ```
 
 Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `uv run pytest`, `uv run ruff check .`
+
+```bash
+pnpm --filter @streetproof/web dev   # http://localhost:3000 — design system at /design-system
+```
 
 ## Working with coding agents
 

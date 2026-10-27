@@ -6,10 +6,11 @@ These are working agreements. The product plan and architecture live in
 
 ## Repo status
 
-The application has not been built yet. What exists: the planning package in
-`plan/`, a JavaScript (pnpm + Turborepo) and Python (uv) monorepo skeleton,
-and agent skills in `.agents/skills/`. The `apps/`, `packages/` and `py/`
-folders stay empty until the technical spike decides what goes in them.
+What exists: the planning package in `plan/`, a JavaScript (pnpm + Turborepo)
+and Python (uv) monorepo skeleton, agent skills in `.agents/skills/`, plus the
+first app units `apps/web` (Next.js) and `packages/ui` (shared design system).
+`py/` stays empty until evaluation work starts; further packages follow the
+scaffold skill as the spike needs them.
 
 Proposed technical direction (see `plan/en/04-technical/architecture-decisions.md`):
 

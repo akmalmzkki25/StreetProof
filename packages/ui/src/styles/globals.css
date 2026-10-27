@@ -1,0 +1,611 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter/opsz.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "./typeset.css";
+@source "../../../../apps/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+@utility scroll-fade-y {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 1.25rem,
+    black calc(100% - 1.25rem),
+    transparent 100%
+  );
+}
+
+/* Linear. Light mode is derived from the dark source scheme. */
+:root {
+  --background: #f7f8f8;
+  --card: #fdfdfd;
+  --foreground: #08090a;
+  --muted-foreground: #62666d;
+  --brand: oklch(64.5% 0.246 16.439);
+  --brand-foreground: #ffffff;
+  --brand-text: oklch(51.4% 0.222 16.935);
+  --destructive: #c9372c;
+  --chart-1: var(--brand);
+  --chart-2: #5e6ad2;
+  --chart-3: #d4a72c;
+  --chart-4: #3d9a6c;
+  --chart-5: #3fa7a7;
+  --shadow-ambient: rgb(8 9 10 / 0.08);
+  --shadow-outline: rgb(8 9 10 / 0.04);
+  --hair-alpha: 8%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #08090a;
+  --card: #0f1011;
+  --foreground: #f7f8f8;
+  --muted-foreground: #8a8f98;
+  --brand: oklch(64.5% 0.246 16.439);
+  --brand-foreground: #ffffff;
+  --brand-text: oklch(71.2% 0.194 13.428);
+  --destructive: #eb5757;
+  --chart-1: var(--brand);
+  --chart-2: #5e6ad2;
+  --chart-3: #f2c94c;
+  --chart-4: #4cb782;
+  --chart-5: #83dcdc;
+  --shadow-ambient: color-mix(in srgb, var(--background) 60%, transparent);
+  --shadow-outline: color-mix(in srgb, var(--background) 40%, transparent);
+}
+
+/* Tints mix from the literals above. Declared on .dark too so a dark band recomputes them. */
+:root,
+.dark {
+  --surface-raised: color-mix(in srgb, var(--card) 93%, var(--foreground));
+  --faint-foreground: color-mix(in srgb, var(--muted-foreground) 62%, var(--background));
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: color-mix(in srgb, var(--foreground) 92%, var(--background));
+  --primary-foreground: var(--background);
+  --secondary: var(--surface-raised);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--card);
+  --accent: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --accent-foreground: var(--foreground);
+  --border: color-mix(in srgb, var(--foreground) var(--hair-alpha), transparent);
+  --input: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --rule: color-mix(in srgb, var(--foreground) 11%, var(--background));
+  --ring: var(--brand);
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--muted-foreground);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+@theme inline {
+  --font-sans: "Inter Variable", "SF Pro Display", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: "Geist Mono Variable", "Berkeley Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-rule: var(--rule);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-surface-raised: var(--surface-raised);
+  --color-faint-foreground: var(--faint-foreground);
+  /* Flat cards get a hairline, never a drop shadow. */
+  --shadow-card: 0 0 0 1px var(--border);
+  --shadow-card-lg: var(--shadow-lg);
+  --shadow-inset: inset 0 0 0 1px var(--border);
+  --radius-sm: 4px; /* inline code, model tags */
+  --radius-md: 6px; /* menu items, sidebar rows */
+  --radius-lg: 6px; /* tooltips, kbd */
+  --radius-xl: 8px; /* small cards, bubbles */
+  --radius-2xl: 8px; /* fields, menu items, alerts */
+  --radius-3xl: 12px; /* popovers, menus */
+  --radius-4xl: 12px; /* cards, dialogs, panels */
+}
+
+@theme {
+  --font-weight-medium: 510;
+  --font-weight-semibold: 590;
+  /* Color fades and enter/exit. */
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Elements that move or resize on screen. */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: var(--ease-out);
+  /* Only floating layers cast a shadow. */
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 2px 32px var(--shadow-ambient), 0 0 0 1px var(--shadow-outline);
+  --shadow-lg: var(--shadow-md);
+  --shadow-xl: var(--shadow-md);
+  --shadow-2xl: var(--shadow-md);
+}
+
+/* The sticky header material. */
+@utility glass {
+  background-color: color-mix(in srgb, var(--background) 82%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  @media (prefers-contrast: more) {
+    outline: 1px solid var(--foreground);
+  }
+}
+
+/* Press feedback on pointer-down. Popup triggers stay still so the popup does not jump. */
+@utility pressable {
+  @media (prefers-reduced-motion: no-preference) {
+    &:active:not([aria-haspopup]) {
+      scale: 0.97;
+    }
+  }
+}
+
+/* Resize and press on one element. Each property gets its own duration and curve. */
+@utility transition-resize-press {
+  transition-property: flex-grow, scale;
+  transition-duration: 500ms, 160ms;
+  transition-timing-function: var(--ease-in-out), var(--ease-out);
+}
+
+/* A device frame that changes between phone and laptop. */
+@utility transition-device {
+  transition-property: width, height, border-radius;
+  transition-duration: 500ms;
+  transition-timing-function: var(--ease-in-out);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* Headlines sit at 510 with -0.022em tracking. Never bold, never uppercase. */
+@utility type-display-xl {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 5vw + 1.5rem, 4.5rem);
+  font-weight: 510;
+  line-height: 1;
+  letter-spacing: -0.022em;
+}
+
+@utility type-display {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 4vw + 1rem, 4rem);
+  font-weight: 510;
+  line-height: 1;
+  letter-spacing: -0.022em;
+}
+
+@utility type-headline {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 3vw + 1rem, 3rem);
+  font-weight: 510;
+  line-height: 1;
+  letter-spacing: -0.022em;
+}
+
+@utility type-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 590;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+}
+
+@utility type-lead {
+  font-size: clamp(1.125rem, 1vw + 0.875rem, 1.5rem);
+  font-weight: 400;
+  line-height: 1.33;
+  letter-spacing: -0.011em;
+}
+
+@utility type-caption {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Captions for figures, IDs, branch names and dates. */
+@utility type-label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes autoplay-progress {
+  from {
+    scale: 0 1;
+  }
+}
+
+/* The hero settles in one soft rise, then nothing else moves. */
+@utility rise-in {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: rise-in 640ms var(--ease-out) both;
+
+    &:nth-child(2) {
+      animation-delay: 80ms;
+    }
+    &:nth-child(3) {
+      animation-delay: 160ms;
+    }
+    &:nth-child(4) {
+      animation-delay: 240ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-in 300ms var(--ease-out) both;
+  }
+}
+
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    translate: 0 8px;
+  }
+}
+
+/* Only the hero headline. One time per load. */
+@utility blur-in {
+  display: inline-block;
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: blur-in 700ms var(--ease-out) both;
+    animation-delay: calc(var(--word-index, 0) * 60ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: fade-in 300ms var(--ease-out) both;
+  }
+}
+
+/* Section headings. Hidden below the fold, then blur in once when they enter view. */
+@utility blur-in-view {
+  &[data-reveal="pending"] {
+    opacity: 0;
+  }
+
+  &[data-reveal="shown"] {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: blur-in 700ms var(--ease-out) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: fade-in 300ms var(--ease-out) both;
+    }
+  }
+}
+
+/* Content blocks. Hidden below the fold, then rise in once when they enter view. No blur. */
+@utility rise-in-view {
+  &[data-reveal="pending"] {
+    opacity: 0;
+  }
+
+  &[data-reveal="shown"] {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: rise-in 640ms var(--ease-out) var(--reveal-delay, 0ms) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: fade-in 300ms var(--ease-out) var(--reveal-delay, 0ms) both;
+    }
+  }
+}
+
+/* A new screen fades in when it replaces the last one. */
+@utility fade-in {
+  animation: fade-in 240ms var(--ease-out) both;
+}
+
+/* The orbit canvas shows after its first frame, not before. */
+@utility fade-in-ready {
+  opacity: 0;
+  transition: opacity 480ms var(--ease-out);
+
+  &[data-ready] {
+    opacity: 1;
+  }
+}
+
+/* A carousel advances when this bar finishes, and pauses with it. */
+@utility autoplay-progress {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: autoplay-progress 8s linear both;
+
+    [data-paused="true"] & {
+      animation-play-state: paused;
+    }
+  }
+}
+
+/* An image chip that sits inside a line of display text. */
+@utility inline-swatch {
+  display: inline-block;
+  height: 0.8em;
+  width: 1.6em;
+  vertical-align: -0.05em;
+}
+
+/* A dot field that fades out at the edges, like a map of islands. */
+@utility dot-field {
+  background-image: radial-gradient(currentColor 1.2px, transparent 1.6px);
+  background-size: 14px 14px;
+  mask-image: radial-gradient(ellipse 70% 45% at 55% 40%, black, transparent);
+}
+
+/* A static near-white glow. A plain gradient: no blur filter, no animation, one paint. */
+@utility neutral-glow {
+  background-image: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-white) 45%, transparent),
+    color-mix(in oklab, var(--color-white) 28%, transparent) 15%,
+    transparent
+  );
+}
+
+/*
+ * A 1px rose and indigo ring that follows the pointer.
+ * Set --glow-x and --glow-y on the element. Plain gradients: no blur filter.
+ * Active and reduced-motion states show a still ring.
+ */
+@utility glow-ring {
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-stops: var(--brand), var(--chart-2);
+  border-radius: inherit;
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background-image: radial-gradient(
+      12rem circle at var(--glow-x) var(--glow-y),
+      var(--glow-stops),
+      transparent
+    );
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-clip: content-box, border-box;
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+  }
+
+  &[data-active="true"]::before {
+    background-image: linear-gradient(90deg, var(--glow-stops));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before {
+      background-image: linear-gradient(90deg, var(--glow-stops));
+    }
+  }
+}
+
+/* Sparse stars. Prime tile sizes keep the layers from lining up into a grid. */
+/* A card row that runs edge to edge. The first card lines up with the 72rem page column. */
+@utility card-row-inset {
+  --row-inset: 1rem;
+  padding-inline: max(var(--row-inset), calc((100% - 72rem) / 2 + var(--row-inset)));
+  scroll-padding-inline: max(var(--row-inset), calc((100% - 72rem) / 2 + var(--row-inset)));
+
+  @media (min-width: 40rem) {
+    --row-inset: 2rem;
+  }
+}
+
+/* One, two, or three cards fit the row. The 1.5rem gap is subtracted first. */
+@utility card-row-item {
+  flex-basis: 100%;
+
+  @media (min-width: 48rem) {
+    flex-basis: calc((100% - 1.5rem) / 2);
+  }
+
+  @media (min-width: 64rem) {
+    flex-basis: calc((100% - 3rem) / 3);
+  }
+}
+
+@utility star-field {
+  background-image:
+    radial-gradient(circle at 18% 27%, currentColor 0.7px, transparent 1.3px),
+    radial-gradient(circle at 73% 61%, currentColor 0.6px, transparent 1.2px),
+    radial-gradient(circle at 41% 83%, currentColor 1px, transparent 1.6px),
+    radial-gradient(circle at 87% 12%, currentColor 0.5px, transparent 1.1px);
+  background-size:
+    131px 131px,
+    197px 197px,
+    283px 283px,
+    109px 109px;
+  mask-image: radial-gradient(ellipse 75% 70% at 65% 50%, black 20%, transparent);
+}
+
+/* A copy of a headline that glitches in short steps. Add glitch-mirror to flip its direction. */
+@utility glitch-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  animation: glitch-idle 7s steps(1, end) infinite;
+
+  [data-glitch] & {
+    animation: glitch-burst 900ms steps(1, end);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility glitch-mirror {
+  --glitch-direction: -1;
+}
+
+@keyframes glitch-idle {
+  0%,
+  95% {
+    opacity: 0;
+  }
+  95.5% {
+    opacity: 0.8;
+    clip-path: inset(20% 0 60% 0);
+    translate: calc(var(--glitch-direction, 1) * 3px) 0;
+  }
+  96.5% {
+    clip-path: inset(55% 0 30% 0);
+    translate: calc(var(--glitch-direction, 1) * -2px) 0;
+  }
+  97.5% {
+    clip-path: inset(8% 0 82% 0);
+    translate: calc(var(--glitch-direction, 1) * 4px) 0;
+  }
+  98.5%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes glitch-burst {
+  0% {
+    opacity: 1;
+    clip-path: inset(10% 0 70% 0);
+    translate: calc(var(--glitch-direction, 1) * 8px) 0;
+  }
+  10% {
+    clip-path: inset(45% 0 35% 0);
+    translate: calc(var(--glitch-direction, 1) * -6px) 0;
+  }
+  20% {
+    clip-path: inset(75% 0 5% 0);
+    translate: calc(var(--glitch-direction, 1) * 10px) 0;
+  }
+  30% {
+    clip-path: inset(0 0 85% 0);
+    translate: calc(var(--glitch-direction, 1) * -4px) 0;
+  }
+  40% {
+    clip-path: inset(30% 0 40% 0);
+    translate: calc(var(--glitch-direction, 1) * 12px) 0;
+  }
+  50% {
+    clip-path: inset(60% 0 20% 0);
+    translate: calc(var(--glitch-direction, 1) * -9px) 0;
+  }
+  60% {
+    clip-path: inset(15% 0 60% 0);
+    translate: calc(var(--glitch-direction, 1) * 5px) 0;
+  }
+  70% {
+    clip-path: inset(85% 0 0 0);
+    translate: calc(var(--glitch-direction, 1) * -7px) 0;
+  }
+  80% {
+    clip-path: inset(40% 0 50% 0);
+    translate: calc(var(--glitch-direction, 1) * 3px) 0;
+  }
+  90%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility caption-blur {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  mask-image: linear-gradient(to top, black 35%, transparent);
+
+  @media (prefers-reduced-transparency: reduce) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-[15px] leading-[1.6] tracking-[-0.011em] text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 160ms;
+    animation-timing-function: var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+}
