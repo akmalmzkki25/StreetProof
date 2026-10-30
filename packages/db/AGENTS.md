@@ -10,6 +10,7 @@ From the repo root:
 pnpm db:generate -- --name <change>   # write a migration from src/schema.ts
 pnpm db:migrate                       # apply migrations to DATABASE_URL
 pnpm db:seed                          # wipe and reseed synthetic demo data, create the bucket
+pnpm db:seed:demo                     # same, plus the demo tickets in docs/demo-scenarios.md
 pnpm --filter @streetproof/db test    # constraint and command tests against the seeded database
 ```
 

@@ -283,6 +283,12 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
 
   it("gives a job to only one of two racing claims", async () => {
     const { job } = await newJob();
+    // Claims take the longest-waiting job first, so this one goes first even if
+    // the queue already holds others.
+    await db
+      .update(outbox)
+      .set({ availableAt: new Date(0) })
+      .where(eq(outbox.id, job.id));
 
     const claims = await Promise.all([
       claimOutboxJob(db, DRAFT_TOPIC),

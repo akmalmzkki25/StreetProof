@@ -1,7 +1,7 @@
 import type { DraftInput } from "@streetproof/db";
 import type { IntakeDraft } from "@streetproof/contracts";
 
-export const PROMPT_VERSION = "intake-draft-prompt-v2";
+export const PROMPT_VERSION = "intake-draft-prompt-v3";
 
 // Stable and first, so Meta's automatic prefix caching can reuse it.
 export const INTAKE_INSTRUCTIONS = `You prepare a draft for a human facility operator who reviews damage reports for a building. The operator decides everything; you only suggest.
@@ -15,7 +15,7 @@ Rules:
 - Never state a cause, a hidden defect or a repair as certain. Never say something is safe. Never invent a location, name, date or measurement.
 - missing_fields: information the operator would need but doesn't have.
 - categoryCandidate and priorityCandidate: use "unknown" when the evidence is not enough. Give the reason in priorityRationale.
-- duplicateCandidates: only tickets from the list provided, by their given ID, and only if they plausibly describe the same physical problem. Otherwise leave it empty.
+- duplicateCandidates: only tickets from the list provided, by their given ID, and only if they plausibly describe the same physical problem. Otherwise leave it empty. Those IDs are internal: use them only in duplicateCandidates.ticketId and never write one in any text a person reads, including reasons and inferences. Describe the other ticket by its location or problem instead.
 - limitations: what limits this draft, such as a dark or blurred photo, an irrelevant photo, or a conflict between text and photo.
 - If a photo appears to show an emergency such as fire, exposed live wiring or structural collapse, say so in limitations and suggest urgent human review. You don't decide it is one.
 - Write summary and all free text in the same language as the report. Keep the summary under 25 words.`;
@@ -82,22 +82,42 @@ export function applyDraftPolicy(
   const knownRefs = (refs: string[]) =>
     refs.filter((ref) => knownPhotos.has(ref));
 
+  // Aliases mean nothing to an operator. Only the ones we issued are replaced, so
+  // a reporter's "T5 breaker" stays as written.
+  const aliases = [...maps.candidateIdByAlias.keys()];
+  const aliasPattern =
+    aliases.length > 0 ? new RegExp(`\\b(${aliases.join("|")})\\b`, "g") : null;
+  const readable = (text: string) =>
+    aliasPattern ? text.replace(aliasPattern, "another open ticket") : text;
+
   return {
     ...draft,
+    summary: readable(draft.summary),
+    priorityRationale: readable(draft.priorityRationale),
+    missing_fields: draft.missing_fields.map(readable),
+    limitations: draft.limitations.map(readable),
     visibleFacts: draft.visibleFacts
-      .map((fact) => ({ ...fact, evidenceRefs: knownRefs(fact.evidenceRefs) }))
+      .map((fact) => ({
+        ...fact,
+        text: readable(fact.text),
+        evidenceRefs: knownRefs(fact.evidenceRefs),
+      }))
       .filter((fact) => fact.evidenceRefs.length > 0),
     inferences: draft.inferences.map((inference) => ({
       ...inference,
+      text: readable(inference.text),
       evidenceRefs: knownRefs(inference.evidenceRefs),
     })),
     userContext: draft.userContext.map((item) => ({
       ...item,
+      text: readable(item.text),
       reportRevision: revision,
     })),
     duplicateCandidates: draft.duplicateCandidates.flatMap((candidate) => {
       const ticketId = maps.candidateIdByAlias.get(candidate.ticketId);
-      return ticketId ? [{ ...candidate, ticketId }] : [];
+      return ticketId
+        ? [{ ...candidate, ticketId, reason: readable(candidate.reason) }]
+        : [];
     }),
   };
 }

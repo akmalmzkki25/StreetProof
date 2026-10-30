@@ -31,6 +31,7 @@ uv sync
 cp .env.example .env   # one .env for the whole monorepo; fill in the Docker credentials
 pnpm db:migrate        # Postgres in Docker
 pnpm db:seed           # synthetic tenants, demo accounts, private MinIO bucket
+pnpm db:seed:demo      # same, plus the demo tickets in docs/demo-scenarios.md
 ```
 
 Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `uv run pytest`, `uv run ruff check .`

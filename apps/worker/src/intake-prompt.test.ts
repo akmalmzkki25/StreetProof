@@ -69,6 +69,31 @@ describe("applyDraftPolicy", () => {
     expect(result.inferences[0]?.evidenceRefs).toEqual([]);
   });
 
+  it("replaces ticket aliases in text a person reads", () => {
+    const leaked = applyDraftPolicy(
+      {
+        ...draft,
+        inferences: [
+          {
+            text: "Same location as T1, near the T15 breaker.",
+            evidenceRefs: [],
+            uncertainty: "medium",
+          },
+        ],
+        duplicateCandidates: [{ ticketId: "T1", reason: "Matches T1 exactly" }],
+      },
+      maps,
+      0,
+    );
+
+    expect(leaked.inferences[0]?.text).toBe(
+      "Same location as another open ticket, near the T15 breaker.",
+    );
+    expect(leaked.duplicateCandidates[0]?.reason).toBe(
+      "Matches another open ticket exactly",
+    );
+  });
+
   it("maps known duplicates back to real IDs and drops the rest", () => {
     expect(result.duplicateCandidates).toEqual([
       { ticketId: "real-uuid", reason: "Same floor" },
