@@ -19,10 +19,11 @@ export async function signIn(
     return { error: "Enter your email and password.", email };
   }
 
+  const requestHeaders = await headers();
   try {
     await getAuth().api.signInEmail({
       body: { email, password },
-      headers: await headers(),
+      headers: requestHeaders,
     });
   } catch (error) {
     if (isAPIError(error)) {
@@ -38,6 +39,7 @@ export async function signIn(
 }
 
 export async function signOut() {
-  await getAuth().api.signOut({ headers: await headers() });
+  const requestHeaders = await headers();
+  await getAuth().api.signOut({ headers: requestHeaders });
   redirect("/login");
 }

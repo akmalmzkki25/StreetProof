@@ -24,9 +24,10 @@ export type Member = {
 // their current membership through here, once per request.
 export const getCurrentMember = cache(
   async function getCurrentMember(): Promise<Member | null> {
-    const session = await getAuth().api.getSession({
-      headers: await headers(),
-    });
+    // Read the request first: during prerender this is where Next stops, so
+    // the database is never touched at build time.
+    const requestHeaders = await headers();
+    const session = await getAuth().api.getSession({ headers: requestHeaders });
     if (!session) return null;
 
     const rows = await getDb()
