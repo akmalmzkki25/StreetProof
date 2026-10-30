@@ -1,6 +1,12 @@
 import { cn } from "@/lib/utils";
 
-const defaultStates = ["default", "hover", "focus", "active", "disabled"] as const;
+const defaultStates = [
+  "default",
+  "hover",
+  "focus",
+  "active",
+  "disabled",
+] as const;
 
 export function StateMatrix<Row extends string>({
   rows,

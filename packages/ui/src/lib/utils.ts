@@ -14,7 +14,13 @@ export const cn = createCn({
       ],
     },
     conflictingClassGroups: {
-      "type-scale": ["font-size", "font-weight", "font-family", "leading", "tracking"],
+      "type-scale": [
+        "font-size",
+        "font-weight",
+        "font-family",
+        "leading",
+        "tracking",
+      ],
     },
   },
 });

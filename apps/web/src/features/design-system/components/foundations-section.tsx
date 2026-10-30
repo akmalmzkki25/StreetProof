@@ -7,14 +7,38 @@ const colorPairs = [
   { name: "Page", background: "background", foreground: "foreground" },
   { name: "Panel", background: "card", foreground: "card-foreground" },
   { name: "Popover", background: "popover", foreground: "popover-foreground" },
-  { name: "Primary pill", background: "primary", foreground: "primary-foreground" },
+  {
+    name: "Primary pill",
+    background: "primary",
+    foreground: "primary-foreground",
+  },
   { name: "Brand rose", background: "brand", foreground: "brand-foreground" },
-  { name: "Secondary", background: "secondary", foreground: "secondary-foreground" },
+  {
+    name: "Secondary",
+    background: "secondary",
+    foreground: "secondary-foreground",
+  },
   { name: "Muted", background: "muted", foreground: "muted-foreground" },
-  { name: "Raised panel", background: "surface-raised", foreground: "foreground" },
-  { name: "Brand text on page", background: "background", foreground: "brand-text" },
-  { name: "Destructive on page", background: "background", foreground: "destructive" },
-  { name: "Faint text on page", background: "background", foreground: "faint-foreground" },
+  {
+    name: "Raised panel",
+    background: "surface-raised",
+    foreground: "foreground",
+  },
+  {
+    name: "Brand text on page",
+    background: "background",
+    foreground: "brand-text",
+  },
+  {
+    name: "Destructive on page",
+    background: "background",
+    foreground: "destructive",
+  },
+  {
+    name: "Faint text on page",
+    background: "background",
+    foreground: "faint-foreground",
+  },
 ];
 
 const paletteGroups = [
@@ -108,16 +132,36 @@ const typeTokens = [
 ];
 
 const radiusSteps = [
-  { token: "rounded-sm", value: "4px", use: "Inline code, tags", className: "rounded-sm" },
-  { token: "rounded-md", value: "6px", use: "Menu items, sidebar rows", className: "rounded-md" },
+  {
+    token: "rounded-sm",
+    value: "4px",
+    use: "Inline code, tags",
+    className: "rounded-sm",
+  },
+  {
+    token: "rounded-md",
+    value: "6px",
+    use: "Menu items, sidebar rows",
+    className: "rounded-md",
+  },
   {
     token: "rounded-2xl",
     value: "8px",
     use: "Fields, alerts, small cards",
     className: "rounded-2xl",
   },
-  { token: "rounded-3xl", value: "12px", use: "Popovers, menus", className: "rounded-3xl" },
-  { token: "rounded-4xl", value: "12px", use: "Cards, dialogs, panels", className: "rounded-4xl" },
+  {
+    token: "rounded-3xl",
+    value: "12px",
+    use: "Popovers, menus",
+    className: "rounded-3xl",
+  },
+  {
+    token: "rounded-4xl",
+    value: "12px",
+    use: "Cards, dialogs, panels",
+    className: "rounded-4xl",
+  },
   {
     token: "rounded-full",
     value: "9999px",
@@ -128,19 +172,51 @@ const radiusSteps = [
 
 const elevationSteps = [
   { token: "bg-card", use: "Panel, one step up", className: "bg-card" },
-  { token: "shadow-card", use: "Flat panels (hairline)", className: "bg-card shadow-card" },
-  { token: "shadow-inset", use: "Raised inner panel", className: "bg-surface-raised shadow-inset" },
+  {
+    token: "shadow-card",
+    use: "Flat panels (hairline)",
+    className: "bg-card shadow-card",
+  },
+  {
+    token: "shadow-inset",
+    use: "Raised inner panel",
+    className: "bg-surface-raised shadow-inset",
+  },
   { token: "glass", use: "Sticky header only", className: "glass border" },
-  { token: "shadow-lg", use: "Floating windows, menus", className: "bg-card shadow-lg" },
+  {
+    token: "shadow-lg",
+    use: "Floating windows, menus",
+    className: "bg-card shadow-lg",
+  },
 ];
 
 const motionTokens = [
   { token: "duration", value: "160ms", use: "Every color fade (default)" },
-  { token: "ease-out", value: "cubic-bezier(.25, .46, .45, .94)", use: "All motion" },
-  { token: "ease-in-out", value: "cubic-bezier(.77, 0, .175, 1)", use: "Move or resize on screen" },
-  { token: "pressable", value: "scale 0.97 · 160ms", use: "Press feedback on pointer-down" },
-  { token: "rise-in", value: "640ms · 12px", use: "Hero only, once, 80ms stagger" },
-  { token: "blur-in", value: "700ms · 8px blur", use: "Hero headline only, once, 60ms per word" },
+  {
+    token: "ease-out",
+    value: "cubic-bezier(.25, .46, .45, .94)",
+    use: "All motion",
+  },
+  {
+    token: "ease-in-out",
+    value: "cubic-bezier(.77, 0, .175, 1)",
+    use: "Move or resize on screen",
+  },
+  {
+    token: "pressable",
+    value: "scale 0.97 · 160ms",
+    use: "Press feedback on pointer-down",
+  },
+  {
+    token: "rise-in",
+    value: "640ms · 12px",
+    use: "Hero only, once, 80ms stagger",
+  },
+  {
+    token: "blur-in",
+    value: "700ms · 8px blur",
+    use: "Hero headline only, once, 60ms per word",
+  },
 ];
 
 export function FoundationsSection() {
@@ -165,7 +241,9 @@ export function FoundationsSection() {
         <div className="flex flex-col gap-6">
           {paletteGroups.map((group) => (
             <div key={group.name} className="flex flex-col gap-3">
-              <p className="text-sm font-semibold text-foreground">{group.name}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {group.name}
+              </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
                 {group.swatches.map((swatch) => (
                   <div key={swatch.token} className="flex flex-col gap-2">
@@ -198,22 +276,32 @@ export function FoundationsSection() {
               className="grid gap-2 py-5 md:grid-cols-[12rem_1fr] md:items-baseline md:gap-6"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="font-mono text-xs text-foreground">{type.token}</span>
-                <span className="text-xs text-muted-foreground">{type.use}</span>
-                <span className="text-xs text-muted-foreground">{type.spec}</span>
+                <span className="font-mono text-xs text-foreground">
+                  {type.token}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {type.use}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {type.spec}
+                </span>
               </div>
               <p className={cn("truncate", type.className)}>{type.sample}</p>
             </div>
           ))}
         </div>
         <p className="max-w-prose text-sm leading-relaxed text-foreground">
-          <strong className="font-medium">Reports become repair work.</strong> StreetProof turns
-          facility damage reports into assigned tickets with evidence. Open{" "}
-          <a href="#recipes" className="font-medium text-brand-text underline underline-offset-4">
+          <strong className="font-medium">Reports become repair work.</strong>{" "}
+          StreetProof turns facility damage reports into assigned tickets with
+          evidence. Open{" "}
+          <a
+            href="#recipes"
+            className="font-medium text-brand-text underline underline-offset-4"
+          >
             the ticket card
           </a>{" "}
-          to see the advice, or copy the ticket ID <code className="font-mono">TK-0142</code> to share
-          it with your team.
+          to see the advice, or copy the ticket ID{" "}
+          <code className="font-mono">TK-0142</code> to share it with your team.
         </p>
       </ShowcaseBlock>
 
@@ -225,11 +313,18 @@ export function FoundationsSection() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {radiusSteps.map((step) => (
               <div key={step.token} className="flex flex-col gap-2">
-                <div className={cn("h-20 border border-brand/40 bg-brand/10", step.className)} />
+                <div
+                  className={cn(
+                    "h-20 border border-brand/40 bg-brand/10",
+                    step.className,
+                  )}
+                />
                 <span className="font-mono text-xs text-foreground">
                   {step.token} · {step.value}
                 </span>
-                <span className="text-xs text-muted-foreground">{step.use}</span>
+                <span className="text-xs text-muted-foreground">
+                  {step.use}
+                </span>
               </div>
             ))}
           </div>
@@ -243,8 +338,12 @@ export function FoundationsSection() {
             {elevationSteps.map((step) => (
               <div key={step.token} className="flex flex-col gap-2">
                 <div className={cn("h-20 rounded-3xl", step.className)} />
-                <span className="font-mono text-xs text-foreground">{step.token}</span>
-                <span className="text-xs text-muted-foreground">{step.use}</span>
+                <span className="font-mono text-xs text-foreground">
+                  {step.token}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {step.use}
+                </span>
               </div>
             ))}
           </div>
@@ -258,8 +357,13 @@ export function FoundationsSection() {
         <div className="grid gap-4 md:grid-cols-[1fr_auto]">
           <div className="flex flex-col divide-y rounded-4xl bg-card px-6 shadow-card">
             {motionTokens.map((motion) => (
-              <div key={motion.token} className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-sm">
-                <span className="font-mono text-xs text-foreground">{motion.token}</span>
+              <div
+                key={motion.token}
+                className="grid grid-cols-[8rem_1fr] gap-4 py-3 text-sm"
+              >
+                <span className="font-mono text-xs text-foreground">
+                  {motion.token}
+                </span>
                 <span className="text-muted-foreground">
                   {motion.value} · {motion.use}
                 </span>

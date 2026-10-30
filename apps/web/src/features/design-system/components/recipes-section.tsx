@@ -32,7 +32,10 @@ function GuidelineExample({
       </div>
       <p className="text-sm">
         <span
-          className={cn("font-semibold", kind === "Do" ? "text-brand-text" : "text-destructive")}
+          className={cn(
+            "font-semibold",
+            kind === "Do" ? "text-brand-text" : "text-destructive",
+          )}
         >
           {kind}.
         </span>{" "}
@@ -58,16 +61,25 @@ export function RecipesSection() {
             <Button>Assign technician</Button>
             <Badge variant="brand">Verified</Badge>
           </GuidelineExample>
-          <GuidelineExample kind="Don't" rule="Fill large areas or every button with rose.">
+          <GuidelineExample
+            kind="Don't"
+            rule="Fill large areas or every button with rose."
+          >
             <Button variant="brand">Assign</Button>
             <Button variant="brand">Cancel</Button>
             <Button variant="brand">Export</Button>
           </GuidelineExample>
-          <GuidelineExample kind="Do" rule="Put arrows on quiet text links next to the button.">
+          <GuidelineExample
+            kind="Do"
+            rule="Put arrows on quiet text links next to the button."
+          >
             <Button>Open ticket</Button>
             <Button variant="link">View evidence →</Button>
           </GuidelineExample>
-          <GuidelineExample kind="Don't" rule="Put arrows or icons inside pill buttons.">
+          <GuidelineExample
+            kind="Don't"
+            rule="Put arrows or icons inside pill buttons."
+          >
             <Button>Open ticket →</Button>
           </GuidelineExample>
         </div>

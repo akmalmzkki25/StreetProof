@@ -87,7 +87,10 @@ function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
   );
 }
 
-function ToastDescription({ className, ...props }: ToastPrimitive.Description.Props) {
+function ToastDescription({
+  className,
+  ...props
+}: ToastPrimitive.Description.Props) {
   return (
     <ToastPrimitive.Description
       data-slot="toast-description"
@@ -129,7 +132,9 @@ function ToastClose({
       )}
       {...props}
     >
-      {children ?? <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} aria-hidden="true" />}
+      {children ?? (
+        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} aria-hidden="true" />
+      )}
     </ToastPrimitive.Close>
   );
 }
@@ -138,15 +143,29 @@ function ToastIcon({ type }: { type: string | undefined }) {
   let icon: React.ReactNode = null;
 
   if (type === "success") {
-    icon = <HugeiconsIcon icon={CheckmarkCircle02Icon} strokeWidth={2} aria-hidden="true" />;
+    icon = (
+      <HugeiconsIcon
+        icon={CheckmarkCircle02Icon}
+        strokeWidth={2}
+        aria-hidden="true"
+      />
+    );
   }
 
   if (type === "info") {
-    icon = <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} aria-hidden="true" />;
+    icon = (
+      <HugeiconsIcon
+        icon={InformationCircleIcon}
+        strokeWidth={2}
+        aria-hidden="true"
+      />
+    );
   }
 
   if (type === "warning") {
-    icon = <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} aria-hidden="true" />;
+    icon = (
+      <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} aria-hidden="true" />
+    );
   }
 
   if (type === "error") {
@@ -203,7 +222,11 @@ function ToastList() {
   ));
 }
 
-function Toaster({ children, toastManager = toast, ...props }: ToastPrimitive.Provider.Props) {
+function Toaster({
+  children,
+  toastManager = toast,
+  ...props
+}: ToastPrimitive.Provider.Props) {
   return (
     <ToastProvider toastManager={toastManager} {...props}>
       {children}

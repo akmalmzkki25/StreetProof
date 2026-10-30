@@ -23,7 +23,11 @@ export default function HomePage() {
               >
                 <g filter="url(#street-proof-mark-inner)">
                   <use href="#street-proof-mark-stroke" stroke="#0A0A0A" />
-                  <use href="#street-proof-mark-stroke" stroke="#FEFEFE" strokeOpacity="0.4" />
+                  <use
+                    href="#street-proof-mark-stroke"
+                    stroke="#FEFEFE"
+                    strokeOpacity="0.4"
+                  />
                 </g>
                 <defs>
                   <filter
@@ -50,12 +54,21 @@ export default function HomePage() {
                     />
                     <feOffset dy="1" />
                     <feGaussianBlur stdDeviation="0.75" />
-                    <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+                    <feComposite
+                      in2="hardAlpha"
+                      operator="arithmetic"
+                      k2="-1"
+                      k3="1"
+                    />
                     <feColorMatrix
                       type="matrix"
                       values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0"
                     />
-                    <feBlend mode="normal" in2="shape" result="effect1_innerShadow" />
+                    <feBlend
+                      mode="normal"
+                      in2="shape"
+                      result="effect1_innerShadow"
+                    />
                   </filter>
                   <path
                     id="street-proof-mark-stroke"
@@ -76,12 +89,16 @@ export default function HomePage() {
               <span className="text-muted-foreground">repair work.</span>
             </h1>
             <p className="max-w-xl type-lead text-muted-foreground">
-              Facility damage reports turn into assigned tickets with completion evidence and
-              supervisor-controlled closure. AI drafts; people decide.
+              Facility damage reports turn into assigned tickets with completion
+              evidence and supervisor-controlled closure. AI drafts; people
+              decide.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button nativeButton={false} render={<Link href="/design-system" />}>
+            <Button
+              nativeButton={false}
+              render={<Link href="/design-system" />}
+            >
               Open design system
             </Button>
             <Button

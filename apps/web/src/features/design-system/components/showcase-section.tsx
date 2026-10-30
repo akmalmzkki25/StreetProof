@@ -41,7 +41,9 @@ export function ShowcaseBlock({
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-col gap-1">
         <h3 className="type-title text-foreground">{title}</h3>
-        {description ? <p className="type-caption text-muted-foreground">{description}</p> : null}
+        {description ? (
+          <p className="type-caption text-muted-foreground">{description}</p>
+        ) : null}
       </div>
       {children}
     </div>

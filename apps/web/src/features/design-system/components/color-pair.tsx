@@ -27,12 +27,17 @@ function toHex(rgb: number[]) {
 function luminance(rgb: [number, number, number]) {
   const channels = rgb.map((value) => {
     const channel = value / 255;
-    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    return channel <= 0.03928
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4;
   });
   return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
 }
 
-function contrastRatio(first: [number, number, number], second: [number, number, number]) {
+function contrastRatio(
+  first: [number, number, number],
+  second: [number, number, number],
+) {
   const firstLuminance = luminance(first);
   const secondLuminance = luminance(second);
   const light = Math.max(firstLuminance, secondLuminance);
@@ -59,7 +64,10 @@ export function ColorPair({
   className?: string;
 }) {
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [measurement, setMeasurement] = useState<{ ratio: number; hex: string } | null>(null);
+  const [measurement, setMeasurement] = useState<{
+    ratio: number;
+    hex: string;
+  } | null>(null);
 
   useEffect(() => {
     const element = surfaceRef.current;
@@ -78,7 +86,10 @@ export function ColorPair({
       }
       const text = toRgb(style.color, toHex(surface));
       if (text) {
-        setMeasurement({ ratio: contrastRatio(surface, text), hex: toHex(surface) });
+        setMeasurement({
+          ratio: contrastRatio(surface, text),
+          hex: toHex(surface),
+        });
       }
     }
     measure();
@@ -88,10 +99,18 @@ export function ColorPair({
   }, []);
 
   return (
-    <div className={cn("flex flex-col overflow-hidden rounded-2xl border", className)}>
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-2xl border",
+        className,
+      )}
+    >
       <div
         ref={surfaceRef}
-        style={{ backgroundColor: `var(--${background})`, color: `var(--${foreground})` }}
+        style={{
+          backgroundColor: `var(--${background})`,
+          color: `var(--${foreground})`,
+        }}
         className="flex h-24 items-end justify-between p-4"
       >
         <span className="font-heading text-2xl font-semibold">Aa</span>
@@ -107,7 +126,9 @@ export function ColorPair({
           --{background} / --{foreground}
         </span>
         {measurement ? (
-          <span className="font-mono text-xs text-muted-foreground">{measurement.hex}</span>
+          <span className="font-mono text-xs text-muted-foreground">
+            {measurement.hex}
+          </span>
         ) : null}
       </div>
     </div>

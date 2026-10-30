@@ -43,7 +43,13 @@ const buttonVariants = [
   "link",
 ] as const;
 
-const badgeVariants = ["default", "brand", "secondary", "outline", "destructive"] as const;
+const badgeVariants = [
+  "default",
+  "brand",
+  "secondary",
+  "outline",
+  "destructive",
+] as const;
 
 const categories = [
   { label: "Lighting", value: "lighting" },
@@ -71,21 +77,33 @@ export function ControlsSection() {
           </div>
           <StateMatrix
             rows={buttonVariants}
-            states={["default", "hover", "focus", "active", "disabled", "loading"]}
+            states={[
+              "default",
+              "hover",
+              "focus",
+              "active",
+              "disabled",
+              "loading",
+            ]}
             render={(variant, state) => (
               <Button
                 variant={variant}
                 {...previewState(state)}
                 disabled={state === "disabled" || state === "loading"}
               >
-                {state === "loading" ? <Spinner data-icon="inline-start" /> : null}
+                {state === "loading" ? (
+                  <Spinner data-icon="inline-start" />
+                ) : null}
                 Save ticket
               </Button>
             )}
           />
         </ShowcaseBlock>
 
-        <ShowcaseBlock title="Badge" description="Status chips stay quiet. Brand is for good status.">
+        <ShowcaseBlock
+          title="Badge"
+          description="Status chips stay quiet. Brand is for good status."
+        >
           <div className="flex flex-wrap items-center gap-3">
             {badgeVariants.map((variant) => (
               <Badge key={variant} variant={variant}>
@@ -111,7 +129,10 @@ export function ControlsSection() {
               </Field>
               <Field>
                 <FieldLabel htmlFor="notes">Notes</FieldLabel>
-                <Textarea id="notes" placeholder="Broken fixture, still sparking." />
+                <Textarea
+                  id="notes"
+                  placeholder="Broken fixture, still sparking."
+                />
               </Field>
               <Field data-invalid>
                 <FieldLabel htmlFor="phone">Reporter phone</FieldLabel>
