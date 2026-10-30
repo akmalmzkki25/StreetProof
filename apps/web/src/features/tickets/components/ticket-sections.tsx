@@ -73,16 +73,43 @@ export function Attempts({ ticket }: { ticket: TicketDetail }) {
           key={attempt.id}
           className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
         >
-          <Badge
-            variant={ATTEMPT_VARIANTS[attempt.status]}
-            className="self-start"
-          >
-            {ATTEMPT_LABELS[attempt.status]}
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={ATTEMPT_VARIANTS[attempt.status]}>
+              {ATTEMPT_LABELS[attempt.status]}
+            </Badge>
+            {attempt.exceptionReason ? (
+              <Badge variant="outline">Exception requested</Badge>
+            ) : null}
+          </div>
           <p className="whitespace-pre-wrap">{attempt.note}</p>
           <p className="type-caption text-muted-foreground">
             {attempt.submitterName} · {formatDateTime(attempt.submittedAt)}
           </p>
+          {attempt.exceptionReason ? (
+            <p className="whitespace-pre-wrap">
+              <span className="text-muted-foreground">
+                Why it can&apos;t all be confirmed:{" "}
+              </span>
+              {attempt.exceptionReason}
+            </p>
+          ) : null}
+          {attempt.checklist.length > 0 ? (
+            <ul className="flex flex-col gap-1 type-caption">
+              {attempt.checklist.map((item) => (
+                <li
+                  key={item.id}
+                  className={item.checked ? "" : "text-destructive"}
+                >
+                  {item.checked ? "Confirmed" : "Not confirmed"}: {item.label}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {attempt.photos.length === 0 ? (
+            <p className="type-caption text-muted-foreground">
+              No photo was added.
+            </p>
+          ) : null}
           <PhotoGrid photos={attempt.photos} label="Proof photo" />
           {attempt.decisionReason ? (
             <p>

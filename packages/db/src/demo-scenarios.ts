@@ -1,4 +1,4 @@
-import type { Role } from "@streetproof/domain";
+import { checklistFor, type Role } from "@streetproof/domain";
 import { randomUUID } from "node:crypto";
 import { and, eq, gt, inArray, sql, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
@@ -161,6 +161,14 @@ function createFlows(context: DemoContext) {
     return row.revision;
   }
 
+  async function allChecks(ticketId: string) {
+    const [row] = await db
+      .select({ category: tickets.category })
+      .from(tickets)
+      .where(eq(tickets.id, ticketId));
+    return checklistFor(row?.category ?? null).map((item) => item.id);
+  }
+
   // The worker never ran for this report, the same result as a person getting there
   // first. Left pending, a job would spend model credits on a backdated ticket.
   async function closeDraftJob(
@@ -317,6 +325,24 @@ function createFlows(context: DemoContext) {
             actor: technician,
             note,
             photos: [await context.storePhoto(scene)],
+            checkedItemIds: await allChecks(ticketId),
+            exceptionReason: null,
+          }),
+        ),
+      requestException: (
+        age: number,
+        technician: Person,
+        note: string,
+        exceptionReason: string,
+      ) =>
+        step("Request an exception", age, async () =>
+          submitCompletion(db, {
+            ...(await work()),
+            actor: technician,
+            note,
+            photos: [],
+            checkedItemIds: (await allChecks(ticketId)).slice(0, 1),
+            exceptionReason,
           }),
         ),
       decide: (
@@ -577,6 +603,30 @@ export async function seedDemoScenarios(context: DemoContext) {
     "The photo doesn't show the pipe. Send a photo of the repaired joint.",
   );
 
+  // No photo is allowed where the work happened, so a reason goes to the
+  // supervisor. It can't be verified until there's a photo.
+  const proofException = await reportFlow({
+    age: 3,
+    description: "The breaker for the floor 7 corridor lights keeps tripping.",
+    place: "Floor 7 restroom",
+    scene: "dead_light",
+    draft: "skip",
+  });
+  await proofException.triage(2.8, {
+    summary: "Breaker for the floor 7 corridor lights keeps tripping",
+    category: "electrical",
+    priority: "normal",
+  });
+  await proofException.assign(2.6, budi);
+  await proofException.accept(2.4, budi);
+  await proofException.start(2, budi);
+  await proofException.requestException(
+    0.5,
+    budi,
+    "Replaced the breaker. The corridor lights have held for a day.",
+    "Cameras aren't allowed in the electrical room. The building manager saw the new breaker.",
+  );
+
   async function closedWork(spec: {
     age: number;
     closedAge: number;
@@ -712,6 +762,7 @@ export async function seedDemoScenarios(context: DemoContext) {
       waitingForParts: waitingForParts.ticketId,
       secondAttempt: secondAttempt.ticketId,
       rejected: rejected.ticketId,
+      proofException: proofException.ticketId,
       closedOnTime: closedOnTime.ticketId,
       reopened: reopened.ticketId,
       cancelled: cancelled.ticketId,

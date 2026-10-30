@@ -65,6 +65,12 @@ export type DashboardEvent = {
   createdAt: Date;
 };
 
+export type DashboardAttempt = {
+  ticketId: string;
+  hasException: boolean;
+  submittedAt: Date;
+};
+
 export type DraftOutcome = "ready" | "pending" | "failed" | "not_needed";
 
 // Null means a report has no draft row yet: its job hasn't been picked up.
@@ -130,10 +136,11 @@ export function canViewDashboard(roles: readonly Role[]) {
 export function computeDashboard(input: {
   tickets: readonly DashboardTicket[];
   events: readonly DashboardEvent[];
+  attempts: readonly DashboardAttempt[];
   drafts: readonly DraftOutcome[];
   now: Date;
 }) {
-  const { tickets, events, drafts, now } = input;
+  const { tickets, events, attempts, drafts, now } = input;
   const nowMs = now.getTime();
   const windowStart = nowMs - DASHBOARD_WINDOW_DAYS * DAY_MS;
   const observed = OBSERVATION_DAYS * DAY_MS;
@@ -317,6 +324,9 @@ export function computeDashboard(input: {
         (event) => event.toStatus === "rejected_with_reason",
       ).length,
       waiting: open.filter((ticket) => ticket.stage === "verification").length,
+      exceptions: attempts.filter(
+        (attempt) => attempt.hasException && inWindow(attempt.submittedAt),
+      ).length,
     },
     drafts: {
       ready: drafts.filter((draft) => draft === "ready").length,

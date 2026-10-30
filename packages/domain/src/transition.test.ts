@@ -127,7 +127,10 @@ describe("checkTransition", () => {
 
     expect(result).toEqual({
       ok: false,
-      rejection: { code: "missing_requirements", missing: ["ready_evidence"] },
+      rejection: {
+        code: "missing_requirements",
+        missing: ["completion_proof"],
+      },
     });
   });
 

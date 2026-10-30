@@ -17,6 +17,7 @@ The command prints four reporter status links once. Sign in with the demo accoun
 | Toilet running, plus a linked report | In progress, one duplicate linked    | Both reports kept; the duplicate's reporter follows this work        |
 | Exhaust fan                          | Waiting for parts                    | Blocker with a reason                                                |
 | Sagging ceiling panel                | Second proof waiting, first rejected | Supervisor verifies, with the wrong-object attempt on record         |
+| Tripping breaker                     | Exception waiting, no photo          | Supervisor sees the reason but can't verify without a photo          |
 | Leaking pipe joint                   | Proof rejected                       | Technician has to redo it                                            |
 | Four closed tickets                  | Verified closed                      | Elapsed times and 14-day rates; one closed too late to count         |
 | Crumbling parking floor              | Reopened, in progress                | Repair that didn't hold                                              |

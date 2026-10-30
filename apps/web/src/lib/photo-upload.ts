@@ -18,10 +18,12 @@ export type ReadPhotosResult =
 
 export async function readPhotos(
   formData: FormData,
+  options: { optional?: boolean } = {},
 ): Promise<ReadPhotosResult> {
   const files = formData
     .getAll("photos")
     .filter((value): value is File => value instanceof File && value.size > 0);
+  if (files.length === 0 && options.optional) return { ok: true, photos: [] };
   const problem = photoProblem(files);
   if (problem) return { ok: false, error: problem };
 

@@ -1,5 +1,5 @@
 import "../scripts/load-root-env";
-import type { Role } from "@streetproof/domain";
+import { checklistFor, type Role } from "@streetproof/domain";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
@@ -30,6 +30,7 @@ import {
 import { getTicketDetail, listQueue } from "./ticket-queries";
 
 const url = process.env.DATABASE_URL;
+const ALL_CHECKS = checklistFor("plumbing").map((item) => item.id);
 
 describe.skipIf(!url)(
   "completion flow (needs the seeded local database)",
@@ -198,15 +199,123 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "Fixed",
         photos: [],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
 
       expect(outcome).toEqual({
         ok: false,
         rejection: {
           code: "missing_requirements",
+          missing: ["completion_proof"],
+        },
+      });
+    });
+
+    it("refuses a photo without the full checklist", async () => {
+      const { tenantId, ticketId, technician, revision } =
+        await ticketInProgress();
+
+      const outcome = await submitCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        expectedRevision: revision,
+        note: "Fixed",
+        photos: [proof()],
+        checkedItemIds: ALL_CHECKS.slice(1),
+        exceptionReason: null,
+      });
+
+      expect(outcome).toEqual({
+        ok: false,
+        rejection: {
+          code: "missing_requirements",
+          missing: ["completion_proof"],
+        },
+      });
+    });
+
+    it("sends a reasoned exception to the supervisor, who can't verify it without a photo", async () => {
+      const { tenantId, ticketId, technician, supervisor, revision } =
+        await ticketInProgress();
+
+      const submitted = await submitCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        expectedRevision: revision,
+        note: "Fixed the valve",
+        photos: [],
+        checkedItemIds: ALL_CHECKS.slice(1),
+        exceptionReason: "Cameras aren't allowed in this plant room.",
+      });
+      const submittedRevision = revisionOf(submitted);
+
+      const ticket = await getTicketDetail(
+        db,
+        { tenantId, siteIds: null },
+        ticketId,
+      );
+      expect(ticket?.status).toBe("completion_submitted");
+      expect(ticket?.attempts[0]?.exceptionReason).toBe(
+        "Cameras aren't allowed in this plant room.",
+      );
+      expect(
+        ticket?.attempts[0]?.checklist.map((item) => item.checked),
+      ).toEqual([false, true, true]);
+
+      const verified = await decideCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: supervisor,
+        expectedRevision: submittedRevision,
+        decision: "accepted",
+        reason: "Looks fine to me",
+      });
+      expect(verified).toEqual({
+        ok: false,
+        rejection: {
+          code: "missing_requirements",
           missing: ["ready_evidence"],
         },
       });
+
+      const rejected = await decideCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: supervisor,
+        expectedRevision: submittedRevision,
+        decision: "rejected",
+        reason: "Ask the site manager to take a photo.",
+      });
+      expect(rejected.ok).toBe(true);
+    });
+
+    it("lets a supervisor verify an exception that has a photo", async () => {
+      const { tenantId, ticketId, technician, supervisor, revision } =
+        await ticketInProgress();
+
+      const submitted = await submitCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        expectedRevision: revision,
+        note: "Fixed, but the water is off for now",
+        photos: [proof()],
+        checkedItemIds: ALL_CHECKS.slice(1),
+        exceptionReason: "The water supply is off, so I can't run the test.",
+      });
+
+      const verified = await decideCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: supervisor,
+        expectedRevision: revisionOf(submitted),
+        decision: "accepted",
+        reason: "The photo shows the repair and the reason holds.",
+      });
+      expect(verified.ok).toBe(true);
     });
 
     it("refuses completion from a technician who isn't assigned", async () => {
@@ -220,6 +329,8 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "Fixed",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
 
       expect(outcome).toEqual({
@@ -239,6 +350,8 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "Replaced the seal",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
       expect(submitted).toMatchObject({
         ok: true,
@@ -282,6 +395,8 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "Done",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
 
       const outcome = await decideCompletion(db, {
@@ -310,6 +425,8 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "First attempt",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
       const rejected = await decideCompletion(db, {
         tenantId,
@@ -334,6 +451,8 @@ describe.skipIf(!url)(
         expectedRevision: revisionOf(resumed),
         note: "Second attempt",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
       expect(second).toMatchObject({ ok: true });
 
@@ -363,6 +482,8 @@ describe.skipIf(!url)(
         expectedRevision: revision,
         note: "Done",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
       const decision = {
         tenantId,
@@ -406,6 +527,8 @@ describe.skipIf(!url)(
         expectedRevision: context.revision,
         note: "Done",
         photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
       });
       const closed = await decideCompletion(db, {
         tenantId,

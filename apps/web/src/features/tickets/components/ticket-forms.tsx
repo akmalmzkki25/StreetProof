@@ -1,13 +1,20 @@
 "use client";
 
-import { TICKET_CATEGORIES, TICKET_PRIORITIES } from "@streetproof/domain";
+import {
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
+  type ChecklistItem,
+} from "@streetproof/domain";
 import { Alert, AlertDescription } from "@streetproof/ui/components/alert";
 import { Button } from "@streetproof/ui/components/button";
+import { Checkbox } from "@streetproof/ui/components/checkbox";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
 } from "@streetproof/ui/components/field";
 import { Input } from "@streetproof/ui/components/input";
 import {
@@ -19,7 +26,7 @@ import {
   SelectValue,
 } from "@streetproof/ui/components/select";
 import { Textarea } from "@streetproof/ui/components/textarea";
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useState } from "react";
 
 import { MAX_PHOTOS } from "@/lib/photos";
 
@@ -307,11 +314,16 @@ export function WaitForm({ ticketId, revision }: TicketRef) {
   );
 }
 
-export function CompletionForm({ ticketId, revision }: TicketRef) {
+export function CompletionForm({
+  ticketId,
+  revision,
+  checklist,
+}: TicketRef & { checklist: readonly ChecklistItem[] }) {
   const [state, formAction, isPending] = useActionState(
     completionAction,
     initialState,
   );
+  const [hasException, setHasException] = useState(false);
 
   // Submitted by hand: React resets an uncontrolled form after an action, which
   // would drop the chosen photos when the technician needs to retry.
@@ -329,6 +341,26 @@ export function CompletionForm({ ticketId, revision }: TicketRef) {
           <FieldLabel htmlFor="note">What did you do?</FieldLabel>
           <Textarea id="note" name="note" rows={3} maxLength={1000} required />
         </Field>
+        <FieldSet>
+          <FieldLegend variant="label">Before you finish</FieldLegend>
+          <FieldGroup className="gap-3">
+            {checklist.map((item) => (
+              <Field key={item.id} orientation="horizontal">
+                <Checkbox
+                  id={`check-${item.id}`}
+                  name="checks"
+                  value={item.id}
+                />
+                <FieldLabel
+                  htmlFor={`check-${item.id}`}
+                  className="font-normal"
+                >
+                  {item.label}
+                </FieldLabel>
+              </Field>
+            ))}
+          </FieldGroup>
+        </FieldSet>
         <Field>
           <FieldLabel htmlFor="photos">Proof photos</FieldLabel>
           <Input
@@ -337,13 +369,42 @@ export function CompletionForm({ ticketId, revision }: TicketRef) {
             type="file"
             accept="image/jpeg,image/png,image/webp"
             multiple
-            required
+            required={!hasException}
+            className="max-sm:h-11 max-sm:pt-2.5"
           />
           <FieldDescription>
             Up to {MAX_PHOTOS} photos showing the finished repair. A supervisor
             reviews them before the work closes.
           </FieldDescription>
         </Field>
+        <Field orientation="horizontal">
+          <Checkbox
+            id="has-exception"
+            checked={hasException}
+            onCheckedChange={setHasException}
+          />
+          <FieldLabel htmlFor="has-exception" className="font-normal">
+            I can&apos;t confirm everything or add a photo
+          </FieldLabel>
+        </Field>
+        {hasException ? (
+          <Field>
+            <FieldLabel htmlFor="exceptionReason">
+              What&apos;s stopping you?
+            </FieldLabel>
+            <Textarea
+              id="exceptionReason"
+              name="exceptionReason"
+              rows={2}
+              maxLength={500}
+              required
+            />
+            <FieldDescription>
+              A supervisor reads this and decides. Without a photo, they
+              can&apos;t close the work yet.
+            </FieldDescription>
+          </Field>
+        ) : null}
       </FieldGroup>
       <FormError error={state.error} />
       <Button
@@ -358,7 +419,11 @@ export function CompletionForm({ ticketId, revision }: TicketRef) {
   );
 }
 
-export function DecisionForm({ ticketId, revision }: TicketRef) {
+export function DecisionForm({
+  ticketId,
+  revision,
+  canVerify,
+}: TicketRef & { canVerify: boolean }) {
   const [state, formAction, isPending] = useActionState(
     decisionAction,
     initialState,
@@ -377,19 +442,23 @@ export function DecisionForm({ ticketId, revision }: TicketRef) {
           required
         />
         <FieldDescription>
-          Say what the proof shows, or what the technician needs to correct.
+          {canVerify
+            ? "Say what the proof shows, or what the technician needs to correct."
+            : "This attempt has no photo, so you can't verify it yet. Say what the technician needs to send."}
         </FieldDescription>
       </Field>
       <FormError error={state.error} />
       <div className="flex flex-wrap gap-2">
-        <Button
-          type="submit"
-          name="decision"
-          value="accepted"
-          disabled={isPending}
-        >
-          Verify completion
-        </Button>
+        {canVerify ? (
+          <Button
+            type="submit"
+            name="decision"
+            value="accepted"
+            disabled={isPending}
+          >
+            Verify completion
+          </Button>
+        ) : null}
         <Button
           type="submit"
           name="decision"

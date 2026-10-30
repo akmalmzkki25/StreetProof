@@ -8,6 +8,7 @@ import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "./client";
 import {
   aiDrafts,
+  completionSubmissions,
   duplicateLinks,
   locations,
   reports,
@@ -87,6 +88,15 @@ export async function getDashboard(
     .from(ticketEvents)
     .where(inArray(ticketEvents.ticketId, ticketIds));
 
+  const attemptRows = await db
+    .select({
+      ticketId: completionSubmissions.ticketId,
+      exceptionReason: completionSubmissions.exceptionReason,
+      submittedAt: completionSubmissions.submittedAt,
+    })
+    .from(completionSubmissions)
+    .where(inArray(completionSubmissions.ticketId, ticketIds));
+
   const reportsInWindow = ticketReports.filter(
     (report) => report.createdAt >= since,
   );
@@ -104,6 +114,11 @@ export async function getDashboard(
   return computeDashboard({
     now,
     events,
+    attempts: attemptRows.map((attempt) => ({
+      ticketId: attempt.ticketId,
+      hasException: attempt.exceptionReason !== null,
+      submittedAt: attempt.submittedAt,
+    })),
     tickets: rows.map(function toTicket(row) {
       const first = ticketReports.find((report) => report.ticketId === row.id);
       return {

@@ -1,4 +1,9 @@
-import { ROLES, TICKET_PRIORITIES, TICKET_STATUSES } from "@streetproof/domain";
+import {
+  ROLES,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES,
+  type ChecklistResult,
+} from "@streetproof/domain";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -278,6 +283,8 @@ export const completionSubmissions = pgTable(
     ticketId: uuid().notNull(),
     assignmentId: uuid().notNull(),
     note: text().notNull(),
+    checklist: jsonb().$type<ChecklistResult[]>().notNull().default([]),
+    exceptionReason: text(),
     status: completionStatusEnum().notNull().default("pending"),
     submittedBy: text()
       .notNull()

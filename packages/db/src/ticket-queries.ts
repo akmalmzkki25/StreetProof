@@ -290,6 +290,8 @@ export async function getTicketDetail(
     .select({
       id: completionSubmissions.id,
       note: completionSubmissions.note,
+      checklist: completionSubmissions.checklist,
+      exceptionReason: completionSubmissions.exceptionReason,
       status: completionSubmissions.status,
       submittedAt: completionSubmissions.submittedAt,
       submitterName: submitter.name,

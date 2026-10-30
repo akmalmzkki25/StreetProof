@@ -9,6 +9,8 @@ import {
   availableTransitions,
   canBeLinkedAsDuplicate,
   canManageDuplicates,
+  canVerifyAttempt,
+  checklistFor,
 } from "@streetproof/domain";
 
 import { Panel } from "@/components/panel";
@@ -212,7 +214,7 @@ export async function NextStep({
       ) : null}
       {canComplete ? (
         <Panel id="complete" title="Submit completion">
-          <CompletionForm {...ref} />
+          <CompletionForm {...ref} checklist={checklistFor(ticket.category)} />
         </Panel>
       ) : null}
       {canWait ? (
@@ -222,7 +224,14 @@ export async function NextStep({
       ) : null}
       {canDecide ? (
         <Panel id="decide" title="Review the proof">
-          <DecisionForm {...ref} />
+          <DecisionForm
+            {...ref}
+            canVerify={canVerifyAttempt({
+              photoCount:
+                ticket.attempts.find((attempt) => attempt.status === "pending")
+                  ?.photos.length ?? 0,
+            })}
+          />
         </Panel>
       ) : null}
       {canReopen ? (

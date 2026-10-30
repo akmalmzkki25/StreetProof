@@ -26,7 +26,12 @@ export const ROLES = [
 export type Role = (typeof ROLES)[number];
 
 export type Requirement =
-  "reason" | "assignee" | "triage_fields" | "ready_evidence" | "next_review_at";
+  | "reason"
+  | "assignee"
+  | "triage_fields"
+  | "completion_proof"
+  | "ready_evidence"
+  | "next_review_at";
 
 export type TransitionRule = {
   from: TicketStatus;
@@ -127,14 +132,15 @@ export const TRANSITIONS: readonly TransitionRule[] = [
     to: "completion_submitted",
     actor: "technician",
     mustBeCurrentAssignee: true,
-    requires: ["ready_evidence"],
+    // The checklist and a photo, or a reason for a supervisor to decide on.
+    requires: ["completion_proof"],
   },
   {
     from: "completion_submitted",
     to: "verified_closed",
     actor: "supervisor",
     mustBeCurrentAssignee: false,
-    requires: ["reason"],
+    requires: ["reason", "ready_evidence"],
   },
   {
     from: "completion_submitted",

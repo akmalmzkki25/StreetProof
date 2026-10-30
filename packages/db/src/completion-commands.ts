@@ -1,10 +1,16 @@
-import type { Requirement } from "@streetproof/domain";
-import { and, eq, isNull } from "drizzle-orm";
+import {
+  canVerifyAttempt,
+  checklistResults,
+  completionProofProblem,
+  type Requirement,
+} from "@streetproof/domain";
+import { and, count, eq, isNull } from "drizzle-orm";
 import type { Db } from "./client";
 import type { ReportPhoto } from "./reports";
 import {
   assignments,
   completionSubmissions,
+  tickets,
   uploads,
   verifications,
 } from "./schema";
@@ -31,14 +37,37 @@ export function acceptWork(db: Db, command: WorkCommand) {
   });
 }
 
-// Photos are stored before this runs. Without at least one, the domain guard
-// rejects the transition, so completion can't exist without proof.
-export function submitCompletion(
+// Photos are stored before this runs. Without the category's checklist and a
+// photo, or a reason for a supervisor to decide on, the domain guard rejects the
+// transition. A failed upload never reaches here, so it can't count as proof.
+export async function submitCompletion(
   db: Db,
-  command: WorkCommand & { note: string; photos: readonly ReportPhoto[] },
+  command: WorkCommand & {
+    note: string;
+    photos: readonly ReportPhoto[];
+    checkedItemIds: readonly string[];
+    exceptionReason: string | null;
+  },
 ) {
-  const provided: Requirement[] =
-    command.photos.length > 0 ? ["ready_evidence"] : [];
+  const [ticket] = await db
+    .select({ category: tickets.category })
+    .from(tickets)
+    .where(
+      and(
+        eq(tickets.tenantId, command.tenantId),
+        eq(tickets.id, command.ticketId),
+      ),
+    );
+  const category = ticket?.category ?? null;
+  const exceptionReason = command.exceptionReason?.trim() || null;
+  const provided: Requirement[] = completionProofProblem({
+    category,
+    checkedIds: command.checkedItemIds,
+    photoCount: command.photos.length,
+    exceptionReason,
+  })
+    ? []
+    : ["completion_proof"];
 
   return transitionTicket(db, {
     tenantId: command.tenantId,
@@ -47,6 +76,7 @@ export function submitCompletion(
     expectedRevision: command.expectedRevision,
     to: "completion_submitted",
     provided,
+    payload: { hasProofException: exceptionReason !== null },
     apply: async function recordAttempt(tx, ticket) {
       const [assignment] = await tx
         .select({ id: assignments.id })
@@ -65,11 +95,14 @@ export function submitCompletion(
           ticketId: ticket.id,
           assignmentId: assignment.id,
           note: command.note,
+          checklist: checklistResults(category, command.checkedItemIds),
+          exceptionReason,
           submittedBy: command.actor.userId,
         })
         .returning({ id: completionSubmissions.id });
       if (!attempt) throw new Error("Completion insert returned nothing.");
 
+      if (command.photos.length === 0) return;
       await tx.insert(uploads).values(
         command.photos.map((photo) => ({
           tenantId: ticket.tenantId,
@@ -87,11 +120,32 @@ export function submitCompletion(
   });
 }
 
-export function decideCompletion(
+export async function decideCompletion(
   db: Db,
   command: WorkCommand & { decision: "accepted" | "rejected"; reason: string },
 ) {
-  const provided: Requirement[] = command.reason.trim() ? ["reason"] : [];
+  const [proof] = await db
+    .select({ photoCount: count(uploads.id) })
+    .from(completionSubmissions)
+    .leftJoin(
+      uploads,
+      and(
+        eq(uploads.completionId, completionSubmissions.id),
+        eq(uploads.state, "ready"),
+      ),
+    )
+    .where(
+      and(
+        eq(completionSubmissions.ticketId, command.ticketId),
+        eq(completionSubmissions.status, "pending"),
+      ),
+    );
+  const provided: Requirement[] = [
+    ...(command.reason.trim() ? (["reason"] as const) : []),
+    ...(canVerifyAttempt({ photoCount: proof?.photoCount ?? 0 })
+      ? (["ready_evidence"] as const)
+      : []),
+  ];
 
   return transitionTicket(db, {
     tenantId: command.tenantId,

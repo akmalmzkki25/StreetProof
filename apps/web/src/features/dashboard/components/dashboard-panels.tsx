@@ -337,6 +337,7 @@ export function ProofPanel({ dashboard }: { dashboard: Dashboard }) {
           { label: "Verified", value: dashboard.proof.accepted },
           { label: "Rejected", value: dashboard.proof.rejected },
           { label: "Waiting for a decision", value: dashboard.proof.waiting },
+          { label: "With an exception", value: dashboard.proof.exceptions },
         ]}
       />
     </Panel>

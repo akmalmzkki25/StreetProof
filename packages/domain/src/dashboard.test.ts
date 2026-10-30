@@ -46,8 +46,9 @@ function compute(
   tickets: DashboardTicket[],
   events: DashboardEvent[] = [],
   drafts: Parameters<typeof computeDashboard>[0]["drafts"] = [],
+  attempts: Parameters<typeof computeDashboard>[0]["attempts"] = [],
 ) {
-  return computeDashboard({ tickets, events, drafts, now });
+  return computeDashboard({ tickets, events, attempts, drafts, now });
 }
 
 describe("backlog", () => {
@@ -283,7 +284,27 @@ describe("period figures", () => {
       ],
     );
 
-    expect(result.proof).toEqual({ accepted: 1, rejected: 1, waiting: 1 });
+    expect(result.proof).toEqual({
+      accepted: 1,
+      rejected: 1,
+      waiting: 1,
+      exceptions: 0,
+    });
+  });
+
+  it("keeps proof exceptions visible, inside the window only", () => {
+    const result = compute(
+      [ticket("a", { status: "completion_submitted" })],
+      [],
+      [],
+      [
+        { ticketId: "a", hasException: true, submittedAt: daysAgo(1) },
+        { ticketId: "a", hasException: false, submittedAt: daysAgo(2) },
+        { ticketId: "a", hasException: true, submittedAt: daysAgo(60) },
+      ],
+    );
+
+    expect(result.proof.exceptions).toBe(1);
   });
 
   it("sums draft outcomes", () => {

@@ -19,6 +19,7 @@ import {
 } from "@streetproof/db";
 import {
   canViewTicket,
+  completionProofProblem,
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
   type DuplicateLinkProblem,
@@ -90,6 +91,11 @@ const completionFields = z.object({
     .trim()
     .min(5, "Describe what you did.")
     .max(1000, "Keep the note under 1,000 characters."),
+  checkedItemIds: z.array(z.string().max(64)).max(20),
+  exceptionReason: z
+    .string()
+    .trim()
+    .max(500, "Keep the reason under 500 characters."),
 });
 
 const decisionFields = z.object({
@@ -374,11 +380,14 @@ export async function completionAction(
     ticketId: formData.get("ticketId"),
     expectedRevision: formData.get("expectedRevision"),
     note: formData.get("note") ?? "",
+    checkedItemIds: formData.getAll("checks"),
+    exceptionReason: formData.get("exceptionReason") ?? "",
   });
   if (!fields.success) {
     return { error: fields.error.issues[0]?.message ?? "Check the form." };
   }
-  const { ticketId, expectedRevision, note } = fields.data;
+  const { ticketId, expectedRevision, note, checkedItemIds } = fields.data;
+  const exceptionReason = fields.data.exceptionReason || null;
 
   const ticket = await ticketInScope(member, ticketId);
   if (!ticket) return unavailable;
@@ -393,8 +402,23 @@ export async function completionAction(
     };
   }
 
-  const read = await readPhotos(formData);
+  const read = await readPhotos(formData, {
+    optional: exceptionReason !== null,
+  });
   if (!read.ok) return { error: read.error };
+
+  const proofProblem = completionProofProblem({
+    category: ticket.category,
+    checkedIds: checkedItemIds,
+    photoCount: read.photos.length,
+    exceptionReason,
+  });
+  if (proofProblem === "unconfirmed_checks") {
+    return {
+      error:
+        "Confirm every check, or explain why you can't so a supervisor can decide.",
+    };
+  }
 
   let photos: ReportPhoto[];
   try {
@@ -414,6 +438,8 @@ export async function completionAction(
     expectedRevision,
     note,
     photos,
+    checkedItemIds,
+    exceptionReason,
   });
   return finish(outcome, ticketId);
 }
@@ -441,6 +467,12 @@ export async function decisionAction(
     actor: actorOf(member),
     ...fields.data,
   });
+  if (!outcome.ok && outcome.rejection.code === "missing_requirements") {
+    return {
+      error:
+        "This attempt has no photo, so it can't be verified. Request corrected proof instead.",
+    };
+  }
   return finish(outcome, fields.data.ticketId);
 }
 
