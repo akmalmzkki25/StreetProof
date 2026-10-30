@@ -10,10 +10,14 @@ From the repo root:
 pnpm db:generate -- --name <change>   # write a migration from src/schema.ts
 pnpm db:migrate                       # apply migrations to DATABASE_URL
 pnpm db:seed                          # wipe and reseed synthetic demo data, create the bucket
-pnpm --filter @streetproof/db test    # constraint tests against the seeded database
+pnpm --filter @streetproof/db test    # constraint and command tests against the seeded database
 ```
 
-The constraint tests skip when `DATABASE_URL` is missing (as in CI) and run inside rolled-back transactions locally.
+The database tests skip when `DATABASE_URL` is missing (as in CI). Locally they run against the seeded database and delete what they create.
+
+## Ticket commands
+
+`transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`.
 
 ## Env
 
@@ -21,7 +25,7 @@ The constraint tests skip when `DATABASE_URL` is missing (as in CI) and run insi
 
 ## Demo accounts
 
-`pnpm db:seed` creates two synthetic tenants. Accounts in the first tenant: `operator@`, `technician@`, `technician2@`, `supervisor@` and `admin@streetproof.test`. The second tenant has `operator@kampus.streetproof.test`. The shared local password is in `scripts/seed.ts`.
+`pnpm db:seed` creates two synthetic tenants. Accounts in the first tenant: `operator@`, `technician@`, `technician2@`, `supervisor@` and `admin@streetproof.test`. The second tenant has `operator@kampus.streetproof.test`. Demo tenants, accounts and the shared local password live in `src/demo.ts`, which the seed and the `/login` demo buttons both read.
 
 ## Rules for this unit
 

@@ -11,8 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@streetproof/db": "workspace:*",
+    "@streetproof/domain": "workspace:*",
     "@streetproof/ui": "workspace:*",
     "@hugeicons/core-free-icons": "^4.2.3",
+    "better-auth": "^1.7.14",
+    "drizzle-orm": "^0.45.4",
+    "server-only": "^0.0.1",
     "@hugeicons/react": "^1.1.5",
     "babel-plugin-react-compiler": "1.0.0",
     "next": "16.4.3",
@@ -23,7 +28,6 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@next/env": "16.4.3",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

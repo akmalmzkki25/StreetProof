@@ -18,7 +18,14 @@ Dev server defaults to http://localhost:3000. Design system live showcase: `/des
 
 ## Env
 
-Uses root `.env` / `.env.example`. No web-only vars yet beyond the shared `APP_URL` and `AUTH_SECRET`. Database and storage access go through `@streetproof/db`.
+Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET` and `SHOW_DEMO_LOGINS` (set `true` to show one-click demo accounts on `/login`; `/login` is prerendered, so this is read at build time). Database and storage access go through `@streetproof/db`.
+
+## Auth
+
+- Better Auth with email and password, Drizzle adapter, `nextCookies` plugin. Config in `src/lib/auth.ts`; the instance is created on first request, so `next build` needs no database. Self sign-up is off; accounts come from the seed or a tenant admin.
+- `src/lib/member.ts` is the data access layer. Pages and actions call `requireMember()` or `requireRole(role)`; never read the session or memberships anywhere else. `requireRole` answers 404 for the wrong role so pages don't reveal what exists.
+- With Cache Components, anything that reads the session sits inside `<Suspense>`. Keep the page shell static and push the session read into a child component (see `src/app/app/page.tsx`).
+- Ticket state changes go through `transitionTicket` from `@streetproof/db`, never a direct `update tickets`.
 
 ## Rules for this unit
 

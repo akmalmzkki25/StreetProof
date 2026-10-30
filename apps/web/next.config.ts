@@ -1,9 +1,13 @@
-import { loadEnvConfig } from "@next/env";
 import type { NextConfig } from "next";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 // The monorepo keeps one .env at the repo root; Next.js only looks in apps/web.
-loadEnvConfig(path.resolve(process.cwd(), "../.."));
+// Next's own loadEnvConfig caches its first directory, so load the file directly.
+const rootEnv = path.resolve(process.cwd(), "../../.env");
+if (existsSync(rootEnv)) {
+  process.loadEnvFile(rootEnv);
+}
 
 const nextConfig: NextConfig = {
   transpilePackages: [
