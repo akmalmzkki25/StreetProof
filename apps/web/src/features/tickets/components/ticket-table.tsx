@@ -50,6 +50,13 @@ export function TicketTable({
               >
                 {item.title}
               </Link>
+              {item.linkedCount > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {item.linkedCount === 1
+                    ? "1 linked report"
+                    : `${item.linkedCount} linked reports`}
+                </p>
+              ) : null}
             </TableCell>
             <TableCell>{item.location ?? "Not set"}</TableCell>
             <TableCell>

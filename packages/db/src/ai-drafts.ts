@@ -2,6 +2,7 @@ import { and, desc, eq, gt, inArray, ne, notInArray } from "drizzle-orm";
 import type { Db } from "./client";
 import {
   aiDrafts,
+  duplicateLinks,
   locations,
   reports,
   ticketEvents,
@@ -45,6 +46,16 @@ export async function loadDraftInput(db: Db, reportId: string) {
     .from(uploads)
     .where(and(eq(uploads.reportId, reportId), eq(uploads.state, "ready")));
 
+  const [ownLink] = await db
+    .select({ id: duplicateLinks.id })
+    .from(duplicateLinks)
+    .where(
+      and(
+        eq(duplicateLinks.sourceTicketId, report.ticketId),
+        eq(duplicateLinks.active, true),
+      ),
+    );
+
   // Recent open work on the same site only, so a suggestion can't cross sites.
   const candidates = await db
     .select({
@@ -60,6 +71,13 @@ export async function loadDraftInput(db: Db, reportId: string) {
         eq(tickets.siteId, report.siteId),
         ne(tickets.id, report.ticketId),
         notInArray(tickets.status, ["verified_closed", "cancelled"]),
+        notInArray(
+          tickets.id,
+          db
+            .select({ id: duplicateLinks.sourceTicketId })
+            .from(duplicateLinks)
+            .where(eq(duplicateLinks.active, true)),
+        ),
         gt(tickets.createdAt, new Date(Date.now() - DUPLICATE_LOOKBACK_MS)),
       ),
     )
@@ -82,6 +100,7 @@ export async function loadDraftInput(db: Db, reportId: string) {
   return {
     ...report,
     location: report.locationName ?? report.locationText ?? "",
+    isLinkedDuplicate: Boolean(ownLink),
     photos,
     duplicateCandidates: candidates.map((candidate) => ({
       ticketId: candidate.ticketId,

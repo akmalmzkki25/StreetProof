@@ -2,6 +2,7 @@ import type { IntakeDraft } from "@streetproof/contracts";
 import {
   claimOutboxJob,
   createDb,
+  linkDuplicate,
   schema,
   submitReport,
   triageTicket,
@@ -19,8 +20,9 @@ const rootEnv = fileURLToPath(new URL("../../../.env", import.meta.url));
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 const url = process.env.DATABASE_URL;
 
-const { aiDrafts, idempotencyKeys, memberships, outbox, reporterCredentials } =
+const { aiDrafts, duplicateLinks, idempotencyKeys, memberships, outbox } =
   schema;
+const { reporterCredentials } = schema;
 const { reports, sites, tenants, ticketEvents, tickets } = schema;
 
 const validDraft: IntakeDraft = {
@@ -63,6 +65,9 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
       await db
         .delete(ticketEvents)
         .where(inArray(ticketEvents.ticketId, ticketIds));
+      await db
+        .delete(duplicateLinks)
+        .where(inArray(duplicateLinks.sourceTicketId, ticketIds));
       await db.delete(tickets).where(inArray(tickets.id, ticketIds));
       await db
         .delete(idempotencyKeys)
@@ -234,6 +239,31 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
     expect(outcome).toBe("skipped_manual");
     expect(callModel).not.toHaveBeenCalled();
     expect(await draftOf(reportId)).toMatchObject({ state: "skipped_manual" });
+  });
+
+  it("skips the model when the report is linked as a duplicate", async () => {
+    const source = await newJob();
+    const target = await newJob();
+    const [operator] = await db
+      .select({ userId: memberships.userId })
+      .from(memberships)
+      .where(eq(memberships.tenantId, source.tenantId));
+    if (!operator) throw new Error("Seed data is incomplete.");
+    const linked = await linkDuplicate(db, {
+      tenantId: source.tenantId,
+      sourceTicketId: source.ticketId,
+      targetTicketId: target.ticketId,
+      actor: { userId: operator.userId, roles: ["operator"] },
+      expectedRevision: 0,
+      reason: "Same leak",
+    });
+    expect(linked.ok).toBe(true);
+    const callModel = replying(JSON.stringify(validDraft));
+
+    const outcome = await runDraftJob(deps(callModel), source.job);
+
+    expect(outcome).toBe("skipped_manual");
+    expect(callModel).not.toHaveBeenCalled();
   });
 
   it("gives a job to only one of two racing claims", async () => {

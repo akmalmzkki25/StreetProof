@@ -6,9 +6,12 @@ import {
   decideCompletion,
   getDb,
   getTicketDetail,
+  linkDuplicate,
   submitCompletion,
   transitionTicket,
   triageTicket,
+  unlinkDuplicate,
+  type DuplicateOutcome,
   type ReportPhoto,
   type TransitionOutcome,
 } from "@streetproof/db";
@@ -16,6 +19,7 @@ import {
   canViewTicket,
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
+  type DuplicateLinkProblem,
 } from "@streetproof/domain";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -97,6 +101,17 @@ const reopenFields = z.object({
   reason: reasonField("Explain why this work is being reopened."),
 });
 
+const linkFields = z.object({
+  ...ticketRef,
+  targetTicketId: z.uuid({ error: "Choose the ticket to link to." }),
+  reason: reasonField("Explain why these reports are the same problem."),
+});
+
+const unlinkFields = z.object({
+  ...ticketRef,
+  reason: reasonField("Explain why this link is being removed."),
+});
+
 function rejectionMessage(outcome: Extract<TransitionOutcome, { ok: false }>) {
   switch (outcome.rejection.code) {
     case "stale_revision":
@@ -107,9 +122,55 @@ function rejectionMessage(outcome: Extract<TransitionOutcome, { ok: false }>) {
       return "That person can't take work on this site.";
     case "not_found":
       return "This ticket isn't available.";
+    case "linked_as_duplicate":
+      return "This report is linked as a duplicate. Remove the link to work on it.";
+    case "has_linked_duplicates":
+      return "Other reports are linked to this ticket. Remove those links before cancelling.";
     default:
       return "This action isn't allowed for the ticket right now.";
   }
+}
+
+const LINK_PROBLEM_MESSAGES: Record<DuplicateLinkProblem, string> = {
+  same_ticket: "A ticket can't be a duplicate of itself.",
+  different_site: "Both tickets must be on the same site.",
+  source_has_work:
+    "This ticket already has work in progress, so it can't be linked.",
+  source_already_linked: "This report is already linked as a duplicate.",
+  source_has_duplicates:
+    "Other reports are linked to this ticket. Remove those links first.",
+  target_is_duplicate:
+    "That ticket is itself a duplicate. Link to the ticket it points to.",
+  target_closed: "That ticket is closed. Choose one that's still open.",
+};
+
+function finishDuplicate(
+  outcome: DuplicateOutcome,
+  ticketIds: readonly string[],
+): TicketActionState {
+  if (!outcome.ok) {
+    const { rejection } = outcome;
+    switch (rejection.code) {
+      case "stale_revision":
+        return {
+          error:
+            "Someone else changed this ticket. Reload to see the latest version.",
+        };
+      case "link_problem":
+        return { error: LINK_PROBLEM_MESSAGES[rejection.problem] };
+      case "forbidden_role":
+        return { error: "Only operators and supervisors can link reports." };
+      case "missing_reason":
+        return { error: "Explain why these reports are linked." };
+      case "not_found":
+        return { error: "This ticket isn't available." };
+    }
+  }
+  for (const ticketId of ticketIds) {
+    revalidatePath(`/app/tickets/${ticketId}`);
+  }
+  revalidatePath("/app/queue");
+  return { error: null };
 }
 
 function finish(
@@ -394,4 +455,61 @@ export async function reopenAction(
     payload: { reason: fields.data.reason },
   });
   return finish(outcome, fields.data.ticketId);
+}
+
+export async function linkDuplicateAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireMember();
+  const fields = linkFields.safeParse({
+    ticketId: formData.get("ticketId"),
+    expectedRevision: formData.get("expectedRevision"),
+    targetTicketId: formData.get("targetTicketId"),
+    reason: formData.get("reason") ?? "",
+  });
+  if (!fields.success) {
+    return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const source = await ticketInScope(member, fields.data.ticketId);
+  const target = await ticketInScope(member, fields.data.targetTicketId);
+  if (!source || !target) return unavailable;
+
+  const outcome = await linkDuplicate(getDb(), {
+    tenantId: member.tenantId,
+    sourceTicketId: source.id,
+    targetTicketId: target.id,
+    actor: actorOf(member),
+    expectedRevision: fields.data.expectedRevision,
+    reason: fields.data.reason,
+  });
+  return finishDuplicate(outcome, [source.id, target.id]);
+}
+
+export async function unlinkDuplicateAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireMember();
+  const fields = unlinkFields.safeParse({
+    ticketId: formData.get("ticketId"),
+    expectedRevision: formData.get("expectedRevision"),
+    reason: formData.get("reason") ?? "",
+  });
+  if (!fields.success) {
+    return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const source = await ticketInScope(member, fields.data.ticketId);
+  if (!source?.duplicateOf) return unavailable;
+
+  const outcome = await unlinkDuplicate(getDb(), {
+    tenantId: member.tenantId,
+    sourceTicketId: source.id,
+    actor: actorOf(member),
+    expectedRevision: fields.data.expectedRevision,
+    reason: fields.data.reason,
+  });
+  return finishDuplicate(outcome, [source.id, source.duplicateOf.ticketId]);
 }

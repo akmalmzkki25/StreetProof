@@ -41,7 +41,7 @@ const initialState: TicketActionState = { error: null };
 type Option = { value: string; label: string };
 type TicketRef = { ticketId: string; revision: number };
 
-function TicketRefFields({ ticketId, revision }: TicketRef) {
+export function TicketRefFields({ ticketId, revision }: TicketRef) {
   return (
     <>
       <input type="hidden" name="ticketId" value={ticketId} />
@@ -50,7 +50,7 @@ function TicketRefFields({ ticketId, revision }: TicketRef) {
   );
 }
 
-function FormError({ error }: { error: string | null }) {
+export function FormError({ error }: { error: string | null }) {
   if (!error) return null;
   return (
     <Alert variant="destructive">
@@ -59,7 +59,7 @@ function FormError({ error }: { error: string | null }) {
   );
 }
 
-function SelectField({
+export function SelectField({
   id,
   label,
   placeholder,

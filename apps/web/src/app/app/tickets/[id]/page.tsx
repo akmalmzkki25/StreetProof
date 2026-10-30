@@ -1,11 +1,17 @@
 import {
   getDb,
   getTicketDetail,
+  listLinkCandidates,
   listSiteLocations,
   listTechnicians,
   type TicketDetail,
 } from "@streetproof/db";
-import { availableTransitions, canViewTicket } from "@streetproof/domain";
+import {
+  availableTransitions,
+  canBeLinkedAsDuplicate,
+  canManageDuplicates,
+  canViewTicket,
+} from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
@@ -18,6 +24,10 @@ import {
   AiDraftPanel,
   readDraft,
 } from "@/features/tickets/components/ai-draft-panel";
+import {
+  LinkDuplicateForm,
+  UnlinkDuplicateForm,
+} from "@/features/tickets/components/duplicate-forms";
 import {
   AssignForm,
   CancelForm,
@@ -88,14 +98,20 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
         <div className="flex flex-col gap-8">
           <Attempts ticket={ticket} />
           <Reports ticket={ticket} />
-          {member.roles.includes("operator") ? (
+          <LinkedReports ticket={ticket} member={member} />
+          {member.roles.includes("operator") &&
+          (!ticket.duplicateOf || readDraft(ticket)) ? (
             <AiDraftPanel ticket={ticket} />
           ) : null}
           <Timeline ticket={ticket} />
         </div>
         <aside className="flex flex-col gap-6">
+          <DuplicateOf ticket={ticket} member={member} />
           <Reviewed ticket={ticket} />
-          <NextStep ticket={ticket} member={member} />
+          {ticket.duplicateOf ? null : (
+            <NextStep ticket={ticket} member={member} />
+          )}
+          <LinkAsDuplicate ticket={ticket} member={member} />
         </aside>
       </div>
     </div>
@@ -202,6 +218,152 @@ function Reports({ ticket }: { ticket: TicketDetail }) {
           <PhotoGrid photos={report.photos} label="Report photo" />
         </article>
       ))}
+    </section>
+  );
+}
+
+function LinkedReports({
+  ticket,
+  member,
+}: {
+  ticket: TicketDetail;
+  member: Member;
+}) {
+  if (ticket.linkedDuplicates.length === 0) return null;
+  const canOpenSource = canManageDuplicates(member.roles);
+
+  return (
+    <section aria-labelledby="linked" className="flex flex-col gap-4">
+      <h2 id="linked" className="text-sm text-muted-foreground">
+        Linked reports
+      </h2>
+      {ticket.linkedDuplicates.map((link) =>
+        link.reports.map((report) => (
+          <article
+            key={report.id}
+            className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
+          >
+            <p className="whitespace-pre-wrap">{report.description}</p>
+            <p className="text-sm text-muted-foreground">
+              {report.locationName ?? report.locationText} ·{" "}
+              {formatDateTime(report.createdAt)}
+            </p>
+            <PhotoGrid photos={report.photos} label="Linked report photo" />
+            <p className="text-sm">
+              <span className="text-muted-foreground">Linked because: </span>
+              {link.reason}
+            </p>
+            {canOpenSource ? (
+              <Link
+                href={`/app/tickets/${link.ticketId}`}
+                className="self-start text-sm text-brand-text underline underline-offset-4"
+              >
+                Open this report
+              </Link>
+            ) : null}
+          </article>
+        )),
+      )}
+    </section>
+  );
+}
+
+function DuplicateOf({
+  ticket,
+  member,
+}: {
+  ticket: TicketDetail;
+  member: Member;
+}) {
+  if (!ticket.duplicateOf) return null;
+
+  return (
+    <section
+      aria-labelledby="duplicate-of"
+      className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
+    >
+      <div className="flex flex-col gap-2">
+        <h2 id="duplicate-of" className="text-base">
+          Linked as a duplicate
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          The repair is tracked on the other ticket. This report&apos;s reporter
+          follows that ticket&apos;s progress.
+        </p>
+      </div>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+        <dt className="text-muted-foreground">Ticket</dt>
+        <dd>
+          <Link
+            href={`/app/tickets/${ticket.duplicateOf.ticketId}`}
+            className="text-brand-text underline underline-offset-4"
+          >
+            {ticket.duplicateOf.title}
+          </Link>
+        </dd>
+        <dt className="text-muted-foreground">Status</dt>
+        <dd>{STATUS_LABELS[ticket.duplicateOf.status]}</dd>
+        <dt className="text-muted-foreground">Reason</dt>
+        <dd>{ticket.duplicateOf.reason}</dd>
+      </dl>
+      {canManageDuplicates(member.roles) ? (
+        <UnlinkDuplicateForm ticketId={ticket.id} revision={ticket.revision} />
+      ) : null}
+    </section>
+  );
+}
+
+async function LinkAsDuplicate({
+  ticket,
+  member,
+}: {
+  ticket: TicketDetail;
+  member: Member;
+}) {
+  if (
+    ticket.duplicateOf ||
+    ticket.linkedDuplicates.length > 0 ||
+    !canManageDuplicates(member.roles) ||
+    !canBeLinkedAsDuplicate(ticket)
+  ) {
+    return null;
+  }
+
+  const candidates = await listLinkCandidates(
+    getDb(),
+    { tenantId: member.tenantId, siteIds: member.siteIds },
+    { id: ticket.id, siteId: ticket.siteId },
+  );
+  if (candidates.length === 0) return null;
+
+  // The model's pick starts the form when it's still a valid target. A person
+  // still has to submit it.
+  const suggestion = readDraft(ticket)?.duplicateCandidates.find((candidate) =>
+    candidates.some((item) => item.id === candidate.ticketId),
+  );
+
+  return (
+    <section
+      aria-labelledby="link-duplicate"
+      className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
+    >
+      <h2 id="link-duplicate" className="text-base">
+        Same problem as another ticket?
+      </h2>
+      <LinkDuplicateForm
+        key={suggestion ? "with-suggestion" : "manual"}
+        ticketId={ticket.id}
+        revision={ticket.revision}
+        candidates={candidates.map((item) => ({
+          value: item.id,
+          // Location first, so a narrow picker clips the title, not the place.
+          label: item.location
+            ? `${item.location} · ${item.title.slice(0, 70)}`
+            : item.title.slice(0, 70),
+        }))}
+        defaultTargetId={suggestion?.ticketId ?? null}
+        defaultReason={(suggestion?.reason ?? "").slice(0, 500)}
+      />
     </section>
   );
 }
@@ -329,7 +491,15 @@ async function NextStep({
           />
         </section>
       ) : null}
-      {canCancel ? <CancelForm {...ref} /> : null}
+      {canCancel && ticket.linkedDuplicates.length === 0 ? (
+        <CancelForm {...ref} />
+      ) : null}
+      {canCancel && ticket.linkedDuplicates.length > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          To cancel this ticket, first remove the links from the reports that
+          point to it.
+        </p>
+      ) : null}
       {canAccept ? (
         <ProgressButton {...ref} to="accepted" label="Accept work" />
       ) : null}
@@ -388,6 +558,17 @@ async function NextStep({
   );
 }
 
+function eventLabel(event: TicketDetail["events"][number]) {
+  if (event.type === "ai_draft_ready") return "AI suggestion ready";
+  if (event.type === "duplicate_unlinked") return "Duplicate link removed";
+  if (event.type === "duplicate_linked") {
+    return event.payload.role === "target"
+      ? "Duplicate report linked"
+      : "Linked as a duplicate";
+  }
+  return event.toStatus ? STATUS_LABELS[event.toStatus] : event.type;
+}
+
 function Timeline({ ticket }: { ticket: TicketDetail }) {
   return (
     <section aria-labelledby="timeline" className="flex flex-col gap-4">
@@ -397,13 +578,7 @@ function Timeline({ ticket }: { ticket: TicketDetail }) {
       <ol className="flex flex-col gap-3">
         {ticket.events.map((event) => (
           <li key={event.id} className="text-sm">
-            <span>
-              {event.type === "ai_draft_ready"
-                ? "AI suggestion ready"
-                : event.toStatus
-                  ? STATUS_LABELS[event.toStatus]
-                  : event.type}
-            </span>
+            <span>{eventLabel(event)}</span>
             <span className="text-muted-foreground">
               {" "}
               ·{" "}

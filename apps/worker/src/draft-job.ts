@@ -86,7 +86,7 @@ export async function runDraftJob(
   });
 
   // A person already moved on, so don't spend money on a draft nobody will read.
-  if (input.ticketStatus !== "submitted") {
+  if (input.ticketStatus !== "submitted" || input.isLinkedDuplicate) {
     await recordDraftFailure(db, {
       ...key,
       state: "skipped_manual",

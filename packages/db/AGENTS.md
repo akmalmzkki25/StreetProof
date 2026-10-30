@@ -19,6 +19,10 @@ The database tests skip when `DATABASE_URL` is missing (as in CI). Locally they 
 
 `transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`. `triageTicket`, `assignTicket`, `acceptWork`, `submitCompletion` and `decideCompletion` are built on it. A completion attempt is immutable: a rejection keeps it, and the technician submits a new one.
 
+## Duplicate links
+
+A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicate` in `src/duplicate-commands.ts` lock both tickets in ID order, re-check `duplicateLinkProblem` from `@streetproof/domain`, and write an event on both tickets. Reports stay on their own ticket, and links are one level deep. Only the source's revision moves. While linked, the source leaves `listQueue`, rejects every transition (`linked_as_duplicate`) and gets no AI draft, and `getReporterStatus` reports the target's progress. A target with active links can't be cancelled (`has_linked_duplicates`). A partial unique index allows one active link per source.
+
 ## Report intake
 
 `submitReport(db, input)` in `src/reports.ts` creates the ticket, report, photo rows, first event, outbox row and receipt in one transaction. A retry with the same idempotency key and digest returns the same report, revokes the old receipt and issues a new one, up to the rotation limit; a changed digest is rejected. The raw receipt token is returned once and only its SHA-256 is stored. `getReporterStatus` returns null for any invalid receipt, so callers can't tell why it failed.

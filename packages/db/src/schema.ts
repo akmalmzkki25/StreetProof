@@ -395,6 +395,10 @@ export const duplicateLinks = pgTable(
       "duplicate_links_not_self",
       sql`${table.sourceTicketId} <> ${table.targetTicketId}`,
     ),
+    uniqueIndex("duplicate_links_one_active_per_source")
+      .on(table.sourceTicketId)
+      .where(sql`${table.active}`),
+    index().on(table.targetTicketId, table.active),
     foreignKey({
       columns: [table.tenantId, table.sourceTicketId],
       foreignColumns: [tickets.tenantId, tickets.id],

@@ -9,6 +9,7 @@ import { and, eq, isNull, or, sql } from "drizzle-orm";
 import type { Db, Transaction } from "./client";
 import {
   assignments,
+  duplicateLinks,
   memberships,
   outbox,
   ticketEvents,
@@ -43,7 +44,9 @@ export type TransitionOutcome =
       rejection:
         | TransitionRejection
         | { code: "not_found" }
-        | { code: "technician_not_eligible" };
+        | { code: "technician_not_eligible" }
+        | { code: "linked_as_duplicate" }
+        | { code: "has_linked_duplicates" };
     };
 
 export async function nextEventSeq(tx: Transaction, ticketId: string) {
@@ -88,6 +91,36 @@ export async function transitionTicket(
       provided: new Set(command.provided),
     });
     if (!check.ok) return check;
+
+    // A linked duplicate waits on its target; work happens there.
+    const [ownLink] = await tx
+      .select({ id: duplicateLinks.id })
+      .from(duplicateLinks)
+      .where(
+        and(
+          eq(duplicateLinks.sourceTicketId, ticket.id),
+          eq(duplicateLinks.active, true),
+        ),
+      );
+    if (ownLink) {
+      return { ok: false, rejection: { code: "linked_as_duplicate" } };
+    }
+
+    // Cancelling would close other people's reports without anyone deciding to.
+    if (command.to === "cancelled") {
+      const [dependent] = await tx
+        .select({ id: duplicateLinks.id })
+        .from(duplicateLinks)
+        .where(
+          and(
+            eq(duplicateLinks.targetTicketId, ticket.id),
+            eq(duplicateLinks.active, true),
+          ),
+        );
+      if (dependent) {
+        return { ok: false, rejection: { code: "has_linked_duplicates" } };
+      }
+    }
 
     const changes = (await command.apply?.(tx, ticket)) ?? {};
 

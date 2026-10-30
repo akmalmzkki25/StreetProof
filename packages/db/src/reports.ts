@@ -3,6 +3,7 @@ import { and, count, eq, gt, isNull } from "drizzle-orm";
 import { createHash, randomBytes } from "node:crypto";
 import type { Db, Transaction } from "./client";
 import {
+  duplicateLinks,
   idempotencyKeys,
   locations,
   outbox,
@@ -246,6 +247,7 @@ export async function getReporterStatus(
       locationName: locations.name,
       siteName: sites.name,
       submittedAt: reports.createdAt,
+      ticketId: tickets.id,
       status: tickets.status,
       updatedAt: tickets.updatedAt,
     })
@@ -263,14 +265,26 @@ export async function getReporterStatus(
     );
   if (!row) return null;
 
+  // A report linked as a duplicate follows the work that will fix the problem.
+  const [followed] = await db
+    .select({ status: tickets.status, updatedAt: tickets.updatedAt })
+    .from(duplicateLinks)
+    .innerJoin(tickets, eq(tickets.id, duplicateLinks.targetTicketId))
+    .where(
+      and(
+        eq(duplicateLinks.sourceTicketId, row.ticketId),
+        eq(duplicateLinks.active, true),
+      ),
+    );
+
   return {
     reference: reportReference(row.reportId),
     siteName: row.siteName,
     location: row.locationName ?? row.locationText ?? "",
     description: row.description,
-    stage: reporterStage(row.status),
+    stage: reporterStage(followed?.status ?? row.status),
     submittedAt: row.submittedAt,
-    updatedAt: row.updatedAt,
+    updatedAt: followed?.updatedAt ?? row.updatedAt,
   };
 }
 

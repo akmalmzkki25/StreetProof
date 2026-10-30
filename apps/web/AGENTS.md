@@ -34,7 +34,7 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.
 - `/app/reviews`: a supervisor's pending verifications and closed work.
-- `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`).
+- `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`). Operators and supervisors link or unlink duplicates here. An AI duplicate candidate only prefills the form; a person submits the link.
 
 Testing in the desktop app's browser pane: a hidden pane stalls client navigation and holds streamed content behind its skeleton, so take a screenshot or bring the pane forward before concluding a page is broken.
 

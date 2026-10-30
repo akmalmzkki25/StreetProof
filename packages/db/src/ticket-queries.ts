@@ -1,10 +1,21 @@
-import type { TicketStatus } from "@streetproof/domain";
-import { and, asc, desc, eq, inArray, isNull, or, type SQL } from "drizzle-orm";
+import { TICKET_STATUSES, type TicketStatus } from "@streetproof/domain";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  notInArray,
+  or,
+  type SQL,
+} from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "./client";
 import {
   aiDrafts,
   completionSubmissions,
+  duplicateLinks,
   locations,
   memberships,
   reports,
@@ -65,6 +76,14 @@ export async function listQueue(
         filter.assigneeId
           ? eq(tickets.currentAssigneeId, filter.assigneeId)
           : undefined,
+        // A linked duplicate needs no work of its own; it shows on its target.
+        notInArray(
+          tickets.id,
+          db
+            .select({ id: duplicateLinks.sourceTicketId })
+            .from(duplicateLinks)
+            .where(eq(duplicateLinks.active, true)),
+        ),
       ),
     )
     .orderBy(desc(tickets.updatedAt))
@@ -87,6 +106,19 @@ export async function listQueue(
     )
     .orderBy(asc(reports.createdAt));
 
+  const links = await db
+    .select({ targetTicketId: duplicateLinks.targetTicketId })
+    .from(duplicateLinks)
+    .where(
+      and(
+        eq(duplicateLinks.active, true),
+        inArray(
+          duplicateLinks.targetTicketId,
+          rows.map((row) => row.id),
+        ),
+      ),
+    );
+
   return rows.map(function withReports(row) {
     const own = ticketReports.filter((report) => report.ticketId === row.id);
     return {
@@ -94,8 +126,48 @@ export async function listQueue(
       title: row.summary ?? own[0]?.description ?? "",
       location: row.locationName ?? own[0]?.locationText ?? null,
       reportCount: own.length,
+      linkedCount: links.filter((link) => link.targetTicketId === row.id)
+        .length,
     };
   });
+}
+
+async function loadReports(db: Db, ticketIds: string[]) {
+  const ticketReports = await db
+    .select({
+      id: reports.id,
+      ticketId: reports.canonicalTicketId,
+      description: reports.description,
+      locationText: reports.locationText,
+      locationName: locations.name,
+      createdAt: reports.createdAt,
+    })
+    .from(reports)
+    .leftJoin(locations, eq(locations.id, reports.locationId))
+    .where(inArray(reports.canonicalTicketId, ticketIds))
+    .orderBy(asc(reports.createdAt));
+
+  const photos = await db
+    .select({
+      id: uploads.id,
+      reportId: uploads.reportId,
+      objectKey: uploads.objectKey,
+    })
+    .from(uploads)
+    .where(
+      and(
+        eq(uploads.state, "ready"),
+        inArray(
+          uploads.reportId,
+          ticketReports.map((report) => report.id),
+        ),
+      ),
+    );
+
+  return ticketReports.map((report) => ({
+    ...report,
+    photos: photos.filter((photo) => photo.reportId === report.id),
+  }));
 }
 
 export async function getTicketDetail(
@@ -125,35 +197,44 @@ export async function getTicketDetail(
     .where(and(inScope(scope), eq(tickets.id, ticketId)));
   if (!ticket) return null;
 
-  const ticketReports = await db
-    .select({
-      id: reports.id,
-      description: reports.description,
-      locationText: reports.locationText,
-      locationName: locations.name,
-      createdAt: reports.createdAt,
-    })
-    .from(reports)
-    .leftJoin(locations, eq(locations.id, reports.locationId))
-    .where(eq(reports.canonicalTicketId, ticketId))
-    .orderBy(asc(reports.createdAt));
+  const ticketReports = await loadReports(db, [ticketId]);
 
-  const photos = await db
+  const [outgoing] = await db
     .select({
-      id: uploads.id,
-      reportId: uploads.reportId,
-      objectKey: uploads.objectKey,
+      ticketId: duplicateLinks.targetTicketId,
+      reason: duplicateLinks.reason,
+      summary: tickets.summary,
+      status: tickets.status,
     })
-    .from(uploads)
+    .from(duplicateLinks)
+    .innerJoin(tickets, eq(tickets.id, duplicateLinks.targetTicketId))
     .where(
       and(
-        eq(uploads.state, "ready"),
-        inArray(
-          uploads.reportId,
-          ticketReports.map((report) => report.id),
-        ),
+        eq(duplicateLinks.sourceTicketId, ticketId),
+        eq(duplicateLinks.active, true),
       ),
     );
+  const targetReports = outgoing
+    ? await loadReports(db, [outgoing.ticketId])
+    : [];
+
+  const incoming = await db
+    .select({
+      ticketId: duplicateLinks.sourceTicketId,
+      reason: duplicateLinks.reason,
+    })
+    .from(duplicateLinks)
+    .where(
+      and(
+        eq(duplicateLinks.targetTicketId, ticketId),
+        eq(duplicateLinks.active, true),
+      ),
+    )
+    .orderBy(asc(duplicateLinks.createdAt));
+  const incomingReports = await loadReports(
+    db,
+    incoming.map((link) => link.ticketId),
+  );
 
   const events = await db
     .select({
@@ -232,9 +313,20 @@ export async function getTicketDetail(
   return {
     ...ticket,
     aiDraft: drafts[0] ?? null,
-    reports: ticketReports.map((report) => ({
-      ...report,
-      photos: photos.filter((photo) => photo.reportId === report.id),
+    reports: ticketReports,
+    duplicateOf: outgoing
+      ? {
+          ticketId: outgoing.ticketId,
+          reason: outgoing.reason,
+          status: outgoing.status,
+          title: outgoing.summary ?? targetReports[0]?.description ?? "",
+        }
+      : null,
+    linkedDuplicates: incoming.map((link) => ({
+      ...link,
+      reports: incomingReports.filter(
+        (report) => report.ticketId === link.ticketId,
+      ),
     })),
     attempts: attempts.map((attempt) => ({
       ...attempt,
@@ -242,6 +334,25 @@ export async function getTicketDetail(
     })),
     events,
   };
+}
+
+// Open work on the same site. listQueue already leaves out linked duplicates,
+// so a link can't start a chain.
+export async function listLinkCandidates(
+  db: Db,
+  scope: MemberScope,
+  ticket: { id: string; siteId: string },
+) {
+  const items = await listQueue(
+    db,
+    { ...scope, siteIds: [ticket.siteId] },
+    {
+      statuses: TICKET_STATUSES.filter(
+        (status) => status !== "verified_closed" && status !== "cancelled",
+      ),
+    },
+  );
+  return items.filter((item) => item.id !== ticket.id);
 }
 
 export async function listTechnicians(

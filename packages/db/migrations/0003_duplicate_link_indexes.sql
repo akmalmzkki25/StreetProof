@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "duplicate_links_one_active_per_source" ON "duplicate_links" USING btree ("source_ticket_id") WHERE "duplicate_links"."active";--> statement-breakpoint
+CREATE INDEX "duplicate_links_target_ticket_id_active_index" ON "duplicate_links" USING btree ("target_ticket_id","active");
