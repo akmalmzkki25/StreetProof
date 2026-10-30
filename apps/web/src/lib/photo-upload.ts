@@ -1,8 +1,9 @@
 import "server-only";
 
 import type { ReportPhoto } from "@streetproof/db";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
+import { sanitizePhoto } from "./photo-sanitize";
 import { detectPhotoFormat, photoProblem } from "./photos";
 import { getStorage } from "./storage";
 
@@ -30,15 +31,16 @@ export async function readPhotos(
   const photos: ReadPhoto[] = [];
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const format = detectPhotoFormat(bytes);
-    if (!format) {
+    if (!detectPhotoFormat(bytes)) {
       return { ok: false, error: "Photos must be JPEG, PNG or WebP images." };
     }
+    const sanitized = await sanitizePhoto(bytes);
+    if (!sanitized.ok) return { ok: false, error: sanitized.error };
     photos.push({
-      bytes,
-      contentType: format.contentType,
-      extension: format.extension,
-      sha256: createHash("sha256").update(bytes).digest("hex"),
+      bytes: sanitized.bytes,
+      contentType: sanitized.contentType,
+      extension: sanitized.extension,
+      sha256: sanitized.sha256,
     });
   }
   return { ok: true, photos };

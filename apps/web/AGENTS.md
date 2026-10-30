@@ -31,7 +31,7 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 
 - `/`: public home. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
 - `/app/*`: shares the floating navbar in `app/app/layout.tsx`. `navLinksFor` decides its links from the member's roles. Panels use `components/panel.tsx`.
-- `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, then stored before the database transaction.
+- `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.
