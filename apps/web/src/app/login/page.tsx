@@ -7,7 +7,7 @@ import { SignInForm } from "@/features/auth/components/sign-in-form";
 export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
-  const showDemoLogins = process.env.SHOW_DEMO_LOGINS === "true";
+  const showDemoLogins = process.env.NODE_ENV === "development";
   const demoTenant = DEMO_TENANTS[0];
   const demoAccounts =
     showDemoLogins && demoTenant
