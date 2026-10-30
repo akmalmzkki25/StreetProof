@@ -34,7 +34,7 @@ pnpm db:seed           # synthetic tenants, demo accounts, private MinIO bucket
 pnpm db:seed:demo      # same, plus the demo tickets in docs/demo-scenarios.md
 ```
 
-Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `uv run pytest`, `uv run ruff check .`
+Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm test:e2e`, `uv run pytest`, `uv run ruff check .`
 
 ```bash
 pnpm --filter @streetproof/web dev   # http://localhost:3000 — design system at /design-system

@@ -39,6 +39,8 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 - `/app/dashboard`: backlog, age, owners and outcomes, for everyone except technicians. Figures come from `computeDashboard` in `@streetproof/domain`, so definitions live in one tested place. A rate shows numerator, denominator and pending, never a bare percentage, and a missing value is a dash, not a zero.
 - `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`). Operators and supervisors link or unlink duplicates here. An AI duplicate candidate only prefills the form; a person submits the link. Operators ask the reporter a question here too; the reporter answers on `/status`, and the queue marks the ticket until an operator reviews the answer.
 
+End-to-end tests live in `e2e/` and run with `pnpm test:e2e` from the repo root. Each run makes a production build on port 3100 and resets its own `streetproof_e2e` database, so it can't touch demo data, a dev server or a worker. The first run on a machine needs `pnpm --filter @streetproof/web exec playwright install chromium`. It needs Postgres and MinIO running, and it never calls the model. Use `visibleText` from `e2e/helpers.ts` for text lookups: while a page streams, React briefly holds a hidden copy of its content.
+
 Testing in the desktop app's browser pane: a hidden pane stalls client navigation and holds streamed content behind its skeleton, so take a screenshot or bring the pane forward before concluding a page is broken.
 
 ## Rules for this unit

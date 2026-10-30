@@ -115,6 +115,7 @@ pnpm build            # turbo run build
 pnpm typecheck
 pnpm lint
 pnpm test
+pnpm test:e2e        # Playwright, on its own database and port
 ```
 
 Database and storage (Docker services must be running; see `.env.example`):
