@@ -344,7 +344,8 @@ describe.skipIf(!url)("report intake (needs the seeded local database)", () => {
 
     const otherTenant = { tenantId: other.tenantId, siteIds: null };
     expect(await getTicketDetail(db, otherTenant, outcome.ticketId)).toBeNull();
-    expect(await listQueue(db, otherTenant)).toEqual([]);
+    const otherQueue = await listQueue(db, otherTenant);
+    expect(otherQueue.map((item) => item.id)).not.toContain(outcome.ticketId);
 
     const otherSite = { tenantId: input.tenantId, siteIds: [randomUUID()] };
     expect(await getTicketDetail(db, otherSite, outcome.ticketId)).toBeNull();

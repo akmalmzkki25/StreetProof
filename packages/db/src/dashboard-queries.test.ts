@@ -1,6 +1,5 @@
 import "../scripts/load-root-env";
-import type { Role } from "@streetproof/domain";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { createDb } from "./client";
@@ -18,6 +17,7 @@ import {
   tenants,
   ticketEvents,
   tickets,
+  user,
 } from "./schema";
 import { triageTicket } from "./ticket-commands";
 
@@ -29,6 +29,8 @@ describe.skipIf(!url)("getDashboard (needs the seeded local database)", () => {
   const reportIds: string[] = [];
   const keys: string[] = [];
   const siteIds: string[] = [];
+  const tenantIds: string[] = [];
+  const userIds: string[] = [];
 
   afterEach(async () => {
     if (ticketIds.length > 0) {
@@ -51,28 +53,39 @@ describe.skipIf(!url)("getDashboard (needs the seeded local database)", () => {
         .where(inArray(idempotencyKeys.key, keys));
     }
     if (siteIds.length > 0) {
+      await db.delete(memberships).where(inArray(memberships.siteId, siteIds));
       await db.delete(sites).where(inArray(sites.id, siteIds));
+    }
+    if (tenantIds.length > 0) {
+      await db.delete(tenants).where(inArray(tenants.id, tenantIds));
+    }
+    if (userIds.length > 0) {
+      await db.delete(user).where(inArray(user.id, userIds));
     }
     ticketIds.length = 0;
     reportIds.length = 0;
     keys.length = 0;
     siteIds.length = 0;
+    tenantIds.length = 0;
+    userIds.length = 0;
   });
 
   afterAll(async () => {
     await pool.end();
   });
 
+  // Its own tenant, because other test files read the first site of the seeded
+  // one. A site added there would be picked up by them while they run in parallel.
   async function tenantId() {
     const [tenant] = await db
-      .select({ id: tenants.id })
-      .from(tenants)
-      .where(eq(tenants.name, "Graha Contoh (synthetic)"));
-    if (!tenant) throw new Error("Run pnpm db:seed first.");
+      .insert(tenants)
+      .values({ name: `Dashboard test ${randomUUID()}`, isSynthetic: true })
+      .returning({ id: tenants.id });
+    if (!tenant) throw new Error("no tenant");
+    tenantIds.push(tenant.id);
     return tenant.id;
   }
 
-  // A fresh site per test keeps the counts exact while other test files run.
   async function newSite(id: string) {
     const [site] = await db
       .insert(sites)
@@ -104,13 +117,16 @@ describe.skipIf(!url)("getDashboard (needs the seeded local database)", () => {
     return outcome.ticketId;
   }
 
-  async function operatorOf(id: string, role: Role = "operator") {
-    const [row] = await db
-      .select({ userId: memberships.userId })
-      .from(memberships)
-      .where(and(eq(memberships.tenantId, id), eq(memberships.role, role)));
-    if (!row) throw new Error("Seed data is incomplete.");
-    return { userId: row.userId, roles: [role] };
+  async function operator() {
+    const userId = randomUUID();
+    await db.insert(user).values({
+      id: userId,
+      name: "Dashboard test operator",
+      email: `${userId}@dashboard.streetproof.test`,
+      emailVerified: true,
+    });
+    userIds.push(userId);
+    return { userId, roles: ["operator" as const] };
   }
 
   it("counts a linked duplicate as a report and stays inside the site scope", async () => {
@@ -125,7 +141,7 @@ describe.skipIf(!url)("getDashboard (needs the seeded local database)", () => {
       tenantId: tenant,
       sourceTicketId: duplicate,
       targetTicketId: main,
-      actor: await operatorOf(tenant),
+      actor: await operator(),
       expectedRevision: 0,
       reason: "Pintu yang sama",
     });
@@ -155,7 +171,7 @@ describe.skipIf(!url)("getDashboard (needs the seeded local database)", () => {
     const triaged = await triageTicket(db, {
       tenantId: tenant,
       ticketId,
-      actor: await operatorOf(tenant),
+      actor: await operator(),
       expectedRevision: 0,
       summary: "Keran bocor di pantry",
       category: "plumbing",

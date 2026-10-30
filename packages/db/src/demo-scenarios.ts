@@ -412,7 +412,7 @@ export async function seedDemoScenarios(context: DemoContext) {
     description:
       "Pantry sink on floor 3 is leaking. The floor by the cabinet is wet.",
     place: "Floor 3 pantry",
-    scene: "pipe_leak",
+    scene: "pipe_leak_wide",
     draft: "worker",
   });
 
@@ -482,7 +482,7 @@ export async function seedDemoScenarios(context: DemoContext) {
     age: 5,
     description: "Toilet in the floor 7 restroom won't stop running.",
     place: "Floor 7 restroom",
-    scene: "pipe_leak",
+    scene: "toilet_running",
     draft: "skip",
   });
   await inProgress.triage(4.8, {
@@ -497,7 +497,7 @@ export async function seedDemoScenarios(context: DemoContext) {
     age: 3.5,
     description: "Water runs all night in the floor 7 restroom.",
     place: "Floor 7 restroom",
-    scene: "pipe_leak",
+    scene: "toilet_running",
     draft: "skip",
   });
   await linkedDuplicate.linkTo(
@@ -668,15 +668,16 @@ export async function seedDemoScenarios(context: DemoContext) {
   const reopened = await closedWork({
     age: 18,
     closedAge: 13,
-    description: "Floor tile in the parking level is cracked and loose.",
-    summary: "Loose, cracked floor tile in the parking level",
+    description:
+      "Concrete floor in the parking level is cracked and breaking up.",
+    summary: "Cracked, crumbling floor in the parking level",
     place: "Basement parking B1",
     category: "building_fabric",
     technician: rina,
     before: "cracked_floor",
-    after: "repaired_ceiling",
+    after: "repaired_floor",
   });
-  await reopened.reopen(6, "The tile came loose again within a week.");
+  await reopened.reopen(6, "The repair is breaking up again within a week.");
   await reopened.start(5, supervisor);
 
   // Not a repair job, so the operator cancels it with a reason.

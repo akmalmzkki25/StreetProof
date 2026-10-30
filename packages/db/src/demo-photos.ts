@@ -5,11 +5,14 @@ import { crc32, deflateSync } from "node:zlib";
 export const DEMO_SCENES = [
   "ceiling_stain",
   "pipe_leak",
+  "pipe_leak_wide",
+  "toilet_running",
   "cracked_floor",
   "dark_blurry",
   "dead_light",
   "repaired_pipe",
   "repaired_ceiling",
+  "repaired_floor",
   "wrong_object",
 ] as const;
 
@@ -89,6 +92,15 @@ const PAINTERS: Record<DemoScene, (x: number, y: number) => Rgb> = {
       y > 158 && y < 270 && Math.abs(x - 255) < 70 + blotch(x, y, 20) * 30;
     return stain ? mix(pipeWall(x, y), [118, 110, 96], 0.5) : pipeWall(x, y);
   },
+  pipe_leak_wide(x, y) {
+    return PAINTERS.pipe_leak(x * 0.7 + 72, y * 0.7 + 108);
+  },
+  toilet_running(x, y) {
+    const bowl = Math.hypot((x - 240) / 1.1, y - 170);
+    if (bowl < 60) return [150, 186, 210];
+    if (bowl < 100) return [236, 236, 232];
+    return y > 250 ? [120, 104, 92] : [214, 214, 208];
+  },
   cracked_floor(x, y) {
     const crackX = 60 + y * 0.9 + Math.sin(y / 17) * 26 + Math.sin(y / 5) * 7;
     const tile = panels(x, y, [176, 170, 158], [132, 126, 116], 110);
@@ -110,6 +122,11 @@ const PAINTERS: Record<DemoScene, (x: number, y: number) => Rgb> = {
   },
   repaired_ceiling(x, y) {
     return ceiling(x, y);
+  },
+  repaired_floor(x, y) {
+    const seam = 60 + y * 0.9 + Math.sin(y / 17) * 26;
+    const tile = panels(x, y, [176, 170, 158], [132, 126, 116], 110);
+    return Math.abs(x - seam) < 12 ? [120, 116, 108] : tile;
   },
   wrong_object(x, y) {
     const isDoor = x > 150 && x < 330 && y > 30;

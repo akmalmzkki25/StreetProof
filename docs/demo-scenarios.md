@@ -19,7 +19,7 @@ The command prints four reporter status links once. Sign in with the demo accoun
 | Sagging ceiling panel                | Second proof waiting, first rejected | Supervisor verifies, with the wrong-object attempt on record         |
 | Leaking pipe joint                   | Proof rejected                       | Technician has to redo it                                            |
 | Four closed tickets                  | Verified closed                      | Elapsed times and 14-day rates; one closed too late to count         |
-| Loose floor tile                     | Reopened, in progress                | Repair that didn't hold                                              |
+| Crumbling parking floor              | Reopened, in progress                | Repair that didn't hold                                              |
 | Noise complaint                      | Cancelled                            | Not a repair, closed with a reason                                   |
 
 ## The model only runs when you start the worker
@@ -30,4 +30,4 @@ Don't run the database tests while demo data is loaded: the worker tests claim t
 
 ## Photos
 
-`packages/db/src/demo-photos.ts` draws placeholder pictures. The model recognises them as illustrations and says so in its limitations, which is honest but looks weak on camera. To use better pictures, put synthetic or permissioned files in `packages/db/fixtures/demo-photos/`, named after the scene (`pipe_leak.jpg`, `ceiling_stain.png`, and so on, from `DEMO_SCENES`). The seed uses them instead. Never add a photo of a real site or a real person.
+The seed uses the AI-generated images in `packages/db/fixtures/demo-photos/`, one per scene in `DEMO_SCENES`. They show no real site or person, so say they are generated if asked. A scene without a file falls back to a drawing from `packages/db/src/demo-photos.ts`, which the model reports as an illustration. Never add a photo of a real site or a real person.
