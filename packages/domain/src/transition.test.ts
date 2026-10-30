@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  reporterStage,
   TICKET_STATUSES,
   TRANSITIONS,
   type Requirement,
@@ -183,5 +184,20 @@ describe("state machine table", () => {
     ).map((rule) => rule.from);
 
     expect(sources).toEqual(["completion_submitted"]);
+  });
+});
+
+describe("reporterStage", () => {
+  it("never reveals rejection or assignment states to the reporter", () => {
+    expect(reporterStage("rejected_with_reason")).toBe("in_progress");
+    expect(reporterStage("assigned")).toBe("in_progress");
+  });
+
+  it("only calls work resolved after supervisor verification", () => {
+    const resolved = TICKET_STATUSES.filter(
+      (status) => reporterStage(status) === "resolved",
+    );
+
+    expect(resolved).toEqual(["verified_closed"]);
   });
 });

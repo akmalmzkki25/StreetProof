@@ -8,6 +8,7 @@ export type DemoUser = { name: string; email: string; roles: Role[] };
 export type DemoTenant = {
   tenantName: string;
   siteName: string;
+  intakeCode: string;
   locationNames: string[];
   users: DemoUser[];
 };
@@ -16,6 +17,7 @@ export const DEMO_TENANTS: DemoTenant[] = [
   {
     tenantName: "Graha Contoh (synthetic)",
     siteName: "Graha Contoh Tower A",
+    intakeCode: "graha-tower-a",
     locationNames: [
       "Lobby",
       "Floor 3 pantry",
@@ -54,6 +56,7 @@ export const DEMO_TENANTS: DemoTenant[] = [
   {
     tenantName: "Kampus Contoh (synthetic)",
     siteName: "Kampus Contoh Main Building",
+    intakeCode: "kampus-main",
     locationNames: ["Library", "Hall B"],
     users: [
       {

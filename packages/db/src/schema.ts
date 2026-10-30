@@ -1,4 +1,4 @@
-import { ROLES, TICKET_STATUSES } from "@streetproof/domain";
+import { ROLES, TICKET_PRIORITIES, TICKET_STATUSES } from "@streetproof/domain";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -106,6 +106,8 @@ export const sites = pgTable(
       .notNull()
       .references(() => tenants.id),
     name: text().notNull(),
+    // Public code in the site's report link and QR. Grants intake only.
+    intakeCode: text().unique(),
     timezone: text().notNull().default("Asia/Jakarta"),
     active: boolean().notNull().default(true),
     createdAt: createdAt(),
@@ -162,12 +164,7 @@ export const memberships = pgTable(
 // --- Tickets and reports ------------------------------------------------------
 
 export const ticketStatusEnum = pgEnum("ticket_status", TICKET_STATUSES);
-export const priorityEnum = pgEnum("priority", [
-  "low",
-  "normal",
-  "high",
-  "urgent",
-]);
+export const priorityEnum = pgEnum("priority", TICKET_PRIORITIES);
 
 export const tickets = pgTable(
   "tickets",

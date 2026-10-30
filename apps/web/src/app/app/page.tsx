@@ -2,6 +2,7 @@ import type { Role } from "@streetproof/domain";
 import { Button } from "@streetproof/ui/components/button";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { signOut } from "@/features/auth/actions";
@@ -72,6 +73,14 @@ async function Workspace() {
               <p className="mt-1 text-sm text-muted-foreground">
                 {ROLE_WORK[role].description}
               </p>
+              {role === "operator" ? (
+                <Link
+                  href="/app/queue"
+                  className="mt-3 inline-block text-sm underline underline-offset-4"
+                >
+                  Open the queue
+                </Link>
+              ) : null}
             </li>
           ))}
         </ul>

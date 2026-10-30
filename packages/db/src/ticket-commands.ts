@@ -5,11 +5,16 @@ import {
   type TicketStatus,
   type TransitionRejection,
 } from "@streetproof/domain";
-import { and, eq, sql } from "drizzle-orm";
-import type { Db } from "./client";
-import { outbox, ticketEvents, tickets } from "./schema";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
+import type { Db, Transaction } from "./client";
+import {
+  assignments,
+  memberships,
+  outbox,
+  ticketEvents,
+  tickets,
+} from "./schema";
 
-type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 type Ticket = typeof tickets.$inferSelect;
 type TicketChanges = Partial<
   Pick<
@@ -33,7 +38,13 @@ export type TransitionCommand = {
 
 export type TransitionOutcome =
   | { ok: true; ticket: Ticket }
-  | { ok: false; rejection: TransitionRejection | { code: "not_found" } };
+  | {
+      ok: false;
+      rejection:
+        | TransitionRejection
+        | { code: "not_found" }
+        | { code: "technician_not_eligible" };
+    };
 
 export async function nextEventSeq(tx: Transaction, ticketId: string) {
   const [row] = await tx
@@ -114,5 +125,86 @@ export async function transitionTicket(
     });
 
     return { ok: true, ticket: updated };
+  });
+}
+
+type WorkCommand = {
+  tenantId: string;
+  ticketId: string;
+  actor: TransitionCommand["actor"];
+  expectedRevision: number;
+};
+
+export function triageTicket(
+  db: Db,
+  command: WorkCommand & {
+    summary: string;
+    category: string;
+    priority: NonNullable<Ticket["priority"]>;
+    locationId: string | null;
+  },
+) {
+  return transitionTicket(db, {
+    tenantId: command.tenantId,
+    ticketId: command.ticketId,
+    actor: command.actor,
+    to: "triaged",
+    expectedRevision: command.expectedRevision,
+    provided: ["triage_fields"],
+    payload: { category: command.category, priority: command.priority },
+    apply: async function reviewedFields() {
+      return {
+        summary: command.summary,
+        category: command.category,
+        priority: command.priority,
+        locationId: command.locationId,
+      };
+    },
+  });
+}
+
+export async function assignTicket(
+  db: Db,
+  command: WorkCommand & { siteId: string; technicianId: string },
+): Promise<TransitionOutcome> {
+  const [eligible] = await db
+    .select({ id: memberships.id })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.tenantId, command.tenantId),
+        eq(memberships.userId, command.technicianId),
+        eq(memberships.role, "technician"),
+        eq(memberships.active, true),
+        or(eq(memberships.siteId, command.siteId), isNull(memberships.siteId)),
+      ),
+    );
+  if (!eligible) {
+    return { ok: false, rejection: { code: "technician_not_eligible" } };
+  }
+
+  return transitionTicket(db, {
+    tenantId: command.tenantId,
+    ticketId: command.ticketId,
+    actor: command.actor,
+    to: "assigned",
+    expectedRevision: command.expectedRevision,
+    provided: ["assignee"],
+    payload: { technicianId: command.technicianId },
+    apply: async function replaceAssignment(tx, ticket) {
+      await tx
+        .update(assignments)
+        .set({ endedAt: new Date() })
+        .where(
+          and(eq(assignments.ticketId, ticket.id), isNull(assignments.endedAt)),
+        );
+      await tx.insert(assignments).values({
+        tenantId: ticket.tenantId,
+        ticketId: ticket.id,
+        technicianId: command.technicianId,
+        assignedBy: command.actor.userId,
+      });
+      return { currentAssigneeId: command.technicianId };
+    },
   });
 }

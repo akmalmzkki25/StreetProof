@@ -25,7 +25,15 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 - Better Auth with email and password, Drizzle adapter, `nextCookies` plugin. Config in `src/lib/auth.ts`; the instance is created on first request, so `next build` needs no database. Self sign-up is off; accounts come from the seed or a tenant admin.
 - `src/lib/member.ts` is the data access layer. Pages and actions call `requireMember()` or `requireRole(role)`; never read the session or memberships anywhere else. `requireRole` answers 404 for the wrong role so pages don't reveal what exists.
 - With Cache Components, anything that reads the session sits inside `<Suspense>`. Keep the page shell static and push the session read into a child component (see `src/app/app/page.tsx`).
-- Ticket state changes go through `transitionTicket` from `@streetproof/db`, never a direct `update tickets`.
+- Ticket state changes go through `transitionTicket` from `@streetproof/db` or a command built on it, never a direct `update tickets`. Actions also confirm the ticket is in the member's site scope, because the command only checks the tenant.
+
+## Routes
+
+- `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, then stored before the database transaction.
+- `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
+- `/app/queue`, `/app/tickets/[id]`: operator queue, triage, assignment and cancellation. Other roles get 404.
+
+Testing in the desktop app's browser pane: a hidden pane stalls client navigation, so bring it to the front before concluding a click did nothing.
 
 ## Rules for this unit
 

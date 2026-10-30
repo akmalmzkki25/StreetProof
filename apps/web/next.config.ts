@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  experimental: {
+    // Report form: up to three photos of 10 MB each, plus the text fields.
+    serverActions: { bodySizeLimit: "32mb" },
+  },
   turbopack: {
     rules: {
       "*.css": {

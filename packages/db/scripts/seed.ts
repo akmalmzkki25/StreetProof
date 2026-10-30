@@ -62,7 +62,11 @@ async function seedTenant(demoTenant: DemoTenant) {
 
   const [site] = await db
     .insert(sites)
-    .values({ tenantId: tenant.id, name: demoTenant.siteName })
+    .values({
+      tenantId: tenant.id,
+      name: demoTenant.siteName,
+      intakeCode: demoTenant.intakeCode,
+    })
     .returning();
   if (!site) throw new Error("Site insert returned nothing.");
 

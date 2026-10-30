@@ -8,6 +8,7 @@ export function createDb(connectionString: string) {
 }
 
 export type Db = ReturnType<typeof createDb>["db"];
+export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 let shared: Db | undefined;
 

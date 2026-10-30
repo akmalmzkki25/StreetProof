@@ -17,7 +17,11 @@ The database tests skip when `DATABASE_URL` is missing (as in CI). Locally they 
 
 ## Ticket commands
 
-`transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`.
+`transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`. `triageTicket` and `assignTicket` are built on it.
+
+## Report intake
+
+`submitReport(db, input)` in `src/reports.ts` creates the ticket, report, photo rows, first event, outbox row and receipt in one transaction. A retry with the same idempotency key and digest returns the same report, revokes the old receipt and issues a new one, up to the rotation limit; a changed digest is rejected. The raw receipt token is returned once and only its SHA-256 is stored. `getReporterStatus` returns null for any invalid receipt, so callers can't tell why it failed.
 
 ## Env
 

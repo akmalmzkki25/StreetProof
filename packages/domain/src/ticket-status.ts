@@ -165,3 +165,46 @@ export const TRANSITIONS: readonly TransitionRule[] = [
     requires: [],
   },
 ];
+
+export const TICKET_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+export const TICKET_CATEGORIES = [
+  "plumbing",
+  "electrical",
+  "hvac",
+  "building_fabric",
+  "other",
+] as const;
+
+export type TicketCategory = (typeof TICKET_CATEGORIES)[number];
+
+// What a reporter may see. Internal states collapse so a receipt never exposes
+// assignment, rejection or staffing details.
+export type ReporterStage =
+  | "received"
+  | "in_review"
+  | "in_progress"
+  | "resolved"
+  | "closed_without_repair";
+
+const REPORTER_STAGE_BY_STATUS: Record<TicketStatus, ReporterStage> = {
+  submitted: "received",
+  needs_clarification: "in_review",
+  triaged: "in_review",
+  assigned: "in_progress",
+  accepted: "in_progress",
+  in_progress: "in_progress",
+  waiting_for_parts: "in_progress",
+  waiting_for_access: "in_progress",
+  completion_submitted: "in_progress",
+  rejected_with_reason: "in_progress",
+  reopened: "in_progress",
+  verified_closed: "resolved",
+  cancelled: "closed_without_repair",
+};
+
+export function reporterStage(status: TicketStatus): ReporterStage {
+  return REPORTER_STAGE_BY_STATUS[status];
+}
