@@ -31,9 +31,12 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, then stored before the database transaction.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
-- `/app/queue`, `/app/tickets/[id]`: operator queue, triage, assignment and cancellation. Other roles get 404.
+- `/app/queue`: operator queue, operators only.
+- `/app/work`: a technician's assigned work.
+- `/app/reviews`: a supervisor's pending verifications and closed work.
+- `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`).
 
-Testing in the desktop app's browser pane: a hidden pane stalls client navigation, so bring it to the front before concluding a click did nothing.
+Testing in the desktop app's browser pane: a hidden pane stalls client navigation and holds streamed content behind its skeleton, so take a screenshot or bring the pane forward before concluding a page is broken.
 
 ## Rules for this unit
 

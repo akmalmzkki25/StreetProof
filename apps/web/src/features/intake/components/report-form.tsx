@@ -22,7 +22,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";
-import { MAX_PHOTOS } from "../photos";
+import { MAX_PHOTOS } from "@/lib/photos";
 
 const initialState: ReportFormState = { status: "idle", error: null };
 

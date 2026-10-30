@@ -32,6 +32,12 @@ const ROLE_WORK: Record<Role, { title: string; description: string }> = {
   },
 };
 
+const ROLE_LINKS: Partial<Record<Role, { href: string; label: string }>> = {
+  operator: { href: "/app/queue", label: "Open the queue" },
+  technician: { href: "/app/work", label: "Open my work" },
+  supervisor: { href: "/app/reviews", label: "Open reviews" },
+};
+
 export default function WorkspacePage() {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col gap-10 px-4 py-12 md:px-8">
@@ -73,12 +79,12 @@ async function Workspace() {
               <p className="mt-1 text-sm text-muted-foreground">
                 {ROLE_WORK[role].description}
               </p>
-              {role === "operator" ? (
+              {ROLE_LINKS[role] ? (
                 <Link
-                  href="/app/queue"
+                  href={ROLE_LINKS[role].href}
                   className="mt-3 inline-block text-sm underline underline-offset-4"
                 >
-                  Open the queue
+                  {ROLE_LINKS[role].label}
                 </Link>
               ) : null}
             </li>

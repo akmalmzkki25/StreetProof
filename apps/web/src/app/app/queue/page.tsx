@@ -1,20 +1,10 @@
 import { getDb, listIntakeSites, listQueue } from "@streetproof/db";
-import { Badge } from "@streetproof/ui/components/badge";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@streetproof/ui/components/table";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { categoryLabel, STATUS_LABELS } from "@/features/tickets/labels";
-import { formatDateTime } from "@/lib/format";
+import { TicketTable } from "@/features/tickets/components/ticket-table";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Operator queue" };
@@ -63,52 +53,10 @@ async function Queue() {
           ))}
         </p>
       ) : null}
-
-      {items.length === 0 ? (
-        <p className="rounded-xl border border-border bg-card p-8 text-sm text-muted-foreground">
-          No reports yet. New reports appear here as soon as they&apos;re sent.
-        </p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Report</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Sent</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="max-w-80 truncate">
-                  <Link
-                    href={`/app/tickets/${item.id}`}
-                    className="underline-offset-4 hover:underline"
-                  >
-                    {item.title}
-                  </Link>
-                </TableCell>
-                <TableCell>{item.location ?? "Not set"}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={item.status === "submitted" ? "brand" : "outline"}
-                  >
-                    {STATUS_LABELS[item.status]}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {categoryLabel(item.category) ?? "Not set"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDateTime(item.createdAt)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      <TicketTable
+        items={items}
+        emptyMessage="No reports yet. New reports appear here as soon as they're sent."
+      />
     </div>
   );
 }

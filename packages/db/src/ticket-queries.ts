@@ -1,16 +1,9 @@
-import {
-  aliasedTable,
-  and,
-  asc,
-  desc,
-  eq,
-  inArray,
-  isNull,
-  or,
-  type SQL,
-} from "drizzle-orm";
+import type { TicketStatus } from "@streetproof/domain";
+import { and, asc, desc, eq, inArray, isNull, or, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "./client";
 import {
+  completionSubmissions,
   locations,
   memberships,
   reports,
@@ -19,6 +12,7 @@ import {
   tickets,
   uploads,
   user,
+  verifications,
 } from "./schema";
 
 const QUEUE_LIMIT = 100;
@@ -38,7 +32,16 @@ function inScope(scope: MemberScope): SQL | undefined {
   );
 }
 
-export async function listQueue(db: Db, scope: MemberScope) {
+export type QueueFilter = {
+  statuses?: readonly TicketStatus[];
+  assigneeId?: string;
+};
+
+export async function listQueue(
+  db: Db,
+  scope: MemberScope,
+  filter: QueueFilter = {},
+) {
   const rows = await db
     .select({
       id: tickets.id,
@@ -52,7 +55,17 @@ export async function listQueue(db: Db, scope: MemberScope) {
     })
     .from(tickets)
     .leftJoin(locations, eq(locations.id, tickets.locationId))
-    .where(inScope(scope))
+    .where(
+      and(
+        inScope(scope),
+        filter.statuses
+          ? inArray(tickets.status, [...filter.statuses])
+          : undefined,
+        filter.assigneeId
+          ? eq(tickets.currentAssigneeId, filter.assigneeId)
+          : undefined,
+      ),
+    )
     .orderBy(desc(tickets.updatedAt))
     .limit(QUEUE_LIMIT);
 
@@ -89,7 +102,7 @@ export async function getTicketDetail(
   scope: MemberScope,
   ticketId: string,
 ) {
-  const assignee = aliasedTable(user, "assignee");
+  const assignee = alias(user, "assignee");
   const [ticket] = await db
     .select({
       id: tickets.id,
@@ -149,6 +162,7 @@ export async function getTicketDetail(
       fromStatus: ticketEvents.fromStatus,
       toStatus: ticketEvents.toStatus,
       actorName: user.name,
+      payload: ticketEvents.payload,
       createdAt: ticketEvents.createdAt,
     })
     .from(ticketEvents)
@@ -156,11 +170,55 @@ export async function getTicketDetail(
     .where(eq(ticketEvents.ticketId, ticketId))
     .orderBy(asc(ticketEvents.seq));
 
+  const submitter = alias(user, "submitter");
+  const verifier = alias(user, "verifier");
+  const attempts = await db
+    .select({
+      id: completionSubmissions.id,
+      note: completionSubmissions.note,
+      status: completionSubmissions.status,
+      submittedAt: completionSubmissions.submittedAt,
+      submitterName: submitter.name,
+      decisionReason: verifications.reason,
+      decidedAt: verifications.decidedAt,
+      verifierName: verifier.name,
+    })
+    .from(completionSubmissions)
+    .innerJoin(submitter, eq(submitter.id, completionSubmissions.submittedBy))
+    .leftJoin(
+      verifications,
+      eq(verifications.completionId, completionSubmissions.id),
+    )
+    .leftJoin(verifier, eq(verifier.id, verifications.verifierId))
+    .where(eq(completionSubmissions.ticketId, ticketId))
+    .orderBy(desc(completionSubmissions.submittedAt));
+
+  const proofPhotos = await db
+    .select({
+      id: uploads.id,
+      completionId: uploads.completionId,
+      objectKey: uploads.objectKey,
+    })
+    .from(uploads)
+    .where(
+      and(
+        eq(uploads.state, "ready"),
+        inArray(
+          uploads.completionId,
+          attempts.map((attempt) => attempt.id),
+        ),
+      ),
+    );
+
   return {
     ...ticket,
     reports: ticketReports.map((report) => ({
       ...report,
       photos: photos.filter((photo) => photo.reportId === report.id),
+    })),
+    attempts: attempts.map((attempt) => ({
+      ...attempt,
+      photos: proofPhotos.filter((photo) => photo.completionId === attempt.id),
     })),
     events,
   };

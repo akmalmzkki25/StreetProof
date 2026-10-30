@@ -5,7 +5,7 @@ import {
   listTechnicians,
   type TicketDetail,
 } from "@streetproof/db";
-import { availableTransitions } from "@streetproof/domain";
+import { availableTransitions, canViewTicket } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
@@ -17,7 +17,12 @@ import { z } from "zod";
 import {
   AssignForm,
   CancelForm,
+  CompletionForm,
+  DecisionForm,
+  ProgressButton,
+  ReopenForm,
   TriageForm,
+  WaitForm,
 } from "@/features/tickets/components/ticket-forms";
 import {
   categoryLabel,
@@ -25,7 +30,7 @@ import {
   STATUS_LABELS,
 } from "@/features/tickets/labels";
 import { formatDateTime } from "@/lib/format";
-import { requireRole, type Member } from "@/lib/member";
+import { requireMember, type Member } from "@/lib/member";
 import { getStorage } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Ticket" };
@@ -34,10 +39,10 @@ export default function TicketPage({ params }: PageProps<"/app/tickets/[id]">) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 px-4 py-12 md:px-8">
       <Link
-        href="/app/queue"
+        href="/app"
         className="text-sm text-muted-foreground hover:text-foreground"
       >
-        Operator queue
+        Workspace
       </Link>
       <Suspense fallback={<Skeleton className="h-96" />}>
         <Ticket idPromise={params.then((value) => value.id)} />
@@ -47,7 +52,7 @@ export default function TicketPage({ params }: PageProps<"/app/tickets/[id]">) {
 }
 
 async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
-  const member = await requireRole("operator");
+  const member = await requireMember();
   const id = z.uuid().safeParse(await idPromise);
   if (!id.success) notFound();
 
@@ -57,6 +62,9 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
     id.data,
   );
   if (!ticket) notFound();
+  if (!canViewTicket(ticket, { userId: member.userId, roles: member.roles })) {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -74,6 +82,7 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
 
       <div className="grid items-start gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-8">
+          <Attempts ticket={ticket} />
           <Reports ticket={ticket} />
           <Timeline ticket={ticket} />
         </div>
@@ -86,26 +95,94 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
   );
 }
 
-async function Reports({ ticket }: { ticket: TicketDetail }) {
+type StoredPhoto = { id: string; objectKey: string };
+
+async function PhotoGrid({
+  photos,
+  label,
+}: {
+  photos: StoredPhoto[];
+  label: string;
+}) {
+  if (photos.length === 0) return null;
+
   const storage = getStorage();
-  const reports = await Promise.all(
-    ticket.reports.map(async (report) => ({
-      ...report,
-      photoUrls: await Promise.all(
-        report.photos.map(async (photo) => ({
-          id: photo.id,
-          url: await storage.signedReadUrl(photo.objectKey),
-        })),
-      ),
+  const signed = await Promise.all(
+    photos.map(async (photo) => ({
+      id: photo.id,
+      url: await storage.signedReadUrl(photo.objectKey),
     })),
   );
 
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {signed.map((photo, index) => (
+        <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer">
+          {/* Signed, short-lived URLs from the private bucket. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photo.url}
+            alt={`${label} ${index + 1}`}
+            loading="lazy"
+            className="aspect-square w-full rounded-lg border border-border object-cover"
+          />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+const ATTEMPT_LABELS = {
+  pending: "Awaiting verification",
+  accepted: "Verified",
+  rejected: "Proof rejected",
+} as const;
+
+function Attempts({ ticket }: { ticket: TicketDetail }) {
+  if (ticket.attempts.length === 0) return null;
+
+  return (
+    <section aria-labelledby="attempts" className="flex flex-col gap-4">
+      <h2 id="attempts" className="text-sm text-muted-foreground">
+        Completion proof
+      </h2>
+      {ticket.attempts.map((attempt) => (
+        <article
+          key={attempt.id}
+          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
+        >
+          <Badge
+            variant={attempt.status === "rejected" ? "destructive" : "outline"}
+            className="self-start"
+          >
+            {ATTEMPT_LABELS[attempt.status]}
+          </Badge>
+          <p className="whitespace-pre-wrap">{attempt.note}</p>
+          <p className="text-sm text-muted-foreground">
+            {attempt.submitterName} · {formatDateTime(attempt.submittedAt)}
+          </p>
+          <PhotoGrid photos={attempt.photos} label="Proof photo" />
+          {attempt.decisionReason ? (
+            <p className="text-sm">
+              <span className="text-muted-foreground">
+                {attempt.verifierName}:{" "}
+              </span>
+              {attempt.decisionReason}
+            </p>
+          ) : null}
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function Reports({ ticket }: { ticket: TicketDetail }) {
   return (
     <section aria-labelledby="reports" className="flex flex-col gap-4">
       <h2 id="reports" className="text-sm text-muted-foreground">
         Reporter-provided
       </h2>
-      {reports.map((report) => (
+      {ticket.reports.map((report) => (
         <article
           key={report.id}
           className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
@@ -115,27 +192,7 @@ async function Reports({ ticket }: { ticket: TicketDetail }) {
             {report.locationName ?? report.locationText} ·{" "}
             {formatDateTime(report.createdAt)}
           </p>
-          {report.photoUrls.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {report.photoUrls.map((photo, index) => (
-                <a
-                  key={photo.id}
-                  href={photo.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {/* Signed, short-lived URLs from the private bucket. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt={`Report photo ${index + 1}`}
-                    loading="lazy"
-                    className="aspect-square w-full rounded-lg border border-border object-cover"
-                  />
-                </a>
-              ))}
-            </div>
-          ) : null}
+          <PhotoGrid photos={report.photos} label="Report photo" />
         </article>
       ))}
     </section>
@@ -193,11 +250,17 @@ async function NextStep({
   const canTriage = allowed.includes("triaged");
   const canAssign = allowed.includes("assigned");
   const canCancel = allowed.includes("cancelled");
+  const canAccept = allowed.includes("accepted");
+  const canWork = allowed.includes("in_progress");
+  const canWait = allowed.includes("waiting_for_parts");
+  const canComplete = allowed.includes("completion_submitted");
+  const canDecide = allowed.includes("verified_closed");
+  const canReopen = allowed.includes("reopened");
 
-  if (!canTriage && !canAssign && !canCancel) {
+  if (allowed.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        No operator action is needed right now.
+        No action is needed from you right now.
       </p>
     );
   }
@@ -243,6 +306,60 @@ async function NextStep({
         </section>
       ) : null}
       {canCancel ? <CancelForm {...ref} /> : null}
+      {canAccept ? (
+        <ProgressButton {...ref} to="accepted" label="Accept work" />
+      ) : null}
+      {canWork ? (
+        <ProgressButton
+          {...ref}
+          to="in_progress"
+          label={ticket.status === "accepted" ? "Start work" : "Resume work"}
+        />
+      ) : null}
+      {canComplete ? (
+        <section
+          aria-labelledby="complete"
+          className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+        >
+          <h2 id="complete" className="text-base">
+            Submit completion
+          </h2>
+          <CompletionForm {...ref} />
+        </section>
+      ) : null}
+      {canWait ? (
+        <section
+          aria-labelledby="wait"
+          className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+        >
+          <h2 id="wait" className="text-base">
+            Can&apos;t continue yet?
+          </h2>
+          <WaitForm {...ref} />
+        </section>
+      ) : null}
+      {canDecide ? (
+        <section
+          aria-labelledby="decide"
+          className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+        >
+          <h2 id="decide" className="text-base">
+            Review the proof
+          </h2>
+          <DecisionForm {...ref} />
+        </section>
+      ) : null}
+      {canReopen ? (
+        <section
+          aria-labelledby="reopen"
+          className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+        >
+          <h2 id="reopen" className="text-base">
+            Reopen
+          </h2>
+          <ReopenForm {...ref} />
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -264,6 +381,11 @@ function Timeline({ ticket }: { ticket: TicketDetail }) {
               · {event.actorName ?? "Reporter"} ·{" "}
               {formatDateTime(event.createdAt)}
             </span>
+            {typeof event.payload.reason === "string" ? (
+              <p className="mt-0.5 text-muted-foreground">
+                {event.payload.reason}
+              </p>
+            ) : null}
           </li>
         ))}
       </ol>

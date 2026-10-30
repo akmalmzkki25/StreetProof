@@ -12,10 +12,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { headers } from "next/headers";
 import { z } from "zod";
 
+import { readPhotos, storePhotos } from "@/lib/photo-upload";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { getStorage } from "@/lib/storage";
-
-import { detectPhotoFormat, photoProblem } from "./photos";
 
 export type ReportFormState =
   | { status: "idle" | "error"; error: string | null }
@@ -84,22 +82,8 @@ export async function submitReportAction(
     return failure("Choose where the damage is.");
   }
 
-  const files = formData
-    .getAll("photos")
-    .filter((value): value is File => value instanceof File && value.size > 0);
-  const problem = photoProblem(files);
-  if (problem) return failure(problem);
-
-  const photoBytes = await Promise.all(
-    files.map(async (file) => new Uint8Array(await file.arrayBuffer())),
-  );
-  const photoDetails = [];
-  for (const bytes of photoBytes) {
-    const format = detectPhotoFormat(bytes);
-    if (!format) return failure("Photos must be JPEG, PNG or WebP images.");
-    const sha256 = createHash("sha256").update(bytes).digest("hex");
-    photoDetails.push({ bytes, format, sha256 });
-  }
+  const read = await readPhotos(formData);
+  if (!read.ok) return failure(read.error);
 
   const requestDigest = createHash("sha256")
     .update(
@@ -107,32 +91,21 @@ export async function submitReportAction(
         location,
         locationText,
         description,
-        photos: photoDetails.map((photo) => photo.sha256),
+        photos: read.photos.map((photo) => photo.sha256),
       }),
     )
     .digest("hex");
 
   const reportId = randomUUID();
-  const photos: ReportPhoto[] = [];
+  let photos: ReportPhoto[] = [];
 
   // A retry after a lost response already has its photos stored.
   if (!(await hasIntakeSubmission(db, site.tenantId, submissionKey))) {
-    const storage = getStorage();
     try {
-      for (const photo of photoDetails) {
-        const objectKey = `tenants/${site.tenantId}/reports/${reportId}/${randomUUID()}.${photo.format.extension}`;
-        await storage.putObject(
-          objectKey,
-          photo.bytes,
-          photo.format.contentType,
-        );
-        photos.push({
-          objectKey,
-          contentType: photo.format.contentType,
-          bytes: photo.bytes.length,
-          sha256: photo.sha256,
-        });
-      }
+      photos = await storePhotos(
+        read.photos,
+        `tenants/${site.tenantId}/reports/${reportId}`,
+      );
     } catch (error) {
       console.error("Report photo upload failed", error);
       return failure("We couldn't save your photos. Please try again.");

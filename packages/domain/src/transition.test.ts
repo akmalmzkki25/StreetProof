@@ -7,7 +7,11 @@ import {
   type Role,
   type TicketStatus,
 } from "./ticket-status";
-import { availableTransitions, checkTransition } from "./transition";
+import {
+  availableTransitions,
+  canViewTicket,
+  checkTransition,
+} from "./transition";
 
 const technicianId = "tech-1";
 
@@ -184,6 +188,28 @@ describe("state machine table", () => {
     ).map((rule) => rule.from);
 
     expect(sources).toEqual(["completion_submitted"]);
+  });
+});
+
+describe("canViewTicket", () => {
+  it("limits a technician to their own assigned work", () => {
+    const assigned = { currentAssigneeId: "tech-1" };
+
+    expect(
+      canViewTicket(assigned, { userId: "tech-1", roles: ["technician"] }),
+    ).toBe(true);
+    expect(
+      canViewTicket(assigned, { userId: "tech-2", roles: ["technician"] }),
+    ).toBe(false);
+  });
+
+  it("lets other roles see any ticket in their scope", () => {
+    expect(
+      canViewTicket(
+        { currentAssigneeId: "tech-1" },
+        { userId: "sup-1", roles: ["supervisor"] },
+      ),
+    ).toBe(true);
   });
 });
 

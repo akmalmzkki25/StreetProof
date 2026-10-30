@@ -72,6 +72,15 @@ export function checkTransition(request: TransitionRequest): TransitionResult {
   return { ok: true, rule, nextRevision: ticket.revision + 1 };
 }
 
+// Within a member's site scope: technicians see only work assigned to them.
+export function canViewTicket(
+  ticket: Pick<TransitionRequest["ticket"], "currentAssigneeId">,
+  actor: TransitionRequest["actor"],
+) {
+  const seesAllSiteWork = actor.roles.some((role) => role !== "technician");
+  return seesAllSiteWork || ticket.currentAssigneeId === actor.userId;
+}
+
 export function availableTransitions(
   ticket: TransitionRequest["ticket"],
   actor: TransitionRequest["actor"],

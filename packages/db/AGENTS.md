@@ -17,7 +17,7 @@ The database tests skip when `DATABASE_URL` is missing (as in CI). Locally they 
 
 ## Ticket commands
 
-`transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`. `triageTicket` and `assignTicket` are built on it.
+`transitionTicket(db, command)` in `src/ticket-commands.ts` is the only way a ticket changes status. In one transaction it locks the ticket row (`FOR UPDATE`), re-runs `checkTransition` from `@streetproof/domain` against the locked row, calls the command's `apply` for side rows and field changes, bumps the revision, and writes one `ticket_events` row and one `outbox` row. A second command racing on the same revision is rejected as `stale_revision`. Never call a model, upload a file or do other slow I/O inside `apply`. `triageTicket`, `assignTicket`, `acceptWork`, `submitCompletion` and `decideCompletion` are built on it. A completion attempt is immutable: a rejection keeps it, and the technician submits a new one.
 
 ## Report intake
 
