@@ -64,9 +64,16 @@ avoid, the request shape, and how errors map to the plan's AI states.
    names, phone numbers and tenant data must be synthetic. Secrets live only
    in `.env` (git-ignored); `.env.example` holds variable names only.
 9. **One `.env` at the repo root.** Every unit reads the root `.env`; don't
-   create per-app or per-package env files. Next.js loads it through
-   `loadEnvConfig` in `next.config.ts`, and Node scripts through
-   `process.loadEnvFile`. New variables go in the root `.env.example`.
+   create per-app or per-package env files. `next.config.ts` and Node scripts
+   load it with `process.loadEnvFile`. New variables go in the root
+   `.env.example`.
+10. **Check the references before you build.** Every task follows `AGENTS.md`,
+    `CLAUDE.md`, the unit's own `AGENTS.md` and the matching skill in
+    `.agents/skills/`. UI work also follows `design.md`, plus the
+    `antislop:antislop-ui` and `taste-skill:design-taste-frontend` skills where
+    available; user-facing text also follows `antislop:antislop-copywriting`.
+    `design.md` wins when a skill disagrees, for example on pills, Inter and
+    Geist Mono, which it chose on purpose.
 
 ## Engineering preferences
 
