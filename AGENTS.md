@@ -16,7 +16,9 @@ Proposed technical direction (see `plan/en/04-technical/architecture-decisions.m
 
 - **Next.js + TypeScript** for the UI and `/api/v1` (modular monolith).
 - **A separate Node worker** for slow jobs (AI, media), fed by an outbox in PostgreSQL.
-- **Supabase**: Auth, PostgreSQL with RLS, private Storage.
+- **PostgreSQL and MinIO in Docker** (D-11, superseding ADR-002): Drizzle ORM
+  schema and SQL migrations in `packages/db`, report and completion photos in a
+  private S3-compatible bucket, authentication inside the app.
 - **Python** only for work that is genuinely Python-shaped: AI evaluation,
   model experiments, data scripts. Not a second API runtime (ADR-001, D-05).
 
@@ -59,6 +61,10 @@ synthetic data.
    shared with collaborators or made public later. Report photos, reporter
    names, phone numbers and tenant data must be synthetic. Secrets live only
    in `.env` (git-ignored); `.env.example` holds variable names only.
+9. **One `.env` at the repo root.** Every unit reads the root `.env`; don't
+   create per-app or per-package env files. Next.js loads it through
+   `loadEnvConfig` in `next.config.ts`, and Node scripts through
+   `process.loadEnvFile`. New variables go in the root `.env.example`.
 
 ## Engineering preferences
 
@@ -82,7 +88,6 @@ synthetic data.
 apps/             deployable apps (Next.js web, Node worker)
 packages/         shared TypeScript packages (domain, contracts, db, ui, config)
 py/               Python packages (AI evaluation, experiments, data scripts)
-supabase/         database migrations and Supabase config, once added
 plan/en, plan/id  planning package, two languages
 docs/hackathon.md hackathon reference (dates, tracks, models, rules)
 docs/adr/         accepted ADRs (proposed ones are still in plan/)
@@ -100,6 +105,14 @@ pnpm build            # turbo run build
 pnpm typecheck
 pnpm lint
 pnpm test
+```
+
+Database and storage (Docker services must be running; see `.env.example`):
+
+```bash
+pnpm db:generate      # write a SQL migration from packages/db/src/schema.ts
+pnpm db:migrate       # apply migrations to DATABASE_URL
+pnpm db:seed          # reset demo data: synthetic tenant, site, users, bucket
 ```
 
 Python (3.12, uv), also from the root:
@@ -132,8 +145,8 @@ draft is done.
 | Next.js App Router, RSC, Suspense, caching | `nextjs-app-architecture`, `vercel-react-best-practices`, `vercel-composition-patterns` |
 | UI: components, styling, accessibility     | `shadcn`, `tailwind-design-system`, `web-design-guidelines`, `frontend-patterns`        |
 | Monorepo, task pipelines, caching          | `turborepo`                                                                             |
-| Supabase: Auth, RLS, Storage, CLI          | `supabase`, `supabase-postgres-best-practices`                                          |
-| Schema, migrations, indexes                | `database-migrations`, `supabase-postgres-best-practices`                               |
+| Authentication and sessions                | `better-auth-best-practices`                                                            |
+| Schema, migrations, indexes, locking       | `database-migrations`, `supabase-postgres-best-practices` (plain Postgres guidance)     |
 | API and service layer                      | `api-design`, `backend-patterns`, `error-handling`                                      |
 | Python                                     | `python-patterns`, `python-testing`, `fastapi-patterns`                                 |
 | Testing and verification                   | `tdd-workflow`, `e2e-testing`, `verification-loop`                                      |

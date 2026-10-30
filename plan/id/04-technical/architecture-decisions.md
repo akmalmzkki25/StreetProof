@@ -16,6 +16,8 @@ Tim 2-4 orang memerlukan alur bukti lengkap sebelum spesialisasi infrastruktur. 
 
 ## ADR-002 PostgreSQL, Auth, dan Storage privat terkelola
 
+Status: digantikan pada 2026-10-30 oleh D-11 di [register keputusan](../00-foundation/decision-register.md): PostgreSQL dan MinIO self-hosted di Docker, dengan autentikasi di aplikasi.
+
 Usulkan Supabase untuk mengurangi kerja integrasi identitas/storage sambil mempertahankan model domain relasional. Alternatif adalah PostgreSQL/Auth/object storage terpisah atau self-hosting yang menambah operasi tim. Konsekuensi: kunci service, API storage, ketersediaan wilayah, dan backup menciptakan kewajiban khusus penyedia. Portabilitas memerlukan migrasi SQL, ekspor data/manifest media, dan rencana pemulihan eksplisit. Terima hanya setelah latihan akses dua tenant dan pulih/hapus. [Dokumentasi RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) (T-03) mendukung mekanisme, bukan bukti konfigurasi kita.
 
 ## ADR-003 Job tahan lama dan outbox sebelum panggilan model

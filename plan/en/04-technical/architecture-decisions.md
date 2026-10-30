@@ -16,6 +16,8 @@ A 2-4 person team needs a complete evidence workflow before infrastructure speci
 
 ## ADR-002 Managed PostgreSQL, Auth and private Storage
 
+Status: superseded on 2026-10-30 by D-11 in the [decision register](../00-foundation/decision-register.md): self-hosted PostgreSQL and MinIO in Docker, with authentication in the application.
+
 Propose Supabase to reduce identity/storage integration work while retaining a relational domain model. Alternatives are independently managed PostgreSQL/Auth/object storage or self-hosting, which increase operations for this team. Consequence: service keys, storage APIs, region availability and backups create vendor-specific obligations. Portability requires SQL migrations, exported data/media manifests and an explicit recovery plan. Accept only after two-tenant access and restore/deletion rehearsal. [RLS documentation](https://supabase.com/docs/guides/database/postgres/row-level-security) (T-03) supports mechanisms, not proof of our configuration.
 
 ## ADR-003 Durable jobs and outbox before model calls

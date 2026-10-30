@@ -21,6 +21,7 @@ Semua baris adalah keputusan perencanaan yang diusulkan penulis, bukan hasil per
 | D-08 | Baseline eksternal boleh; pengukuran wajib | ROI bergantung metode, bukan fitur timer otomatis | Bangun modul ROI lengkap sebelum belajar | Kualitas catatan waktu tidak dapat diaudit |
 | D-09 | Voice/SAM/WhatsApp/MCP sesudah alur inti | Kompleksitas harus memiliki bukti manfaat | Tumpukan model untuk demo | Ada hambatan pengguna yang hanya terselesaikan kemampuan itu |
 | D-10 | Dokumentasi dua bahasa dengan ID sama | Mencegah dua spesifikasi berbeda | Ringkasan Inggris saja | Perubahan satu bahasa harus merambat ke pasangan |
+| D-11 | PostgreSQL dan object storage kompatibel S3 (MinIO) self-hosted di Docker; autentikasi di aplikasi; menggantikan ADR-002 | Tim sudah menjalankan layanan ini di Docker; tidak perlu akun vendor atau kunci service untuk hackathon; migrasi SQL biasa tetap portabel | Supabase (ADR-002) | Deploy hosted butuh backup terkelola atau row-level security yang tidak sanggup dioperasikan tim |
 
 ## Konsekuensi dan biaya perubahan
 

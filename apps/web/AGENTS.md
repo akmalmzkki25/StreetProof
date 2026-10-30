@@ -18,7 +18,7 @@ Dev server defaults to http://localhost:3000. Design system live showcase: `/des
 
 ## Env
 
-Uses root `.env` / `.env.example`. No web-only vars yet beyond the shared `APP_URL` and future Supabase keys.
+Uses root `.env` / `.env.example`. No web-only vars yet beyond the shared `APP_URL` and `AUTH_SECRET`. Database and storage access go through `@streetproof/db`.
 
 ## Rules for this unit
 

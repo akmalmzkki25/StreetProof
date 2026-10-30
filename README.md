@@ -14,9 +14,8 @@ This is a monorepo: the web app, API, worker, shared packages, Python evaluation
 | -------------------- | ---------------------------------------------------------------------------------------------- |
 | `plan/en`, `plan/id` | Research, business model, product requirements, technical design, delivery and marketing plans |
 | `apps/`              | Deployable apps (`web` now; Node worker planned)                                               |
-| `packages/`          | Shared TypeScript packages (`ui` now; domain/db/contracts planned)                             |
+| `packages/`          | Shared TypeScript packages (`ui`, `domain`, `db` now; contracts planned)                       |
 | `py/`                | Python packages for AI evaluation and experiments                                              |
-| `supabase/`          | Database migrations and Supabase config (once added)                                           |
 | `docs/hackathon.md`  | Hackathon reference: dates, tracks, models, rules                                              |
 | `docs/adr/`          | Accepted architecture decisions                                                                |
 | `.agents/skills/`    | Skills for coding agents working on this repo                                                  |
@@ -28,7 +27,9 @@ Requires Node 22, pnpm 12, Python 3.12 and [uv](https://docs.astral.sh/uv/).
 ```bash
 pnpm install
 uv sync
-cp .env.example .env
+cp .env.example .env   # one .env for the whole monorepo; fill in the Docker credentials
+pnpm db:migrate        # Postgres in Docker
+pnpm db:seed           # synthetic tenants, demo accounts, private MinIO bucket
 ```
 
 Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `uv run pytest`, `uv run ruff check .`

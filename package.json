@@ -11,6 +11,9 @@
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "db:generate": "pnpm --filter @streetproof/db db:generate",
+    "db:migrate": "pnpm --filter @streetproof/db db:migrate",
+    "db:seed": "pnpm --filter @streetproof/db db:seed",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

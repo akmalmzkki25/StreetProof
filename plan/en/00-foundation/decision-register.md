@@ -21,6 +21,7 @@ Every row is an author-proposed planning decision, not buyer approval. P resolve
 | D-08 | External baseline allowed; measurement required | ROI depends on method rather than an automated timer | Build a complete ROI module before learning | Timing records cannot be audited |
 | D-09 | Voice/SAM/WhatsApp/MCP after core flow | Complexity needs evidence of benefit | Model stacking for demonstration | Observed blocker requires that capability |
 | D-10 | Bilingual documentation with shared IDs | Avoid two divergent specifications | English summary only | Any language change must propagate to its counterpart |
+| D-11 | Self-hosted PostgreSQL and S3-compatible object storage (MinIO) in Docker; authentication in the application; supersedes ADR-002 | Team already runs these services in Docker; no vendor account or service keys needed for the hackathon; plain SQL migrations stay portable | Supabase (ADR-002) | Hosted deployment needs managed backups or row-level security the team cannot operate |
 
 ## Consequences and change costs
 

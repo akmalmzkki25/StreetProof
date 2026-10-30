@@ -10,11 +10,6 @@
 # scope writes .mcp.json, which would push server URLs and tokens.
 .mcp.json
 
-# Supabase local state and credentials
-supabase/.branches/
-supabase/.temp/
-supabase/.env
-
 # --- JavaScript / TypeScript --------------------------------------------
 node_modules/
 .pnpm-store/
