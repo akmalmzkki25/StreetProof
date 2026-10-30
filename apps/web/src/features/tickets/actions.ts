@@ -7,6 +7,8 @@ import {
   getDb,
   getTicketDetail,
   linkDuplicate,
+  requestClarification,
+  resumeAfterClarification,
   submitCompletion,
   transitionTicket,
   triageTicket,
@@ -99,6 +101,20 @@ const decisionFields = z.object({
 const reopenFields = z.object({
   ...ticketRef,
   reason: reasonField("Explain why this work is being reopened."),
+});
+
+const clarificationFields = z.object({
+  ...ticketRef,
+  question: z
+    .string()
+    .trim()
+    .min(10, "Write the question the reporter should answer.")
+    .max(500, "Keep the question under 500 characters."),
+});
+
+const resumeFields = z.object({
+  ...ticketRef,
+  reason: z.string().trim().max(500, "Keep the reason under 500 characters."),
 });
 
 const linkFields = z.object({
@@ -512,4 +528,59 @@ export async function unlinkDuplicateAction(
     reason: fields.data.reason,
   });
   return finishDuplicate(outcome, [source.id, source.duplicateOf.ticketId]);
+}
+
+export async function requestClarificationAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireRole("operator");
+  const fields = clarificationFields.safeParse({
+    ticketId: formData.get("ticketId"),
+    expectedRevision: formData.get("expectedRevision"),
+    question: formData.get("question") ?? "",
+  });
+  if (!fields.success) {
+    return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const ticket = await ticketInScope(member, fields.data.ticketId);
+  if (!ticket) return unavailable;
+
+  const outcome = await requestClarification(getDb(), {
+    tenantId: member.tenantId,
+    actor: actorOf(member),
+    ...fields.data,
+  });
+  return finish(outcome, fields.data.ticketId);
+}
+
+export async function resumeAfterClarificationAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireRole("operator");
+  const fields = resumeFields.safeParse({
+    ticketId: formData.get("ticketId"),
+    expectedRevision: formData.get("expectedRevision"),
+    reason: formData.get("reason") ?? "",
+  });
+  if (!fields.success) {
+    return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const ticket = await ticketInScope(member, fields.data.ticketId);
+  if (!ticket) return unavailable;
+
+  const outcome = await resumeAfterClarification(getDb(), {
+    tenantId: member.tenantId,
+    actor: actorOf(member),
+    ticketId: fields.data.ticketId,
+    expectedRevision: fields.data.expectedRevision,
+    reason: fields.data.reason || null,
+  });
+  if (!outcome.ok && outcome.rejection.code === "missing_requirements") {
+    return { error: "Explain why you're continuing without an answer." };
+  }
+  return finish(outcome, fields.data.ticketId);
 }

@@ -5,6 +5,7 @@ import {
   desc,
   eq,
   inArray,
+  isNotNull,
   isNull,
   notInArray,
   or,
@@ -14,6 +15,7 @@ import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "./client";
 import {
   aiDrafts,
+  clarifications,
   completionSubmissions,
   duplicateLinks,
   locations,
@@ -119,6 +121,20 @@ export async function listQueue(
       ),
     );
 
+  const answered = await db
+    .select({ ticketId: clarifications.ticketId })
+    .from(clarifications)
+    .where(
+      and(
+        isNull(clarifications.closedAt),
+        isNotNull(clarifications.answer),
+        inArray(
+          clarifications.ticketId,
+          rows.map((row) => row.id),
+        ),
+      ),
+    );
+
   return rows.map(function withReports(row) {
     const own = ticketReports.filter((report) => report.ticketId === row.id);
     return {
@@ -128,6 +144,7 @@ export async function listQueue(
       reportCount: own.length,
       linkedCount: links.filter((link) => link.targetTicketId === row.id)
         .length,
+      hasUnreviewedAnswer: answered.some((item) => item.ticketId === row.id),
     };
   });
 }
@@ -236,6 +253,21 @@ export async function getTicketDetail(
     incoming.map((link) => link.ticketId),
   );
 
+  const questions = await db
+    .select({
+      id: clarifications.id,
+      question: clarifications.question,
+      askerName: user.name,
+      askedAt: clarifications.askedAt,
+      answer: clarifications.answer,
+      answeredAt: clarifications.answeredAt,
+      closedAt: clarifications.closedAt,
+    })
+    .from(clarifications)
+    .innerJoin(user, eq(user.id, clarifications.askedBy))
+    .where(eq(clarifications.ticketId, ticketId))
+    .orderBy(asc(clarifications.askedAt));
+
   const events = await db
     .select({
       id: ticketEvents.id,
@@ -314,6 +346,7 @@ export async function getTicketDetail(
     ...ticket,
     aiDraft: drafts[0] ?? null,
     reports: ticketReports,
+    clarifications: questions,
     duplicateOf: outgoing
       ? {
           ticketId: outgoing.ticketId,

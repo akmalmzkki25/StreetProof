@@ -57,6 +57,9 @@ export function TicketTable({
                     : `${item.linkedCount} linked reports`}
                 </p>
               ) : null}
+              {item.hasUnreviewedAnswer ? (
+                <p className="text-xs text-brand-text">Reporter answered</p>
+              ) : null}
             </TableCell>
             <TableCell>{item.location ?? "Not set"}</TableCell>
             <TableCell>

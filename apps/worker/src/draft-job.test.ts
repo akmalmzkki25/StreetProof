@@ -266,6 +266,21 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
     expect(callModel).not.toHaveBeenCalled();
   });
 
+  it("skips a job for a report revision that has been replaced", async () => {
+    const { job, reportId } = await newJob();
+    await db
+      .update(reports)
+      .set({ revision: 1 })
+      .where(eq(reports.id, reportId));
+    const callModel = replying(JSON.stringify(validDraft));
+
+    const outcome = await runDraftJob(deps(callModel), job);
+
+    expect(outcome).toBe("skipped_manual");
+    expect(callModel).not.toHaveBeenCalled();
+    expect(await draftOf(reportId)).toBeUndefined();
+  });
+
   it("gives a job to only one of two racing claims", async () => {
     const { job } = await newJob();
 

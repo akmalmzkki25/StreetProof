@@ -436,6 +436,44 @@ export const ticketEvents = pgTable(
   ],
 );
 
+// A question to the reporter. The original report never changes; the answer sits
+// beside it and only an operator's review moves the ticket on.
+export const clarifications = pgTable(
+  "clarifications",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    ticketId: uuid().notNull(),
+    reportId: uuid().notNull(),
+    question: text().notNull(),
+    askedBy: text()
+      .notNull()
+      .references(() => user.id),
+    askedAt: createdAt(),
+    answer: text(),
+    answeredAt: timestamp({ withTimezone: true }),
+    closedAt: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    check(
+      "clarifications_answer_has_time",
+      sql`(${table.answer} is null) = (${table.answeredAt} is null)`,
+    ),
+    uniqueIndex("clarifications_one_open_per_ticket")
+      .on(table.ticketId)
+      .where(sql`${table.closedAt} is null`),
+    index().on(table.reportId),
+    foreignKey({
+      columns: [table.tenantId, table.ticketId],
+      foreignColumns: [tickets.tenantId, tickets.id],
+    }),
+    foreignKey({
+      columns: [table.tenantId, table.reportId],
+      foreignColumns: [reports.tenantId, reports.id],
+    }),
+  ],
+);
+
 export const outboxStatusEnum = pgEnum("outbox_status", [
   "pending",
   "processing",

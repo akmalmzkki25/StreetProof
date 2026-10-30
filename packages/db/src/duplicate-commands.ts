@@ -4,9 +4,15 @@ import {
   type DuplicateLinkProblem,
   type Role,
 } from "@streetproof/domain";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { Db, Transaction } from "./client";
-import { duplicateLinks, outbox, ticketEvents, tickets } from "./schema";
+import {
+  clarifications,
+  duplicateLinks,
+  outbox,
+  ticketEvents,
+  tickets,
+} from "./schema";
 import { nextEventSeq } from "./ticket-commands";
 
 export type DuplicateOutcome =
@@ -156,6 +162,17 @@ export async function linkDuplicate(
     if (problem) {
       return { ok: false, rejection: { code: "link_problem", problem } };
     }
+
+    // The reporter now follows the target, so a pending question has no reader.
+    await tx
+      .update(clarifications)
+      .set({ closedAt: new Date() })
+      .where(
+        and(
+          eq(clarifications.ticketId, source.id),
+          isNull(clarifications.closedAt),
+        ),
+      );
 
     await tx.insert(duplicateLinks).values({
       tenantId: command.tenantId,

@@ -21,7 +21,11 @@ The database tests skip when `DATABASE_URL` is missing (as in CI). Locally they 
 
 ## Duplicate links
 
-A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicate` in `src/duplicate-commands.ts` lock both tickets in ID order, re-check `duplicateLinkProblem` from `@streetproof/domain`, and write an event on both tickets. Reports stay on their own ticket, and links are one level deep. Only the source's revision moves. While linked, the source leaves `listQueue`, rejects every transition (`linked_as_duplicate`) and gets no AI draft, and `getReporterStatus` reports the target's progress. A target with active links can't be cancelled (`has_linked_duplicates`). A partial unique index allows one active link per source.
+A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicate` in `src/duplicate-commands.ts` lock both tickets in ID order, re-check `duplicateLinkProblem` from `@streetproof/domain`, and write an event on both tickets. Reports stay on their own ticket, and links are one level deep. Only the source's revision moves. While linked, the source leaves `listQueue`, rejects every transition (`linked_as_duplicate`) and gets no AI draft, and `getReporterStatus` reports the target's progress. A target with active links can't be cancelled (`has_linked_duplicates`). A partial unique index allows one active link per source. Linking closes any open question on the source.
+
+## Clarifications
+
+`requestClarification` moves a ticket to `needs_clarification` and stores the question beside the report, which never changes. `answerClarification` is the only write a reporter receipt can make. It works only while that receipt's own report has this question open and the ticket is still waiting, and every refusal returns the same `unavailable`. It leaves status and revision alone, because an operator reviews first. `resumeAfterClarification` returns the ticket to triage. With an answer it bumps the report revision and queues a new draft; without one it needs a reason. There is no stored clarify scope on the credential: the open question is what grants the write, which is narrower than a flag on the receipt. One open question per ticket, enforced by a partial unique index.
 
 ## Report intake
 

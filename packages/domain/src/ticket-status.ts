@@ -53,6 +53,13 @@ export const TRANSITIONS: readonly TransitionRule[] = [
     requires: [],
   },
   {
+    from: "needs_clarification",
+    to: "cancelled",
+    actor: "operator",
+    mustBeCurrentAssignee: false,
+    requires: ["reason"],
+  },
+  {
     from: "submitted",
     to: "triaged",
     actor: "operator",

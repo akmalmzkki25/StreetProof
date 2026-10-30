@@ -25,6 +25,11 @@ import {
   readDraft,
 } from "@/features/tickets/components/ai-draft-panel";
 import {
+  RequestClarificationForm,
+  ResumeAfterClarificationForm,
+} from "@/features/tickets/components/clarification-forms";
+import { ClarificationList } from "@/features/tickets/components/clarification-list";
+import {
   LinkDuplicateForm,
   UnlinkDuplicateForm,
 } from "@/features/tickets/components/duplicate-forms";
@@ -98,6 +103,7 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
         <div className="flex flex-col gap-8">
           <Attempts ticket={ticket} />
           <Reports ticket={ticket} />
+          <ClarificationList ticket={ticket} />
           <LinkedReports ticket={ticket} member={member} />
           {member.roles.includes("operator") &&
           (!ticket.duplicateOf || readDraft(ticket)) ? (
@@ -417,6 +423,11 @@ async function NextStep({
   const ref = { ticketId: ticket.id, revision: ticket.revision };
 
   const draft = readDraft(ticket);
+  const canAsk = allowed.includes("needs_clarification");
+  const canResume = allowed.includes("submitted");
+  const openQuestion = ticket.clarifications.find((item) => !item.closedAt);
+  const isAnswerWaiting = Boolean(openQuestion?.answer);
+  const isQuestionUnanswered = Boolean(openQuestion) && !openQuestion?.answer;
   const canTriage = allowed.includes("triaged");
   const canAssign = allowed.includes("assigned");
   const canCancel = allowed.includes("cancelled");
@@ -470,6 +481,41 @@ async function NextStep({
               ticket.siteId,
             )}
             defaultLocationId={ticket.locationId}
+          />
+        </section>
+      ) : null}
+      {canAsk ? (
+        <section
+          aria-labelledby="ask-reporter"
+          className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
+        >
+          <h2 id="ask-reporter" className="type-title">
+            Need more from the reporter?
+          </h2>
+          <RequestClarificationForm
+            {...ref}
+            missingFields={draft?.missing_fields ?? []}
+          />
+        </section>
+      ) : null}
+      {canResume ? (
+        <section
+          aria-labelledby="resume"
+          className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
+        >
+          <h2 id="resume" className="type-title">
+            {isAnswerWaiting
+              ? "The reporter answered"
+              : "Waiting for the reporter"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isAnswerWaiting
+              ? "Read the answer, then return this report to triage. AI prepares a new suggestion that includes it."
+              : "The report stays here until they answer. You can also continue without one."}
+          </p>
+          <ResumeAfterClarificationForm
+            {...ref}
+            needsReason={isQuestionUnanswered}
           />
         </section>
       ) : null}
@@ -560,6 +606,13 @@ async function NextStep({
 
 function eventLabel(event: TicketDetail["events"][number]) {
   if (event.type === "ai_draft_ready") return "AI suggestion ready";
+  if (event.type === "clarification_answered") return "Reporter answered";
+  if (
+    event.fromStatus === "needs_clarification" &&
+    event.toStatus === "submitted"
+  ) {
+    return "Back to triage";
+  }
   if (event.type === "duplicate_unlinked") return "Duplicate link removed";
   if (event.type === "duplicate_linked") {
     return event.payload.role === "target"

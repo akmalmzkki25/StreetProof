@@ -1,4 +1,5 @@
 export * from "./ai-drafts";
+export * from "./clarification-commands";
 export * from "./client";
 export * from "./jobs";
 export * from "./completion-commands";

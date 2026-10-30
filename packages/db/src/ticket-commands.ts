@@ -161,7 +161,7 @@ export async function transitionTicket(
   });
 }
 
-type WorkCommand = {
+export type WorkCommand = {
   tenantId: string;
   ticketId: string;
   actor: TransitionCommand["actor"];

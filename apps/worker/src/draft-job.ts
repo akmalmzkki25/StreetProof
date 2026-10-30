@@ -63,6 +63,13 @@ export async function runDraftJob(
     return "failed_terminal";
   }
 
+  // A reporter's answer queued a newer job, so this one would pay for its draft
+  // twice. It only happens when jobs were still waiting at that moment.
+  if (job.payload.inputRevision !== input.revision) {
+    await completeOutboxJob(db, job.id);
+    return "skipped_manual";
+  }
+
   const key = {
     tenantId: input.tenantId,
     reportId,

@@ -1,7 +1,18 @@
-import { and, desc, eq, gt, inArray, ne, notInArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  ne,
+  notInArray,
+} from "drizzle-orm";
 import type { Db } from "./client";
 import {
   aiDrafts,
+  clarifications,
   duplicateLinks,
   locations,
   reports,
@@ -45,6 +56,20 @@ export async function loadDraftInput(db: Db, reportId: string) {
     .select({ objectKey: uploads.objectKey, contentType: uploads.contentType })
     .from(uploads)
     .where(and(eq(uploads.reportId, reportId), eq(uploads.state, "ready")));
+
+  const questions = await db
+    .select({
+      question: clarifications.question,
+      answer: clarifications.answer,
+    })
+    .from(clarifications)
+    .where(
+      and(
+        eq(clarifications.reportId, reportId),
+        isNotNull(clarifications.answer),
+      ),
+    )
+    .orderBy(asc(clarifications.askedAt));
 
   const [ownLink] = await db
     .select({ id: duplicateLinks.id })
@@ -101,6 +126,7 @@ export async function loadDraftInput(db: Db, reportId: string) {
     ...report,
     location: report.locationName ?? report.locationText ?? "",
     isLinkedDuplicate: Boolean(ownLink),
+    clarifications: questions,
     photos,
     duplicateCandidates: candidates.map((candidate) => ({
       ticketId: candidate.ticketId,

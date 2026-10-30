@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
+import { ClarificationAnswerForm } from "@/features/reporter-status/components/clarification-answer-form";
 import { ReceiptExchange } from "@/features/reporter-status/components/receipt-exchange";
 import { REPORTER_COOKIE } from "@/features/reporter-status/cookie";
 import { formatDateTime } from "@/lib/format";
@@ -75,6 +76,29 @@ async function ReportStatus() {
         <p className="text-base">{stage.title}</p>
         <p className="mt-1 text-sm text-muted-foreground">{stage.detail}</p>
       </div>
+      {status.clarifications.map((item) => (
+        <article
+          key={item.id}
+          aria-label="Question from the building team"
+          className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
+        >
+          <div className="flex flex-col gap-1">
+            <h2 className="type-title">
+              {item.isOpen
+                ? "The building team has a question"
+                : "You answered this question"}
+            </h2>
+            <p className="whitespace-pre-wrap">{item.question}</p>
+          </div>
+          {item.isOpen ? (
+            <ClarificationAnswerForm clarificationId={item.id} />
+          ) : (
+            <p className="whitespace-pre-wrap text-muted-foreground">
+              {item.answer}
+            </p>
+          )}
+        </article>
+      ))}
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
         <dt className="text-muted-foreground">Reference</dt>
         <dd className="font-mono">{status.reference}</dd>

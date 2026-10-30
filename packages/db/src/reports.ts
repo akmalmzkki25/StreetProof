@@ -1,8 +1,10 @@
 import { reporterStage, type ReporterStage } from "@streetproof/domain";
-import { and, count, eq, gt, isNull } from "drizzle-orm";
-import { createHash, randomBytes } from "node:crypto";
+import { and, asc, count, eq, gt, isNull } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
 import type { Db, Transaction } from "./client";
+import { hashReporterToken } from "./reporter-token";
 import {
+  clarifications,
   duplicateLinks,
   idempotencyKeys,
   locations,
@@ -48,10 +50,6 @@ export type SubmitReportOutcome =
     }
   | { ok: false; code: "idempotency_conflict" | "receipt_limit_reached" };
 
-function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
-
 async function issueReceipt(
   tx: Transaction,
   tenantId: string,
@@ -61,7 +59,7 @@ async function issueReceipt(
   await tx.insert(reporterCredentials).values({
     tenantId,
     reportId,
-    tokenHash: hashToken(token),
+    tokenHash: hashReporterToken(token),
     expiresAt: new Date(Date.now() + RECEIPT_LIFETIME_MS),
   });
   return token;
@@ -227,6 +225,12 @@ export type ReporterStatus = {
   stage: ReporterStage;
   submittedAt: Date;
   updatedAt: Date;
+  clarifications: {
+    id: string;
+    question: string;
+    answer: string | null;
+    isOpen: boolean;
+  }[];
 };
 
 export function reportReference(reportId: string) {
@@ -258,7 +262,7 @@ export async function getReporterStatus(
     .leftJoin(locations, eq(locations.id, reports.locationId))
     .where(
       and(
-        eq(reporterCredentials.tokenHash, hashToken(token)),
+        eq(reporterCredentials.tokenHash, hashReporterToken(token)),
         isNull(reporterCredentials.revokedAt),
         gt(reporterCredentials.expiresAt, new Date()),
       ),
@@ -277,6 +281,18 @@ export async function getReporterStatus(
       ),
     );
 
+  // Never who asked, or a question the operator closed without an answer.
+  const questions = await db
+    .select({
+      id: clarifications.id,
+      question: clarifications.question,
+      answer: clarifications.answer,
+      closedAt: clarifications.closedAt,
+    })
+    .from(clarifications)
+    .where(eq(clarifications.reportId, row.reportId))
+    .orderBy(asc(clarifications.askedAt));
+
   return {
     reference: reportReference(row.reportId),
     siteName: row.siteName,
@@ -285,6 +301,21 @@ export async function getReporterStatus(
     stage: reporterStage(followed?.status ?? row.status),
     submittedAt: row.submittedAt,
     updatedAt: followed?.updatedAt ?? row.updatedAt,
+    clarifications: questions.flatMap(function visible(item) {
+      const isOpen =
+        row.status === "needs_clarification" &&
+        item.answer === null &&
+        item.closedAt === null;
+      if (!isOpen && item.answer === null) return [];
+      return [
+        {
+          id: item.id,
+          question: item.question,
+          answer: item.answer,
+          isOpen,
+        },
+      ];
+    }),
   };
 }
 
