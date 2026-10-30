@@ -18,12 +18,12 @@ function Notice({ children }: { children: React.ReactNode }) {
   return (
     <section
       aria-labelledby="ai-draft"
-      className="flex flex-col gap-2 rounded-xl border border-border bg-card p-5"
+      className="flex flex-col gap-2 rounded-4xl bg-card p-6 shadow-card"
     >
-      <h2 id="ai-draft" className="text-sm text-muted-foreground">
+      <h2 id="ai-draft" className="type-title">
         AI suggestion
       </h2>
-      <p className="text-sm text-muted-foreground">{children}</p>
+      <p className="text-muted-foreground">{children}</p>
     </section>
   );
 }
@@ -38,8 +38,8 @@ function FactList({
   if (items.length === 0) return null;
   return (
     <div className="flex flex-col gap-1.5">
-      <h3 className="text-sm text-muted-foreground">{title}</h3>
-      <ul className="flex flex-col gap-1.5 text-sm">
+      <h3 className="type-caption text-muted-foreground">{title}</h3>
+      <ul className="flex flex-col gap-1.5">
         {items.map((item) => (
           <li key={item.key}>
             {item.text}
@@ -83,13 +83,13 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
   return (
     <section
       aria-labelledby="ai-draft"
-      className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5"
+      className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
     >
       <div className="flex flex-col gap-2">
-        <Badge variant="brand" className="self-start">
+        <Badge variant="outline" className="self-start">
           Not verified
         </Badge>
-        <h2 id="ai-draft" className="text-sm text-muted-foreground">
+        <h2 id="ai-draft" className="type-caption text-muted-foreground">
           AI suggestion from {ticket.aiDraft?.model}. Check it against the
           report and photos.
         </h2>
@@ -97,7 +97,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
 
       <p>{draft.summary}</p>
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
         <dt className="text-muted-foreground">Category</dt>
         <dd>
           {draft.categoryCandidate === "unknown"
@@ -154,13 +154,15 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
 
       {draft.duplicateCandidates.length > 0 ? (
         <div className="flex flex-col gap-1.5">
-          <h3 className="text-sm text-muted-foreground">Possible duplicates</h3>
-          <ul className="flex flex-col gap-1.5 text-sm">
+          <h3 className="type-caption text-muted-foreground">
+            Possible duplicates
+          </h3>
+          <ul className="flex flex-col gap-1.5">
             {draft.duplicateCandidates.map((candidate) => (
               <li key={candidate.ticketId}>
                 <Link
                   href={`/app/tickets/${candidate.ticketId}`}
-                  className="underline underline-offset-4"
+                  className="text-brand-text underline underline-offset-4"
                 >
                   Open ticket
                 </Link>

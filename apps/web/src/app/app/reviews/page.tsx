@@ -1,7 +1,6 @@
 import { getDb, listQueue } from "@streetproof/db";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { TicketTable } from "@/features/tickets/components/ticket-table";
@@ -11,16 +10,8 @@ export const metadata: Metadata = { title: "Reviews" };
 
 export default function ReviewsPage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 px-4 py-12 md:px-8">
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/app"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Workspace
-        </Link>
-        <h1 className="text-2xl">Reviews</h1>
-      </div>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
+      <h1 className="type-headline">Reviews</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <Reviews />
       </Suspense>
@@ -40,19 +31,24 @@ async function Reviews() {
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="pending" className="flex flex-col gap-4">
-        <h2 id="pending" className="text-sm text-muted-foreground">
+        <h2 id="pending" className="type-title">
           Awaiting your verification
         </h2>
         <TicketTable
           items={pending}
-          emptyMessage="Nothing is waiting for verification."
+          emptyTitle="Nothing to verify"
+          emptyMessage="Work appears here when a technician submits completion proof."
         />
       </section>
       <section aria-labelledby="closed" className="flex flex-col gap-4">
-        <h2 id="closed" className="text-sm text-muted-foreground">
+        <h2 id="closed" className="type-title">
           Verified closed
         </h2>
-        <TicketTable items={closed} emptyMessage="No closed work yet." />
+        <TicketTable
+          items={closed}
+          emptyTitle="No closed work yet"
+          emptyMessage="Tickets you verify move here, and you can reopen them from their page."
+        />
       </section>
     </div>
   );

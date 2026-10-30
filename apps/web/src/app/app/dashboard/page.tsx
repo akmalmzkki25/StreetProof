@@ -40,13 +40,7 @@ export const metadata: Metadata = { title: "Work overview" };
 
 export default function DashboardPage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-6xl flex-col gap-6 px-4 py-12 sm:px-8">
-      <Link
-        href="/app"
-        className="text-sm text-muted-foreground hover:text-foreground"
-      >
-        Workspace
-      </Link>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
       <Suspense fallback={<OverviewSkeleton />}>
         <Overview />
       </Suspense>
@@ -94,9 +88,9 @@ async function Overview() {
   return (
     <>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl">Work overview</h1>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="type-headline">Work overview</h1>
             {member.isSyntheticTenant ? (
               <Badge variant="outline">Synthetic data</Badge>
             ) : null}
@@ -111,7 +105,7 @@ async function Overview() {
       </header>
 
       {isFirstRun ? (
-        <Empty className="rounded-4xl bg-card shadow-card">
+        <Empty className="flex-none rounded-4xl bg-card shadow-card">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <HugeiconsIcon icon={TaskDaily01Icon} />

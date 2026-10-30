@@ -80,7 +80,7 @@ export function SignInForm({
           aria-labelledby="demo-accounts"
           className="flex flex-col gap-3"
         >
-          <h2 id="demo-accounts" className="text-sm text-muted-foreground">
+          <h2 id="demo-accounts" className="type-caption text-muted-foreground">
             Demo accounts (synthetic data)
           </h2>
           <div className="flex flex-wrap gap-2">

@@ -1,11 +1,9 @@
-import { canViewDashboard, type Role } from "@streetproof/domain";
-import { Button } from "@streetproof/ui/components/button";
+import type { Role } from "@streetproof/domain";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { signOut } from "@/features/auth/actions";
 import { requireMember } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Workspace" };
@@ -28,19 +26,20 @@ const ROLE_WORK: Record<Role, { title: string; description: string }> = {
   },
   tenant_admin: {
     title: "Tenant admin",
-    description: "Manage members, sites and retention settings.",
+    description: "Follow backlog and outcomes across your sites.",
   },
 };
 
-const ROLE_LINKS: Partial<Record<Role, { href: string; label: string }>> = {
+const ROLE_LINKS: Record<Role, { href: string; label: string }> = {
   operator: { href: "/app/queue", label: "Open the queue" },
   technician: { href: "/app/work", label: "Open my work" },
   supervisor: { href: "/app/reviews", label: "Open reviews" },
+  tenant_admin: { href: "/app/dashboard", label: "Open the overview" },
 };
 
 export default function WorkspacePage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col gap-10 px-4 py-12 md:px-8">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-10 sm:px-8">
       <Suspense fallback={<WorkspaceSkeleton />}>
         <Workspace />
       </Suspense>
@@ -53,53 +52,37 @@ async function Workspace() {
 
   return (
     <>
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <p className="text-sm text-muted-foreground">{member.tenantName}</p>
-          <h1 className="text-2xl">Hello, {member.name}</h1>
-        </div>
-        <form action={signOut}>
-          <Button type="submit" variant="outline">
-            Sign out
-          </Button>
-        </form>
+      <header className="flex flex-col gap-2">
+        <p className="type-caption text-muted-foreground">
+          {member.tenantName}
+        </p>
+        <h1 className="type-headline">Hello, {member.name}</h1>
       </header>
 
       <section aria-labelledby="your-roles" className="flex flex-col gap-4">
-        <h2 id="your-roles" className="text-sm text-muted-foreground">
+        <h2 id="your-roles" className="type-caption text-muted-foreground">
           Your roles
         </h2>
-        <ul className="grid gap-3 md:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {member.roles.map((role) => (
             <li
               key={role}
-              className="rounded-xl border border-border bg-card p-5"
+              className="flex flex-col gap-2 rounded-4xl bg-card p-6 shadow-card"
             >
-              <p className="text-base">{ROLE_WORK[role].title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="type-title">{ROLE_WORK[role].title}</p>
+              <p className="text-muted-foreground">
                 {ROLE_WORK[role].description}
               </p>
-              {ROLE_LINKS[role] ? (
-                <Link
-                  href={ROLE_LINKS[role].href}
-                  className="mt-3 inline-block text-sm underline underline-offset-4"
-                >
-                  {ROLE_LINKS[role].label}
-                </Link>
-              ) : null}
+              <Link
+                href={ROLE_LINKS[role].href}
+                className="self-start text-brand-text underline underline-offset-4"
+              >
+                {ROLE_LINKS[role].label}
+              </Link>
             </li>
           ))}
         </ul>
       </section>
-
-      {canViewDashboard(member.roles) ? (
-        <Link
-          href="/app/dashboard"
-          className="self-start text-sm underline underline-offset-4"
-        >
-          Open the work overview
-        </Link>
-      ) : null}
     </>
   );
 }
@@ -109,11 +92,11 @@ function WorkspaceSkeleton() {
     <div className="flex flex-col gap-10" aria-busy="true">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-7 w-64" />
+        <Skeleton className="h-12 w-80 max-w-full" />
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        <Skeleton className="h-24" />
-        <Skeleton className="h-24" />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Skeleton className="h-36" />
+        <Skeleton className="h-36" />
       </div>
     </div>
   );

@@ -1,5 +1,14 @@
+import { Link01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { getDb, getReporterStatus } from "@streetproof/db";
 import type { ReporterStage } from "@streetproof/domain";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@streetproof/ui/components/empty";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -43,7 +52,7 @@ const STAGE_COPY: Record<ReporterStage, { title: string; detail: string }> = {
 export default function StatusPage() {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
-      <h1 className="text-2xl">Report status</h1>
+      <h1 className="type-headline">Report status</h1>
       <ReceiptExchange>
         <Suspense fallback={<Skeleton className="h-48" />}>
           <ReportStatus />
@@ -61,10 +70,18 @@ async function ReportStatus() {
 
   if (!status) {
     return (
-      <p className="text-sm text-muted-foreground">
-        This status link isn&apos;t available. It may have expired or been
-        replaced. Ask the building team if you need an update.
-      </p>
+      <Empty className="flex-none rounded-4xl bg-card shadow-card">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HugeiconsIcon icon={Link01Icon} />
+          </EmptyMedia>
+          <EmptyTitle>This status link isn&apos;t available</EmptyTitle>
+          <EmptyDescription>
+            It may have expired or been replaced. Ask the building team if you
+            need an update.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -72,9 +89,9 @@ async function ReportStatus() {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="rounded-xl border border-border bg-card p-5">
-        <p className="text-base">{stage.title}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{stage.detail}</p>
+      <div className="rounded-4xl bg-card p-6 shadow-card">
+        <p className="type-title">{stage.title}</p>
+        <p className="mt-1 text-muted-foreground">{stage.detail}</p>
       </div>
       {status.clarifications.map((item) => (
         <article
@@ -99,7 +116,7 @@ async function ReportStatus() {
           )}
         </article>
       ))}
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
         <dt className="text-muted-foreground">Reference</dt>
         <dd className="font-mono">{status.reference}</dd>
         <dt className="text-muted-foreground">Site</dt>
@@ -109,9 +126,13 @@ async function ReportStatus() {
         <dt className="text-muted-foreground">Your report</dt>
         <dd className="whitespace-pre-wrap">{status.description}</dd>
         <dt className="text-muted-foreground">Sent</dt>
-        <dd>{formatDateTime(status.submittedAt)}</dd>
+        <dd className="font-mono text-xs">
+          {formatDateTime(status.submittedAt)}
+        </dd>
         <dt className="text-muted-foreground">Last update</dt>
-        <dd>{formatDateTime(status.updatedAt)}</dd>
+        <dd className="font-mono text-xs">
+          {formatDateTime(status.updatedAt)}
+        </dd>
       </dl>
     </section>
   );

@@ -26,7 +26,7 @@ export function ReceiptExchange({ children }: { children: React.ReactNode }) {
 
   if (isExchanging) {
     return (
-      <p className="text-sm text-muted-foreground">Opening your report…</p>
+      <p className="type-caption text-muted-foreground">Opening your report…</p>
     );
   }
   return children;

@@ -11,16 +11,8 @@ export const metadata: Metadata = { title: "Operator queue" };
 
 export default function QueuePage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 px-4 py-12 md:px-8">
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/app"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Workspace
-        </Link>
-        <h1 className="text-2xl">Operator queue</h1>
-      </div>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
+      <h1 className="type-headline">Operator queue</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <Queue />
       </Suspense>
@@ -40,13 +32,13 @@ async function Queue() {
   return (
     <div className="flex flex-col gap-6">
       {intakeSites.length > 0 ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="type-caption text-muted-foreground">
           Report forms:{" "}
           {intakeSites.map((site) => (
             <Link
               key={site.id}
               href={`/report/${site.intakeCode}`}
-              className="text-foreground underline underline-offset-4"
+              className="text-brand-text underline underline-offset-4"
             >
               {site.name}
             </Link>
@@ -55,7 +47,8 @@ async function Queue() {
       ) : null}
       <TicketTable
         items={items}
-        emptyMessage="No reports yet. New reports appear here as soon as they're sent."
+        emptyTitle="No reports yet"
+        emptyMessage="New reports appear here as soon as they're sent."
       />
     </div>
   );

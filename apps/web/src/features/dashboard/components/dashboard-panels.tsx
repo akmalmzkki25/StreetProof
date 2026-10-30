@@ -6,46 +6,13 @@ import {
 import { cn } from "@streetproof/ui/lib/utils";
 import Link from "next/link";
 
+import { Panel } from "@/components/panel";
 import { categoryLabel } from "@/features/tickets/labels";
 import { formatDuration } from "@/lib/format";
 
 import { AGE_LABELS, STAGE_LABELS } from "../labels";
 
 const PERIOD = `Last ${DASHBOARD_WINDOW_DAYS} days`;
-
-function Panel({
-  id,
-  title,
-  note,
-  className,
-  children,
-}: {
-  id: string;
-  title: string;
-  note?: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      aria-labelledby={id}
-      className={cn(
-        "flex flex-col gap-5 rounded-4xl bg-card p-6 shadow-card",
-        className,
-      )}
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id={id} className="type-title">
-          {title}
-        </h2>
-        {note ? (
-          <p className="type-caption text-muted-foreground">{note}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 // The bar is the true share of the largest row. A zero draws nothing.
 function Bar({

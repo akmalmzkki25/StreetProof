@@ -32,9 +32,9 @@ async function ReportContent({
   return (
     <>
       <header className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">{site.name}</p>
-        <h1 className="text-2xl">Report damage</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="type-caption text-muted-foreground">{site.name}</p>
+        <h1 className="type-headline">Report damage</h1>
+        <p className="type-caption text-muted-foreground">
           No account needed. For fire, injury or anything dangerous, leave the
           area and call building security first. This form is not monitored for
           emergencies.

@@ -1,7 +1,6 @@
 import { getDb, listQueue } from "@streetproof/db";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { TicketTable } from "@/features/tickets/components/ticket-table";
@@ -11,16 +10,8 @@ export const metadata: Metadata = { title: "My work" };
 
 export default function WorkPage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 px-4 py-12 md:px-8">
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/app"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Workspace
-        </Link>
-        <h1 className="text-2xl">My work</h1>
-      </div>
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
+      <h1 className="type-headline">My work</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <AssignedWork />
       </Suspense>
@@ -51,7 +42,8 @@ async function AssignedWork() {
   return (
     <TicketTable
       items={items}
-      emptyMessage="No work is assigned to you right now."
+      emptyTitle="Nothing assigned to you"
+      emptyMessage="Work appears here when an operator assigns it to you."
     />
   );
 }

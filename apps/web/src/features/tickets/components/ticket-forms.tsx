@@ -241,7 +241,12 @@ export function ProgressButton({
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <input type="hidden" name="to" value={to} />
       <FormError error={state.error} />
-      <Button type="submit" disabled={isPending} className="self-start">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={isPending}
+        className="w-full sm:w-auto sm:self-start"
+      >
         {isPending ? "Saving…" : label}
       </Button>
     </form>
@@ -341,7 +346,12 @@ export function CompletionForm({ ticketId, revision }: TicketRef) {
         </Field>
       </FieldGroup>
       <FormError error={state.error} />
-      <Button type="submit" disabled={isPending} className="self-start">
+      <Button
+        type="submit"
+        size="lg"
+        disabled={isPending}
+        className="w-full sm:w-auto sm:self-start"
+      >
         {isPending ? "Submitting…" : "Submit completion"}
       </Button>
     </form>

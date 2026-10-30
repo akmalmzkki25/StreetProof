@@ -64,7 +64,7 @@ export function ReportForm({
           <h2 id="report-sent" className="text-xl">
             Report sent
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="type-caption text-muted-foreground">
             Your reference is{" "}
             <span className="font-mono text-foreground">{state.reference}</span>
             . The building team will review it.
@@ -77,7 +77,7 @@ export function ReportForm({
         >
           View status
         </Button>
-        <p className="text-sm text-muted-foreground">
+        <p className="type-caption text-muted-foreground">
           Open it now, because this link isn&apos;t shown again. After that, the
           status page stays available on this device at /status.
         </p>
@@ -95,7 +95,7 @@ export function ReportForm({
             value={location}
             onValueChange={(value) => setLocation(value)}
           >
-            <SelectTrigger id="location" className="w-full">
+            <SelectTrigger id="location" className="w-full max-sm:h-11!">
               <SelectValue placeholder="Choose a location" />
             </SelectTrigger>
             <SelectContent>
@@ -119,6 +119,7 @@ export function ReportForm({
               id="locationText"
               name="locationText"
               maxLength={200}
+              className="max-sm:h-11"
               placeholder="Floor 2, west corridor"
             />
           </Field>
@@ -145,6 +146,7 @@ export function ReportForm({
             accept="image/jpeg,image/png,image/webp"
             multiple
             required
+            className="max-sm:h-11 max-sm:pt-2.5"
           />
           <FieldDescription>
             Up to {MAX_PHOTOS} photos, JPEG, PNG or WebP, 10 MB each. Avoid

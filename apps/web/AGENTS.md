@@ -1,6 +1,6 @@
 # @streetproof/web
 
-Next.js App Router UI and `/api/v1` for StreetProof. Dark-default theme and components come from `@streetproof/ui`.
+Next.js App Router UI and Server Actions for StreetProof. Dark-default theme and components come from `@streetproof/ui`.
 
 ## Run
 
@@ -29,6 +29,8 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 
 ## Routes
 
+- `/`: public home. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
+- `/app/*`: shares the floating navbar in `app/app/layout.tsx`. `navLinksFor` decides its links from the member's roles. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, then stored before the database transaction.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
 - `/app/queue`: operator queue, operators only.

@@ -20,6 +20,15 @@ export const STATUS_LABELS: Record<TicketStatus, string> = {
   cancelled: "Cancelled",
 };
 
+// design.md: brand is good status, destructive is urgency, the rest stay quiet.
+export function statusBadgeVariant(status: TicketStatus) {
+  if (status === "verified_closed") return "brand" as const;
+  if (status === "rejected_with_reason" || status === "reopened") {
+    return "destructive" as const;
+  }
+  return "outline" as const;
+}
+
 export const CATEGORY_LABELS: Record<TicketCategory, string> = {
   plumbing: "Plumbing",
   electrical: "Electrical",
