@@ -17,6 +17,14 @@ test("the app sends signed-out visitors to sign in", async ({ page }) => {
   }
 });
 
+test("the health check answers without saying anything else", async ({
+  request,
+}) => {
+  const response = await request.get("/api/health");
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toEqual({ ok: true });
+});
+
 test("a bad password shows a message and no session", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill(ACCOUNTS.operator);
@@ -40,6 +48,25 @@ test("an invalid status link reveals nothing", async ({ page }) => {
   ).toBeVisible();
   // The token leaves the address bar even when it's wrong.
   await expect(page).toHaveURL(/\/status$/);
+});
+
+test("a stored photo loads in the browser from its signed address", async ({
+  browser,
+}) => {
+  const description = unique("Photo loading check");
+  await submitReport(browser, description);
+
+  const operator = await signIn(browser, ACCOUNTS.operator);
+  await openFromQueue(operator, description);
+  const photo = operator.getByRole("img", { name: "Report photo 1" });
+  await expect(photo).toBeVisible();
+  await expect
+    .poll(() => photo.evaluate((image: HTMLImageElement) => image.naturalWidth))
+    .toBeGreaterThan(0);
+  // The bucket itself stays private: the same address without a signature fails.
+  const signed = new URL(await photo.evaluate((i: HTMLImageElement) => i.src));
+  const unsigned = await operator.request.get(signed.origin + signed.pathname);
+  expect(unsigned.status()).toBe(403);
 });
 
 test("each role only reaches its own work", async ({ browser }) => {

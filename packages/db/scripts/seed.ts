@@ -1,6 +1,6 @@
 import "./load-root-env";
 import { hashPassword } from "better-auth/crypto";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { createDb } from "../src/client";
 import {
@@ -23,6 +23,18 @@ const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set in the root .env.");
 
 const { db, pool } = createDb(url);
+
+// This wipes everything, so it refuses once any real tenant exists.
+const [realTenant] = await db
+  .select({ id: tenants.id })
+  .from(tenants)
+  .where(eq(tenants.isSynthetic, false))
+  .limit(1);
+if (realTenant) {
+  throw new Error(
+    "Refusing to seed: this database has a non-synthetic tenant.",
+  );
+}
 
 await db.execute(sql`
   truncate table

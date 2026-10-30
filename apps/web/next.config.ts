@@ -10,6 +10,13 @@ if (existsSync(rootEnv)) {
 }
 
 const nextConfig: NextConfig = {
+  // Only in the Docker image, which runs the traced server on its own.
+  ...(process.env.NEXT_OUTPUT === "standalone"
+    ? {
+        output: "standalone" as const,
+        outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
+      }
+    : {}),
   transpilePackages: [
     "@streetproof/ui",
     "@streetproof/contracts",

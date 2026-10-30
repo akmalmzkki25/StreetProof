@@ -9,6 +9,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export type StorageConfig = {
   endpoint: string;
+  // Where browsers reach the same storage, when that differs from `endpoint`.
+  publicEndpoint?: string | undefined;
   accessKeyId: string;
   secretAccessKey: string;
   bucket: string;
@@ -29,6 +31,7 @@ export function storageConfigFromEnv(
   }
   return {
     endpoint,
+    publicEndpoint: env.S3_PUBLIC_ENDPOINT_URL || undefined,
     accessKeyId,
     secretAccessKey,
     bucket,
@@ -37,15 +40,23 @@ export function storageConfigFromEnv(
 }
 
 export function createStorage(config: StorageConfig) {
-  const client = new S3Client({
-    endpoint: config.endpoint,
-    region: config.region,
-    credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    },
-    forcePathStyle: true,
-  });
+  function clientFor(endpoint: string) {
+    return new S3Client({
+      endpoint,
+      region: config.region,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+      },
+      forcePathStyle: true,
+    });
+  }
+
+  const client = clientFor(config.endpoint);
+  // A signature covers the host, so a URL for browsers is signed for their address.
+  const signingClient = config.publicEndpoint
+    ? clientFor(config.publicEndpoint)
+    : client;
 
   async function ensureBucket() {
     try {
@@ -77,7 +88,7 @@ export function createStorage(config: StorageConfig) {
   // The bucket stays private; viewers get a URL that expires.
   function signedReadUrl(key: string, expiresInSeconds = 300) {
     return getSignedUrl(
-      client,
+      signingClient,
       new GetObjectCommand({ Bucket: config.bucket, Key: key }),
       {
         expiresIn: expiresInSeconds,

@@ -1,0 +1,115 @@
+# The whole product on one host. Values come from an env file, see
+# .env.production.example:
+#   docker compose -f compose.production.yaml --env-file <file> up -d --build
+# Load the synthetic demo once, which wipes the database:
+#   docker compose -f compose.production.yaml --env-file <file> run --rm demo-seed
+name: streetproof
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql://streetproof:${POSTGRES_PASSWORD:?}@postgres:5432/streetproof
+  S3_ENDPOINT_URL: http://minio:9000
+  # Browsers load photos from this address, so it must be reachable from outside.
+  S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:?}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?}
+  S3_BUCKET: ${S3_BUCKET:-streetproof}
+  S3_REGION: ${S3_REGION:-us-east-1}
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: streetproof
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: streetproof
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U streetproof -d streetproof"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: quay.io/minio/minio
+    restart: unless-stopped
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:?}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?}
+    ports:
+      - ${MINIO_PORT:-9000}:9000
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Applies migrations and creates the bucket, then exits.
+  prepare:
+    build:
+      context: .
+      target: tools
+    working_dir: /repo/packages/db
+    command: ["node", "--import", "tsx", "scripts/prepare.ts"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      APP_URL: ${APP_URL:?}
+      AUTH_SECRET: ${AUTH_SECRET:?}
+    ports:
+      - ${WEB_PORT:-3000}:3000
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: .
+      target: tools
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      META_API_KEY: ${META_API_KEY:?}
+      META_API_BASE_URL: ${META_API_BASE_URL:-https://api.meta.ai/v1}
+      META_MODEL: ${META_MODEL:-muse-spark-1.3}
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
+  # Wipes the database and loads docs/demo-scenarios.md. Refuses if any tenant
+  # isn't synthetic, and only runs when asked for by name.
+  demo-seed:
+    profiles: [demo]
+    build:
+      context: .
+      target: tools
+    working_dir: /repo/packages/db
+    command:
+      - sh
+      - -c
+      - node --import tsx scripts/seed.ts && node --import tsx scripts/seed-demo.ts
+    environment:
+      <<: *app-env
+      APP_URL: ${APP_URL:?}
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
+volumes:
+  postgres-data:
+  minio-data:

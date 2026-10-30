@@ -40,6 +40,8 @@ Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm tes
 pnpm --filter @streetproof/web dev   # http://localhost:3000 — design system at /design-system
 ```
 
+To run the whole product from Docker images, see [docs/deployment.md](docs/deployment.md).
+
 ## Working with coding agents
 
 [`AGENTS.md`](AGENTS.md) holds the working rules and the skill index; `CLAUDE.md` imports it. New apps and packages are created with the [`streetproof-scaffold`](.agents/skills/streetproof-scaffold/SKILL.md) skill so each one ships with its own `AGENTS.md`, `CLAUDE.md` and tests.

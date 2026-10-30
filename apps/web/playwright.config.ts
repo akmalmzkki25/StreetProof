@@ -6,7 +6,9 @@ const rootEnv = path.resolve(__dirname, "../../.env");
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const PORT = 3100;
-const baseURL = `http://localhost:${PORT}`;
+// Set it to test a running deployment, such as the Docker images, as they are.
+const externalUrl = process.env.E2E_BASE_URL;
+const baseURL = externalUrl ?? `http://localhost:${PORT}`;
 
 function e2eDatabaseUrl() {
   const url = new URL(process.env.DATABASE_URL ?? "");
@@ -21,7 +23,7 @@ process.env.E2E_DATABASE_URL = E2E_DATABASE_URL;
 // dev server, its demo data, or a worker that spends model credits.
 export default defineConfig({
   testDir: "./e2e",
-  globalSetup: "./e2e/global-setup.ts",
+  ...(externalUrl ? {} : { globalSetup: "./e2e/global-setup.ts" }),
   // One browser at a time: the app's rate limits and the queue are shared.
   workers: 1,
   fullyParallel: false,
@@ -33,11 +35,15 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
-    command: `pnpm build && pnpm exec next start --port ${PORT}`,
-    url: `${baseURL}/login`,
-    timeout: 300_000,
-    reuseExistingServer: false,
-    env: { DATABASE_URL: E2E_DATABASE_URL, APP_URL: baseURL },
-  },
+  ...(externalUrl
+    ? {}
+    : {
+        webServer: {
+          command: `pnpm build && pnpm exec next start --port ${PORT}`,
+          url: `${baseURL}/login`,
+          timeout: 300_000,
+          reuseExistingServer: false,
+          env: { DATABASE_URL: E2E_DATABASE_URL, APP_URL: baseURL },
+        },
+      }),
 });

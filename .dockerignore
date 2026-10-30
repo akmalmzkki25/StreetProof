@@ -1,0 +1,25 @@
+# Secrets never enter an image. Every value arrives as an environment variable.
+.env
+.env.*
+!.env.example
+
+.git
+.github
+.claude
+.agents
+.venv
+.turbo
+.ruff_cache
+.pytest_cache
+**/node_modules
+**/.next
+**/.turbo
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+
+plan
+docs
+py
+apps/web/e2e
+apps/web/playwright.config.ts

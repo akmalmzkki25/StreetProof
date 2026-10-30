@@ -5,6 +5,7 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # MCP servers are configured with the `local` or `user` scope. The project
 # scope writes .mcp.json, which would push server URLs and tokens.
