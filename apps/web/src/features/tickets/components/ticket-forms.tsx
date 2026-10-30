@@ -106,10 +106,14 @@ export function TriageForm({
   ticketId,
   revision,
   defaultSummary,
+  defaultCategory,
+  defaultPriority,
   locations,
   defaultLocationId,
 }: TicketRef & {
   defaultSummary: string;
+  defaultCategory: string | null;
+  defaultPriority: string;
   locations: { id: string; name: string }[];
   defaultLocationId: string | null;
 }) {
@@ -137,13 +141,14 @@ export function TriageForm({
           label="Category"
           placeholder="Choose a category"
           options={categoryOptions}
+          defaultValue={defaultCategory}
         />
         <SelectField
           id="priority"
           label="Priority"
           placeholder="Choose a priority"
           options={priorityOptions}
-          defaultValue="normal"
+          defaultValue={defaultPriority}
         />
         <SelectField
           id="locationId"

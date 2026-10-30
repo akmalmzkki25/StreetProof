@@ -66,6 +66,14 @@ export function createStorage(config: StorageConfig) {
     );
   }
 
+  async function getObjectBytes(key: string) {
+    const response = await client.send(
+      new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+    );
+    if (!response.Body) throw new Error(`Object ${key} has no body.`);
+    return response.Body.transformToByteArray();
+  }
+
   // The bucket stays private; viewers get a URL that expires.
   function signedReadUrl(key: string, expiresInSeconds = 300) {
     return getSignedUrl(
@@ -82,6 +90,7 @@ export function createStorage(config: StorageConfig) {
     bucket: config.bucket,
     ensureBucket,
     putObject,
+    getObjectBytes,
     signedReadUrl,
   };
 }

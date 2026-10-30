@@ -12,17 +12,29 @@ This closes the access part of assumption A-04. A one-off call with the team's k
 - `POST /v1/responses` on `muse-spark-1.3` with a base64 image, Indonesian instructions, `store: false`, `reasoning.effort: "low"` and a strict `text.format` schema returned valid JSON in Indonesian in 4.7 s.
 - Usage was 382 input and 505 output tokens, 402 of them reasoning. That is about $0.0026 at Standard prices. Reasoning tokens bill as output, so effort is the main cost control.
 
-One call on a non-damage image proves access and request shape only. It says nothing about draft quality, typical latency or field accuracy. SAM, Muse Voice Transcribe and Muse Image were listed but not called.
+One call on a non-damage image proves access and request shape only. SAM and Muse Voice Transcribe were listed but not called.
+
+## First worker run (2026-10-30)
+
+Three reports through `apps/worker`, using one synthetic leak photo generated with Muse Image:
+
+| Report                             | Result                                                                                                                                                     |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Indonesian text + photo            | Indonesian draft: plumbing, high priority, photo facts and reporter context kept separate                                                                  |
+| Prompt injection text + same photo | Ignored the instructions, noted them in `limitations`, gave priority `unknown`, invented no location, and flagged the first ticket as a possible duplicate |
+| Indonesian text, no photo          | Electrical, priority `unknown`, and said the lack of a photo limited the assessment                                                                        |
+
+The three drafts took 8 to 11.4 s and cost about $0.03 in total, roughly $0.01 per draft, of which reasoning is a large share. This is a smoke test on three cases, not an evaluation: the plan's 60-case set hasn't been run, and the photo is generated rather than real.
 
 ## Connection
 
-| Item     | Value                                                                |
-| -------- | -------------------------------------------------------------------- |
-| Base URL | `https://api.meta.ai/v1`                                             |
-| Auth     | `Authorization: Bearer <key>`; keys look like `LLM_<id>_<secret>`    |
-| Our env  | `META_API_KEY`, `META_API_BASE_URL`, `META_MODEL` in the root `.env` |
-| Client   | `openai` SDK (TypeScript and Python) with `baseURL` and `apiKey` set |
-| Protocol | Responses API (`POST /v1/responses`), Meta's default for new work    |
+| Item     | Value                                                                                                          |
+| -------- | -------------------------------------------------------------------------------------------------------------- |
+| Base URL | `https://api.meta.ai/v1`                                                                                       |
+| Auth     | `Authorization: Bearer <key>`; keys look like `LLM_<id>_<secret>`                                              |
+| Our env  | `META_API_KEY`, `META_API_BASE_URL`, `META_MODEL` in the root `.env`                                           |
+| Client   | Plain `fetch` in `apps/worker/src/meta-client.ts`; the `openai` SDK also works with `baseURL` and `apiKey` set |
+| Protocol | Responses API (`POST /v1/responses`), Meta's default for new work                                              |
 
 Meta's examples name the key `MODEL_API_KEY`; ours is `META_API_KEY`. No SDK reads either automatically, so pass it explicitly. The key stays server-side (worker and server code only), never `NEXT_PUBLIC_`. Rate limits are per team, shared by every key.
 
@@ -115,6 +127,5 @@ A failure never changes the ticket status. The operator triages manually, as ADR
 None are applied yet; each needs the owner's decision.
 
 1. **Pin `muse-spark-1.3`** in ADR-006 after evaluation on real test cases.
-2. **Extend `ai_draft_state`** in `packages/db` when the worker is built. It has `queued`, `running`, `succeeded`, `failed`; the plan also needs `failed_retryable`, `failed_terminal`, `skipped_manual`, `cancelled`.
-3. **Add a grounding box** to the draft schema if it evaluates well, as a new optional field on `visibleFacts`.
-4. **Revisit D-09** for SAM if the core flow finishes early. The hackathon rewards model use, but the plan warns against model stacking for demonstration.
+2. **Add a grounding box** to the draft schema if it evaluates well, as a new optional field on `visibleFacts`.
+3. **Revisit D-09** for SAM if the core flow finishes early. The hackathon rewards model use, but the plan warns against model stacking for demonstration.

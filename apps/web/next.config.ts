@@ -12,6 +12,7 @@ if (existsSync(rootEnv)) {
 const nextConfig: NextConfig = {
   transpilePackages: [
     "@streetproof/ui",
+    "@streetproof/contracts",
     "@streetproof/domain",
     "@streetproof/db",
   ],

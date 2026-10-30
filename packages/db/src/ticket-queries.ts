@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray, isNull, or, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { Db } from "./client";
 import {
+  aiDrafts,
   completionSubmissions,
   locations,
   memberships,
@@ -210,8 +211,27 @@ export async function getTicketDetail(
       ),
     );
 
+  const drafts = await db
+    .select({
+      id: aiDrafts.id,
+      reportId: aiDrafts.reportId,
+      state: aiDrafts.state,
+      draft: aiDrafts.draft,
+      model: aiDrafts.model,
+      createdAt: aiDrafts.createdAt,
+    })
+    .from(aiDrafts)
+    .where(
+      inArray(
+        aiDrafts.reportId,
+        ticketReports.map((report) => report.id),
+      ),
+    )
+    .orderBy(desc(aiDrafts.createdAt));
+
   return {
     ...ticket,
+    aiDraft: drafts[0] ?? null,
     reports: ticketReports.map((report) => ({
       ...report,
       photos: photos.filter((photo) => photo.reportId === report.id),

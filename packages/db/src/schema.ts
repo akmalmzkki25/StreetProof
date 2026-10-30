@@ -462,7 +462,10 @@ export const aiDraftStateEnum = pgEnum("ai_draft_state", [
   "queued",
   "running",
   "succeeded",
-  "failed",
+  "failed_retryable",
+  "failed_terminal",
+  "skipped_manual",
+  "cancelled",
 ]);
 
 // A draft is a suggestion tied to the report revision it read. It never changes
@@ -478,12 +481,21 @@ export const aiDrafts = pgTable(
     promptVersion: text().notNull(),
     state: aiDraftStateEnum().notNull().default("queued"),
     draft: jsonb().$type<Record<string, unknown>>(),
+    // Error class only; never a provider payload that could echo report content.
     error: text(),
+    attempts: integer().notNull().default(0),
+    inputDigest: text(),
+    latencyMs: integer(),
+    usage: jsonb().$type<Record<string, unknown>>(),
     createdAt: createdAt(),
     completedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
-    index().on(table.tenantId, table.reportId),
+    uniqueIndex("ai_drafts_one_per_input").on(
+      table.reportId,
+      table.inputRevision,
+      table.promptVersion,
+    ),
     foreignKey({
       columns: [table.tenantId, table.reportId],
       foreignColumns: [reports.tenantId, reports.id],

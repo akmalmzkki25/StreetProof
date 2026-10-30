@@ -15,6 +15,10 @@ import { Suspense } from "react";
 import { z } from "zod";
 
 import {
+  AiDraftPanel,
+  readDraft,
+} from "@/features/tickets/components/ai-draft-panel";
+import {
   AssignForm,
   CancelForm,
   CompletionForm,
@@ -84,6 +88,9 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
         <div className="flex flex-col gap-8">
           <Attempts ticket={ticket} />
           <Reports ticket={ticket} />
+          {member.roles.includes("operator") ? (
+            <AiDraftPanel ticket={ticket} />
+          ) : null}
           <Timeline ticket={ticket} />
         </div>
         <aside className="flex flex-col gap-6">
@@ -247,6 +254,7 @@ async function NextStep({
   const db = getDb();
   const ref = { ticketId: ticket.id, revision: ticket.revision };
 
+  const draft = readDraft(ticket);
   const canTriage = allowed.includes("triaged");
   const canAssign = allowed.includes("assigned");
   const canCancel = allowed.includes("cancelled");
@@ -276,8 +284,24 @@ async function NextStep({
             Confirm triage
           </h2>
           <TriageForm
+            // Remounts once a draft arrives, so the operator starts from it.
+            key={draft ? "with-draft" : "manual"}
             {...ref}
-            defaultSummary={ticket.reports[0]?.description.slice(0, 200) ?? ""}
+            defaultSummary={(
+              draft?.summary ??
+              ticket.reports[0]?.description ??
+              ""
+            ).slice(0, 200)}
+            defaultCategory={
+              draft && draft.categoryCandidate !== "unknown"
+                ? draft.categoryCandidate
+                : null
+            }
+            defaultPriority={
+              draft && draft.priorityCandidate !== "unknown"
+                ? draft.priorityCandidate
+                : "normal"
+            }
             locations={await listSiteLocations(
               db,
               member.tenantId,
@@ -374,12 +398,19 @@ function Timeline({ ticket }: { ticket: TicketDetail }) {
         {ticket.events.map((event) => (
           <li key={event.id} className="text-sm">
             <span>
-              {event.toStatus ? STATUS_LABELS[event.toStatus] : event.type}
+              {event.type === "ai_draft_ready"
+                ? "AI suggestion ready"
+                : event.toStatus
+                  ? STATUS_LABELS[event.toStatus]
+                  : event.type}
             </span>
             <span className="text-muted-foreground">
               {" "}
-              · {event.actorName ?? "Reporter"} ·{" "}
-              {formatDateTime(event.createdAt)}
+              ·{" "}
+              {event.type === "ai_draft_ready"
+                ? "Worker"
+                : (event.actorName ?? "Reporter")}{" "}
+              · {formatDateTime(event.createdAt)}
             </span>
             {typeof event.payload.reason === "string" ? (
               <p className="mt-0.5 text-muted-foreground">

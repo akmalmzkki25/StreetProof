@@ -1,4 +1,6 @@
+export * from "./ai-drafts";
 export * from "./client";
+export * from "./jobs";
 export * from "./completion-commands";
 export * as schema from "./schema";
 export * from "./reports";

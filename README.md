@@ -4,7 +4,7 @@ StreetProof turns facility damage reports into assigned repair work with complet
 
 Built for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon); submissions are due Nov 4, 9:00 PM ET. See [`docs/hackathon.md`](docs/hackathon.md).
 
-**Status:** scaffolding. `apps/web` and `packages/ui` are in place; product flow is not built yet. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
+**Status:** hackathon build on synthetic data. The flow from report to verified closure works, with Muse Spark drafting suggestions for the operator. Not ready for real data. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
 
 ## Repository layout
 
@@ -13,8 +13,8 @@ This is a monorepo: the web app, API, worker, shared packages, Python evaluation
 | Path                     | Contents                                                                                       |
 | ------------------------ | ---------------------------------------------------------------------------------------------- |
 | `plan/en`, `plan/id`     | Research, business model, product requirements, technical design, delivery and marketing plans |
-| `apps/`                  | Deployable apps (`web` now; Node worker planned)                                               |
-| `packages/`              | Shared TypeScript packages (`ui`, `domain`, `db` now; contracts planned)                       |
+| `apps/`                  | Deployable apps (`web`, `worker`)                                                              |
+| `packages/`              | Shared TypeScript packages (`ui`, `domain`, `db`, `contracts`)                                 |
 | `py/`                    | Python packages for AI evaluation and experiments                                              |
 | `docs/hackathon.md`      | Hackathon reference: dates, tracks, models, rules                                              |
 | `docs/meta-model-api.md` | Meta models and endpoints we consume, mapped to the plan                                       |
