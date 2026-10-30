@@ -15,6 +15,7 @@ export type Member = {
   email: string;
   tenantId: string;
   tenantName: string;
+  isSyntheticTenant: boolean;
   roles: Role[];
   // null means every site of the tenant.
   siteIds: string[] | null;
@@ -34,6 +35,7 @@ export const getCurrentMember = cache(
       .select({
         tenantId: schema.memberships.tenantId,
         tenantName: schema.tenants.name,
+        isSyntheticTenant: schema.tenants.isSynthetic,
         role: schema.memberships.role,
         siteId: schema.memberships.siteId,
       })
@@ -72,6 +74,7 @@ export const getCurrentMember = cache(
       email: session.user.email,
       tenantId: first.tenantId,
       tenantName: first.tenantName,
+      isSyntheticTenant: first.isSyntheticTenant,
       roles,
       siteIds,
     };

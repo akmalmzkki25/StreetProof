@@ -95,6 +95,8 @@ export const roleEnum = pgEnum("role", ROLES);
 export const tenants = pgTable("tenants", {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
+  // Every figure from a synthetic tenant is labelled, so it can't pass as pilot data.
+  isSynthetic: boolean().notNull().default(false),
   createdAt: createdAt(),
 });
 

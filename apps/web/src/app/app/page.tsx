@@ -1,4 +1,4 @@
-import type { Role } from "@streetproof/domain";
+import { canViewDashboard, type Role } from "@streetproof/domain";
 import { Button } from "@streetproof/ui/components/button";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
@@ -91,6 +91,15 @@ async function Workspace() {
           ))}
         </ul>
       </section>
+
+      {canViewDashboard(member.roles) ? (
+        <Link
+          href="/app/dashboard"
+          className="self-start text-sm underline underline-offset-4"
+        >
+          Open the work overview
+        </Link>
+      ) : null}
     </>
   );
 }

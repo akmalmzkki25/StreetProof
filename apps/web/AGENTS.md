@@ -34,6 +34,7 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.
 - `/app/reviews`: a supervisor's pending verifications and closed work.
+- `/app/dashboard`: backlog, age, owners and outcomes, for everyone except technicians. Figures come from `computeDashboard` in `@streetproof/domain`, so definitions live in one tested place. A rate shows numerator, denominator and pending, never a bare percentage, and a missing value is a dash, not a zero.
 - `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`). Operators and supervisors link or unlink duplicates here. An AI duplicate candidate only prefills the form; a person submits the link. Operators ask the reporter a question here too; the reporter answers on `/status`, and the queue marks the ticket until an operator reviews the answer.
 
 Testing in the desktop app's browser pane: a hidden pane stalls client navigation and holds streamed content behind its skeleton, so take a screenshot or bring the pane forward before concluding a page is broken.

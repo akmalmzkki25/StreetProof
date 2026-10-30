@@ -27,6 +27,10 @@ A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicat
 
 `requestClarification` moves a ticket to `needs_clarification` and stores the question beside the report, which never changes. `answerClarification` is the only write a reporter receipt can make. It works only while that receipt's own report has this question open and the ticket is still waiting, and every refusal returns the same `unavailable`. It leaves status and revision alone, because an operator reviews first. `resumeAfterClarification` returns the ticket to triage. With an answer it bumps the report revision and queues a new draft; without one it needs a reason. There is no stored clarify scope on the credential: the open question is what grants the write, which is narrower than a flag on the receipt. One open question per ticket, enforced by a partial unique index.
 
+## Dashboard
+
+`getDashboard` reads open tickets of any age plus anything created or changed in the last 30 days, then hands the rows to `computeDashboard` in `@streetproof/domain`, which owns every metric definition. `tenants.is_synthetic` marks demo tenants so their figures are labelled in the UI.
+
 ## Report intake
 
 `submitReport(db, input)` in `src/reports.ts` creates the ticket, report, photo rows, first event, outbox row and receipt in one transaction. A retry with the same idempotency key and digest returns the same report, revokes the old receipt and issues a new one, up to the rotation limit; a changed digest is rejected. The raw receipt token is returned once and only its SHA-256 is stored. `getReporterStatus` returns null for any invalid receipt, so callers can't tell why it failed.

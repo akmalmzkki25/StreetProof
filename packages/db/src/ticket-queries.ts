@@ -37,7 +37,7 @@ export type MemberScope = {
   siteIds: readonly string[] | null;
 };
 
-function inScope(scope: MemberScope): SQL | undefined {
+export function inScope(scope: MemberScope): SQL | undefined {
   return and(
     eq(tickets.tenantId, scope.tenantId),
     scope.siteIds === null

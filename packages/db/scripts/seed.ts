@@ -27,7 +27,7 @@ const { db, pool } = createDb(url);
 await db.execute(sql`
   truncate table
     idempotency_keys, reporter_credentials, ai_drafts, outbox, ticket_events,
-    duplicate_links, uploads, verifications, completion_submissions, assignments,
+    clarifications, duplicate_links, uploads, verifications, completion_submissions, assignments,
     reports, tickets, memberships, locations, sites, tenants,
     verification, account, session, "user"
   cascade
@@ -56,7 +56,7 @@ async function createUser(demoUser: DemoUser) {
 async function seedTenant(demoTenant: DemoTenant) {
   const [tenant] = await db
     .insert(tenants)
-    .values({ name: demoTenant.tenantName })
+    .values({ name: demoTenant.tenantName, isSynthetic: true })
     .returning();
   if (!tenant) throw new Error("Tenant insert returned nothing.");
 
