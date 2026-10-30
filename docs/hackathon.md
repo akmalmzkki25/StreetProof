@@ -82,6 +82,6 @@ Open worldwide except where local law prohibits participation or receiving an aw
 
 - [ ] Read the Official Rules (behind login) and add the submission requirements here: deliverables, demo video length, repo visibility, team size, license or IP terms. This closes assumption A-11.
 - [ ] Confirm application acceptance and team members on the Cerebral Valley profile.
-- [ ] Get Meta Model API access working and record the model IDs used (A-04).
+- [x] Get Meta Model API access working and record the model IDs used (A-04). See [`meta-model-api.md`](meta-model-api.md) for the probe result and how each model maps to the plan.
 - [ ] Choose a track.
 - [ ] Claim any partner credits only if the demo needs open-weights models.

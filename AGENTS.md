@@ -33,7 +33,9 @@ submission rules; [`docs/hackathon.md`](docs/hackathon.md) summarizes it and
 lists what it means for this project. Submissions are due **Nov 4, 9:00 PM
 ET (Nov 5, 9:00 AM WIB)**. Scope every task against that deadline: the target
 is one working report-to-`verified_closed` flow built on Meta's models, using
-synthetic data.
+synthetic data. Before touching AI code, read
+[`docs/meta-model-api.md`](docs/meta-model-api.md): which Meta models to use or
+avoid, the request shape, and how errors map to the plan's AI states.
 
 ## Standing rules
 
@@ -90,6 +92,7 @@ packages/         shared TypeScript packages (domain, contracts, db, ui, config)
 py/               Python packages (AI evaluation, experiments, data scripts)
 plan/en, plan/id  planning package, two languages
 docs/hackathon.md hackathon reference (dates, tracks, models, rules)
+docs/meta-model-api.md  what we consume from Meta, mapped to the plan
 docs/adr/         accepted ADRs (proposed ones are still in plan/)
 docs/agents/      config for the to-spec, to-tickets and triage skills
 ```

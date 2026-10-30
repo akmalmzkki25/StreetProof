@@ -10,15 +10,16 @@ Built for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/m
 
 This is a monorepo: the web app, API, worker, shared packages, Python evaluation, database migrations, docs and the plan all live here.
 
-| Path                 | Contents                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------- |
-| `plan/en`, `plan/id` | Research, business model, product requirements, technical design, delivery and marketing plans |
-| `apps/`              | Deployable apps (`web` now; Node worker planned)                                               |
-| `packages/`          | Shared TypeScript packages (`ui`, `domain`, `db` now; contracts planned)                       |
-| `py/`                | Python packages for AI evaluation and experiments                                              |
-| `docs/hackathon.md`  | Hackathon reference: dates, tracks, models, rules                                              |
-| `docs/adr/`          | Accepted architecture decisions                                                                |
-| `.agents/skills/`    | Skills for coding agents working on this repo                                                  |
+| Path                     | Contents                                                                                       |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| `plan/en`, `plan/id`     | Research, business model, product requirements, technical design, delivery and marketing plans |
+| `apps/`                  | Deployable apps (`web` now; Node worker planned)                                               |
+| `packages/`              | Shared TypeScript packages (`ui`, `domain`, `db` now; contracts planned)                       |
+| `py/`                    | Python packages for AI evaluation and experiments                                              |
+| `docs/hackathon.md`      | Hackathon reference: dates, tracks, models, rules                                              |
+| `docs/meta-model-api.md` | Meta models and endpoints we consume, mapped to the plan                                       |
+| `docs/adr/`              | Accepted architecture decisions                                                                |
+| `.agents/skills/`        | Skills for coding agents working on this repo                                                  |
 
 ## Getting started
 
