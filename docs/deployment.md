@@ -1,6 +1,6 @@
 # Deployment
 
-`compose.production.yaml` runs the whole product on one host: PostgreSQL, MinIO, the web app and the worker. A one-shot `prepare` service applies migrations and creates the bucket on every start.
+`compose.production.yaml` runs the whole product on one host: PostgreSQL, MinIO, the web app, the worker and a backup loop. A one-shot `prepare` service applies migrations and creates the bucket on every start.
 
 ## Run it
 
@@ -17,9 +17,11 @@
    docker compose -f compose.production.yaml --env-file .env.production run --rm demo-seed
    ```
 
-   It prints the reporter status links, which are shown only once. It also queues two real drafts and two proof comparisons, so the worker spends about $0.04 of model credits straight away.
+   It prints the reporter status links, which are shown only once. It also queues two real drafts, their damage outlines and two proof comparisons, so the worker spends about $0.05 of model credits straight away.
 
 `GET /api/health` answers `{"ok":true}` when the web app can reach the database. The image's health check uses it.
+
+Both the web app and the worker need `META_API_KEY`: the worker for drafts, outlines and comparisons, the web app for voice notes.
 
 ## What needs a public address
 
@@ -50,6 +52,36 @@ Run the end-to-end tests against it. They need the base seed, not the demo one, 
 E2E_BASE_URL=https://your-domain pnpm test:e2e
 ```
 
+## Email
+
+Set `SMTP_URL` and `MAIL_FROM` to send status notices, receipts, recovered status links and password resets. With either one empty, nothing is sent: the password and link recovery pages say so and point people to their admin or building team, and the worker closes notification jobs without sending.
+
+Emails have only been tested against Mailpit, so send one through the real provider before relying on it.
+
+## Monitoring
+
+Set `MONITORING_TOKEN`, then call:
+
+```bash
+curl -H "Authorization: Bearer $MONITORING_TOKEN" https://your-domain/api/monitoring
+```
+
+It answers with database and storage reachability, the worker's last heartbeat, and job counts. A missing or wrong token gets a 404, and so does every request when the variable is unset. Nothing polls it yet, so point an uptime checker at it. The web app and worker write one JSON line per event to stdout.
+
+## Backups
+
+The `backup` service dumps PostgreSQL and archives the photo files on a loop, into the `backups` volume. It sits on the same host as the data, so a lost host loses both: copy that volume somewhere else on a schedule.
+
+To restore a backup, stop the app and MinIO first, because this replaces the database and the photos:
+
+```bash
+docker compose -f compose.production.yaml --env-file .env.production stop web worker minio
+docker compose -f compose.production.yaml --env-file .env.production --profile restore run --rm restore <stamp>
+docker compose -f compose.production.yaml --env-file .env.production up -d web worker minio
+```
+
+`<stamp>` is the name of a finished backup; run the restore without it to list them. A drill on the local stack brought back the tickets and a photo that loaded in the browser.
+
 ## Not covered yet
 
-Backups and restore practice, monitoring, and a security review of the proxy setup. Demo accounts share a password in the repository, so only synthetic data belongs on a public demo.
+A security review of the proxy setup. Demo accounts share a password in the repository, so only synthetic data belongs on a public demo.

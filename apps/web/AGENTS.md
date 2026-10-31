@@ -18,7 +18,7 @@ Dev server defaults to http://localhost:3000. Design system live showcase: `/des
 
 ## Env
 
-Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL` and `AUTH_SECRET`. One-click demo accounts appear on `/login` only under `next dev`, never in a production build. Database and storage access go through `@streetproof/db`.
+Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET`, `SMTP_URL` and `MAIL_FROM` (email stays off without them), `MONITORING_TOKEN` (`/api/monitoring` answers 404 without it) and `META_API_KEY` (voice notes only). One-click demo accounts appear on `/login` only under `next dev`, never in a production build. Database and storage access go through `@streetproof/db`.
 
 ## Auth
 
@@ -27,12 +27,24 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 - With Cache Components, anything that reads the session sits inside `<Suspense>`. Keep the page shell static and push the session read into a child component (see `src/app/app/page.tsx`).
 - Ticket state changes go through `transitionTicket` from `@streetproof/db` or a command built on it, never a direct `update tickets`. Actions also confirm the ticket is in the member's site scope, because the command only checks the tenant.
 
+## Language
+
+The interface is English and Indonesian. The locale comes from the `streetproof_locale` cookie, then a browser whose first language is Indonesian, then English.
+
+- Wrap every sentence in `t()`, from `getI18n()` on the server or `useI18n()` in a client component. The English sentence is the key. Action errors stay English in the action and are translated where they're displayed.
+- Add the Indonesian to `src/lib/i18n/messages-id.ts`, or `messages-id-errors.ts` for an action error. `messages.test.ts` scans the source and fails on a sentence without one.
+- Page `<title>`s, the home illustration and `/design-system` stay English.
+
 ## Routes
 
 - `/`: public home. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
 - `/app/*`: shares the floating navbar in `app/app/layout.tsx`. `navLinksFor` decides its links from the member's roles. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
+- `/status/recover`: a reporter who left an email asks for new status links. The answer is the same whether or not a report matches.
+- `/forgot-password`, `/reset-password`: password reset by email.
+- `/app/members`, `/app/audit`: member and team management and the audit log, tenant admins only.
+- `/api/monitoring`: health details for an uptime checker, behind `MONITORING_TOKEN`.
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.
 - `/app/reviews`: a supervisor's pending verifications and closed work.

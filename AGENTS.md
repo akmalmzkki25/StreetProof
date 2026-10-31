@@ -9,8 +9,8 @@ These are working agreements. The product plan and architecture live in
 What exists: the planning package in `plan/`, a JavaScript (pnpm + Turborepo)
 and Python (uv) monorepo skeleton, agent skills in `.agents/skills/`, plus the
 first app units `apps/web` (Next.js) and `packages/ui` (shared design system).
-`py/` stays empty until evaluation work starts; further packages follow the
-scaffold skill as the spike needs them.
+`py/ai-eval` scores the AI pipeline; further packages follow the scaffold skill
+as the spike needs them.
 
 Proposed technical direction (see `plan/en/04-technical/architecture-decisions.md`):
 

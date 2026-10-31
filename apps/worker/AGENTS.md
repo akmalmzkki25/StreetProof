@@ -1,6 +1,6 @@
 # @streetproof/worker
 
-Node process that turns submitted reports into AI drafts. It claims `report.submitted` rows from the Postgres outbox, sends the report and photos to Muse Spark, and stores a draft for the operator. Read [`docs/meta-model-api.md`](../../docs/meta-model-api.md) before changing the model call.
+Node process that works through the Postgres outbox. It turns submitted reports into AI drafts with Muse Spark, outlines the damage with SAM, compares before and after photos for supervisors, and sends reporter emails. `src/index.ts` maps each job type to its handler. Read [`docs/meta-model-api.md`](../../docs/meta-model-api.md) before changing a model call.
 
 ## Run
 
@@ -10,11 +10,13 @@ From the repo root (Postgres and MinIO must be running):
 pnpm --filter @streetproof/worker start   # one run, spends Meta credits per report
 pnpm --filter @streetproof/worker dev     # restarts on file changes
 pnpm --filter @streetproof/worker test    # fake model, no credits
+pnpm --filter @streetproof/worker eval:images   # spends credits, makes the evaluation photos
+pnpm --filter @streetproof/worker eval:run      # spends credits, writes py/ai-eval/results/latest.json
 ```
 
 ## Env
 
-Root `.env`: `META_API_KEY` (required), `META_API_BASE_URL`, `META_MODEL`, plus `DATABASE_URL` and the `S3_*` values.
+Root `.env`: `META_API_KEY` (required), `META_API_BASE_URL`, `META_MODEL`, plus `DATABASE_URL`, the `S3_*` values, and `SMTP_URL`, `MAIL_FROM` and `APP_URL` for email.
 
 ## Rules for this unit
 

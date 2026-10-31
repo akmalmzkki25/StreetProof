@@ -12,7 +12,7 @@ This closes the access part of assumption A-04. A one-off call with the team's k
 - `POST /v1/responses` on `muse-spark-1.3` with a base64 image, Indonesian instructions, `store: false`, `reasoning.effort: "low"` and a strict `text.format` schema returned valid JSON in Indonesian in 4.7 s.
 - Usage was 382 input and 505 output tokens, 402 of them reasoning. That is about $0.0026 at Standard prices. Reasoning tokens bill as output, so effort is the main cost control.
 
-One call on a non-damage image proves access and request shape only. SAM and Muse Voice Transcribe were listed but not called.
+One call on a non-damage image proves access and request shape only. SAM and Muse Voice Transcribe were called later, when they were built (see [Stretch features](#stretch-features)).
 
 ## First worker run (2026-10-30)
 
@@ -51,16 +51,16 @@ Meta's examples name the key `MODEL_API_KEY`; ours is `META_API_KEY`. No SDK rea
 
 ## What to use
 
-| Capability              | Model                       | Price                                | StreetProof use                                      | Plan status          | Decision                  |
-| ----------------------- | --------------------------- | ------------------------------------ | ---------------------------------------------------- | -------------------- | ------------------------- |
-| Image understanding     | `muse-spark-1.3`            | $1.25 in, $4.25 out, $0.15 cached /M | Structured intake draft from photo + Indonesian text | Core (ADR-006)       | **Build for the demo**    |
-| Structured output       | same                        | same                                 | Guarantees the draft JSON shape                      | Core (strict schema) | **Build for the demo**    |
-| Prompt caching          | same                        | automatic                            | Stable prompt first, report and photos last          | Not in plan          | **Use, no code needed**   |
-| Perception grounding    | same                        | no extra charge                      | Box on the visible damage, as part of the same draft | Not in plan          | **Add if draft is solid** |
-| Before/after comparison | same                        | same                                 | Supervisor hint: what differs, what proof is missing | D-12, hint only      | **Built**                 |
-| Segmentation            | `sam-3.1`                   | $2.50 per 1,000 images               | Pixel mask over damage or the repaired area          | Deferred (D-09)      | Stretch showcase          |
-| Speech to text          | `muse-voice-transcribe-1.0` | $0.18 per audio hour                 | Reporter or technician voice note to text            | Deferred (D-09)      | Stretch                   |
-| Image generation        | `muse-image-1.0`            | $0.01 per image                      | Synthetic demo and evaluation photos, offline only   | Not in plan          | Tooling only              |
+| Capability              | Model                       | Price                                | StreetProof use                                      | Plan status          | Decision                |
+| ----------------------- | --------------------------- | ------------------------------------ | ---------------------------------------------------- | -------------------- | ----------------------- |
+| Image understanding     | `muse-spark-1.3`            | $1.25 in, $4.25 out, $0.15 cached /M | Structured intake draft from photo + Indonesian text | Core (ADR-006)       | **Build for the demo**  |
+| Structured output       | same                        | same                                 | Guarantees the draft JSON shape                      | Core (strict schema) | **Build for the demo**  |
+| Prompt caching          | same                        | automatic                            | Stable prompt first, report and photos last          | Not in plan          | **Use, no code needed** |
+| Perception grounding    | same                        | no extra charge                      | Box on the visible damage, fallback for SAM          | D-13                 | **Built**               |
+| Before/after comparison | same                        | same                                 | Supervisor hint: what differs, what proof is missing | D-12, hint only      | **Built**               |
+| Segmentation            | `sam-3.1`                   | $2.50 per 1,000 images               | Pixel mask over the reported damage                  | D-13                 | **Built**               |
+| Speech to text          | `muse-voice-transcribe-1.0` | $0.18 per audio hour                 | Reporter voice note to text they check               | D-13                 | **Built**               |
+| Image generation        | `muse-image-1.0`            | $0.01 per image                      | Synthetic demo and evaluation photos, offline only   | Not in plan          | Tooling only            |
 
 ## What not to use
 
@@ -119,13 +119,17 @@ A failure never changes the ticket status. The operator triages manually, as ADR
 
 ## Stretch features
 
-**Perception grounding.** Spark returns boxes on a 0 to 1000 grid when the prompt asks for them. It needs no second model, and the overlay is CSS percentages (value / 10). Clamp values, since they can exceed 1000 at the image edge, and keep the box tied to the exact image that was sent. Meta advises a direct prompt with a minimal system prompt, so test whether long instructions hurt accuracy. Show it as "AI suggested area", never as a measurement.
+**Perception grounding.** Spark returns boxes on a 0 to 1000 grid when the prompt asks for them. It needs no second model, and the overlay is CSS percentages (value / 10). Clamp values, since they can exceed 1000 at the image edge, and keep the box tied to the exact image that was sent. Meta advises a direct prompt with a minimal system prompt. Built as the fallback when SAM finds nothing, in `apps/worker/src/locate-damage-job.ts`, and shown as "AI suggested area", never as a measurement.
 
-**SAM 3.1.** Send a short noun phrase naming one object, such as "water stain", on `POST /v1/responses`. It returns a box and a mask per match as special-token text; the `@meta-sam/parser` package decodes it, so don't hand-parse the base85 masks. Zero matches is a valid empty result. A natural pairing: Spark names what it sees, then SAM outlines that concept. Build it only after the core flow works, and record the change to D-09 in both decision registers.
+**SAM 3.1.** Send a short noun phrase naming one object, such as "water stain", on `POST /v1/responses`. It returns a box and a mask per match as special-token text; the `@meta-sam/parser` package decodes it, so don't hand-parse the base85 masks. Zero matches is a valid empty result. Built: the draft's `damagePhrase` goes to SAM once the draft succeeds. In the real run on two photos, one got a SAM mask and one fell back to the grounding box.
 
-**Muse Voice Transcribe.** `POST /v1/asr/transcribe` with the default `PUSH_TO_TALK` mode suits a voice note. Indonesian is among its 25 languages. Use `languageBias: ["Indonesian"]` and `keywords` for site and building terms. MP3 and WAV are documented as accepted for inference, so check what a phone browser records before building this; `MediaRecorder` often produces WebM. The transcript becomes report text and keeps the original audio as the observation.
+**Muse Voice Transcribe.** `POST /v1/asr/transcribe` with the default `PUSH_TO_TALK` mode suits a voice note. Indonesian is among its 25 languages. It takes WAV only in practice, as a multipart `request` plus `audio`, so the browser encodes WAV itself (`apps/web/src/lib/wav.ts`) rather than sending what `MediaRecorder` produces. Built on the report form: the text lands in the description for the reporter to check, and the audio isn't kept. Tested in real Chromium with a fake microphone, not on a real phone.
 
-**Muse Image.** Useful for generating the plan's synthetic evaluation cases and demo photos: leaks, cracks, broken fixtures. Label them synthetic in fixtures and in the demo. A generated image must never enter the product as evidence, and scores measured on generated photos say little about real ones.
+**Muse Image.** Useful for generating the plan's synthetic evaluation cases and demo photos: leaks, cracks, broken fixtures. Label them synthetic in fixtures and in the demo. A generated image must never enter the product as evidence, and scores measured on generated photos say little about real ones. The 32 evaluation photos in `py/ai-eval/fixtures` came from it.
+
+## Evaluation
+
+`py/ai-eval` holds 92 synthetic cases, and [`py/ai-eval/results/report.md`](../py/ai-eval/results/report.md) holds the latest scores. The run used `muse-spark-1.3-contributor`, allowed here only because the data is fully synthetic. One reviewer labelled it and the photos are generated, so the numbers describe these cases and say little about real sites. Priority was the weakest area: 23 of 30 plausible on held-out cases, because the model rates minor problems higher than the labels. A draft took 13.2 s at p50 and 17.3 s at p95.
 
 ## Data and availability
 
@@ -135,8 +139,6 @@ A failure never changes the ticket status. The operator triages manually, as ADR
 
 ## Plan changes this suggests
 
-None are applied yet; each needs the owner's decision.
+Not applied yet; it needs the owner's decision.
 
 1. **Pin `muse-spark-1.3`** in ADR-006 after evaluation on real test cases.
-2. **Add a grounding box** to the draft schema if it evaluates well, as a new optional field on `visibleFacts`.
-3. **Revisit D-09** for SAM if the core flow finishes early. The hackathon rewards model use, but the plan warns against model stacking for demonstration.

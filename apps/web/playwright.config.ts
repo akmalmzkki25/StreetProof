@@ -23,6 +23,9 @@ process.env.E2E_DATABASE_URL = E2E_DATABASE_URL;
 // dev server, its demo data, or a worker that spends model credits.
 export default defineConfig({
   testDir: "./e2e",
+  // Some tests walk a whole repair through four people. Each check keeps its own
+  // short limit, so a real hang still fails.
+  timeout: 60_000,
   ...(externalUrl ? {} : { globalSetup: "./e2e/global-setup.ts" }),
   // One browser at a time: the app's rate limits and the queue are shared.
   workers: 1,

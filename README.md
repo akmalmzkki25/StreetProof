@@ -4,7 +4,7 @@ StreetProof turns facility damage reports into assigned repair work with complet
 
 Built for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon); submissions are due Nov 4, 9:00 PM ET. See [`docs/hackathon.md`](docs/hackathon.md).
 
-**Status:** hackathon build on synthetic data. The flow from report to verified closure works, with Muse Spark drafting suggestions for the operator. Not ready for real data. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
+**Status:** hackathon build on synthetic data. The flow from report to verified closure works in English and Indonesian, with Muse Spark drafting suggestions for the operator and comparing proof photos for the supervisor, SAM outlining the damage, and voice notes on the report form. Not ready for real data. The planning package is in [`plan/`](plan/) in English and Indonesian; start with the [project charter](plan/en/00-foundation/project-charter.md) ([ID](plan/id/00-foundation/project-charter.md)).
 
 ## Repository layout
 

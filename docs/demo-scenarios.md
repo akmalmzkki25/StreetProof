@@ -26,9 +26,11 @@ The command prints four reporter status links once. Sign in with the demo accoun
 
 ## The model only runs when you start the worker
 
-Only the two new reports keep a pending draft job. Everything else is closed as "Not needed" at seed time, so the seed itself spends nothing. Each draft costs about $0.01. Returning an answered report to triage queues one more.
+Only the two new reports keep a pending draft job. Everything else is closed as "Not needed" at seed time, so the seed itself spends nothing. Each draft costs about $0.01, and its damage outline adds a little more. Returning an answered report to triage queues one more.
 
-Every attempt with a photo also has a proof check job, but the worker only pays for the two still waiting for a supervisor. The rest are skipped without calling the model. Those two cost $0.014 in total on the first real run, so a fresh demo costs about $0.03 to $0.04 once the worker runs.
+Every attempt with a photo also has a proof check job, but the worker only pays for the two still waiting for a supervisor. The rest are skipped without calling the model. Those two cost $0.014 in total on the first real run, so a fresh demo costs about $0.05 once the worker runs.
+
+Status emails only go out when `SMTP_URL` and `MAIL_FROM` are set, and seeded reports have no reporter email.
 
 Don't run the database tests while demo data is loaded: the worker tests claim the oldest pending job. Run `pnpm db:seed` first, then `pnpm db:seed:demo` again when you're done.
 
