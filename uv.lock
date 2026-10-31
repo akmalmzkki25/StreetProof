@@ -2,6 +2,12 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
+[manifest]
+members = [
+    "streetproof-ai-eval",
+    "streetproof-workspace",
+]
+
 [[package]]
 name = "colorama"
 version = "0.4.6"
@@ -214,9 +220,17 @@ wheels = [
 ]
 
 [[package]]
+name = "streetproof-ai-eval"
+version = "0.0.0"
+source = { editable = "py/ai-eval" }
+
+[[package]]
 name = "streetproof-workspace"
 version = "0.0.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "streetproof-ai-eval" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -226,6 +240,7 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "streetproof-ai-eval", editable = "py/ai-eval" }]
 
 [package.metadata.requires-dev]
 dev = [

@@ -1,0 +1,289 @@
+[
+  {
+    "id": "pipe_drip",
+    "split": "tuning",
+    "category": ["plumbing"],
+    "priority": ["normal", "high", "urgent"],
+    "phrase_terms": ["water", "leak", "puddle", "drip", "pipe"],
+    "location": "Lantai 3 pantry",
+    "prompt": "Phone photo of an open cabinet under a kitchen sink in an office pantry, water dripping from a P-trap pipe joint into a puddle on the cabinet floor, realistic, ordinary lighting",
+    "texts": [
+      "Pipa di bawah wastafel pantry bocor, airnya netes terus ke kabinet.",
+      "The pipe under the pantry sink is dripping into the cabinet.",
+      "wastafel pantry lt 3 bocor, kabinet basah"
+    ]
+  },
+  {
+    "id": "ceiling_stain",
+    "split": "tuning",
+    "category": ["building_fabric", "plumbing", "hvac"],
+    "priority": ["low", "normal", "high"],
+    "phrase_terms": ["stain", "water", "damage", "ceiling"],
+    "location": "Lobby",
+    "prompt": "Phone photo looking up at a white office ceiling tile with a large brown water stain, realistic, fluorescent lighting",
+    "texts": [
+      "Ada noda coklat besar di plafon lobby, makin lebar sejak kemarin.",
+      "A large brown stain on the lobby ceiling has been spreading since yesterday.",
+      "plafon lobby ada noda coklat"
+    ]
+  },
+  {
+    "id": "floor_crack",
+    "split": "tuning",
+    "category": ["building_fabric"],
+    "priority": ["low", "normal", "high"],
+    "phrase_terms": ["crack", "floor"],
+    "location": "Parkir B1",
+    "prompt": "Phone photo of a long crack across a concrete floor in a basement parking garage, realistic, dim overhead lights",
+    "texts": [
+      "Lantai beton parkir B1 retak panjang dekat ramp.",
+      "There is a long crack in the concrete floor near the ramp on parking level B1.",
+      "retak lantai parkir B1 dkt ramp"
+    ]
+  },
+  {
+    "id": "dead_lamp",
+    "split": "tuning",
+    "category": ["electrical"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["light", "lamp", "fixture"],
+    "location": "Koridor lantai 7",
+    "prompt": "Phone photo of an office corridor where one ceiling light fixture is dark and its cover hangs open while the other lights work, realistic",
+    "texts": [
+      "Lampu koridor lantai 7 mati satu, tutupnya copot.",
+      "One corridor light on floor 7 is out and its cover is hanging open.",
+      "lampu kor lt 7 mati"
+    ]
+  },
+  {
+    "id": "exposed_wires",
+    "split": "tuning",
+    "category": ["electrical"],
+    "priority": ["high", "urgent"],
+    "phrase_terms": ["wire", "cable", "panel", "socket", "outlet"],
+    "location": "Ruang panel lantai 2",
+    "prompt": "Phone photo of a wall outlet pulled out of the wall with bare exposed electrical wires visible in an office corridor, realistic",
+    "texts": [
+      "Stop kontak di koridor copot, kabelnya kelihatan keluar.",
+      "A wall socket has come out of the wall and the wires are showing.",
+      "stopkontak copot kabel kelihatan"
+    ]
+  },
+  {
+    "id": "ac_drip",
+    "split": "tuning",
+    "category": ["hvac"],
+    "priority": ["low", "normal", "high"],
+    "phrase_terms": [
+      "water",
+      "drip",
+      "air conditioner",
+      "stain",
+      "unit",
+      "puddle"
+    ],
+    "location": "Ruang rapat 5A",
+    "prompt": "Phone photo of a wall mounted air conditioner in a meeting room with water dripping from its underside and a wet patch on the wall below, realistic",
+    "texts": [
+      "AC ruang rapat 5A netes air terus, dindingnya basah.",
+      "The air conditioner in meeting room 5A keeps dripping and the wall is wet.",
+      "AC 5A bocor"
+    ]
+  },
+  {
+    "id": "toilet_overflow",
+    "split": "tuning",
+    "category": ["plumbing"],
+    "priority": ["normal", "high", "urgent"],
+    "phrase_terms": ["water", "toilet", "flood", "puddle", "overflow"],
+    "location": "Toilet lantai 7",
+    "prompt": "Phone photo of a commercial restroom stall with a toilet overflowing onto a wet tiled floor, clean water only, realistic",
+    "texts": [
+      "Toilet lantai 7 meluap, lantainya tergenang air.",
+      "The toilet on floor 7 is overflowing and the floor is flooded.",
+      "wc lt 7 meluap"
+    ]
+  },
+  {
+    "id": "door_handle",
+    "split": "tuning",
+    "category": ["building_fabric", "other"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["handle", "door", "lever"],
+    "location": "Pintu tangga darurat barat",
+    "prompt": "Phone photo of an office door with a broken lever handle hanging loose from the door plate, realistic",
+    "texts": [
+      "Gagang pintu tangga barat lepas dan menggantung.",
+      "The handle on the west stairwell door has come loose and is hanging off.",
+      "gagang pintu tangga barat rusak"
+    ]
+  },
+  {
+    "id": "broken_glass",
+    "split": "tuning",
+    "category": ["building_fabric"],
+    "priority": ["normal", "high", "urgent"],
+    "phrase_terms": ["glass", "window", "crack", "pane", "shatter"],
+    "location": "Lantai 4 sisi timur",
+    "prompt": "Phone photo of a cracked office window pane with spider web cracks radiating from one corner, realistic daylight",
+    "texts": [
+      "Kaca jendela lantai 4 sisi timur retak besar.",
+      "A window on the east side of floor 4 has a big crack across it.",
+      "kaca lt 4 timur pecah retak"
+    ]
+  },
+  {
+    "id": "peeling_paint",
+    "split": "tuning",
+    "category": ["building_fabric"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["paint", "wall", "peel", "damp", "mold"],
+    "location": "Lorong lantai 2",
+    "prompt": "Phone photo of an office hallway wall with paint peeling off in large flakes around a damp patch, realistic",
+    "texts": [
+      "Cat dinding lorong lantai 2 mengelupas di bagian lembab.",
+      "The paint on the floor 2 hallway wall is peeling around a damp patch.",
+      "cat dinding lorong lt 2 ngelupas"
+    ]
+  },
+  {
+    "id": "loose_handrail",
+    "split": "heldout",
+    "category": ["building_fabric", "other"],
+    "priority": ["normal", "high"],
+    "phrase_terms": ["handrail", "rail", "bracket"],
+    "location": "Tangga darurat timur",
+    "prompt": "Phone photo of a metal stairwell handrail pulled away from the wall with a loose bracket and exposed screw holes, realistic",
+    "texts": [
+      "Pegangan tangga timur goyang, bautnya lepas dari dinding.",
+      "The handrail in the east stairwell is wobbling and has pulled away from the wall.",
+      "handrail tangga timur goyang"
+    ]
+  },
+  {
+    "id": "fallen_tile",
+    "split": "heldout",
+    "category": ["building_fabric"],
+    "priority": ["normal", "high"],
+    "phrase_terms": ["tile", "ceiling", "panel", "hole"],
+    "location": "Kantin",
+    "prompt": "Phone photo of a suspended office ceiling with one ceiling tile missing and the fallen tile lying broken on the floor below, realistic",
+    "texts": [
+      "Satu panel plafon kantin jatuh ke lantai.",
+      "One ceiling panel in the canteen has fallen onto the floor.",
+      "plafon kantin jatuh 1 panel"
+    ]
+  },
+  {
+    "id": "water_heater",
+    "split": "heldout",
+    "category": ["plumbing"],
+    "priority": ["normal", "high"],
+    "phrase_terms": ["water", "heater", "tank", "puddle", "leak"],
+    "location": "Ruang utilitas lantai 1",
+    "prompt": "Phone photo of a utility room water heater with a wet base and a puddle spreading on the concrete floor, realistic",
+    "texts": [
+      "Water heater di ruang utilitas bocor bagian bawah, lantai basah.",
+      "The water heater in the utility room is leaking at the bottom and the floor is wet.",
+      "WH r.utilitas lt1 bocor"
+    ]
+  },
+  {
+    "id": "clogged_drain",
+    "split": "heldout",
+    "category": ["plumbing"],
+    "priority": ["low", "normal", "high"],
+    "phrase_terms": ["drain", "water", "puddle", "standing"],
+    "location": "Dapur kantin",
+    "prompt": "Phone photo of a commercial kitchen floor drain with standing grey water pooling around it, realistic",
+    "texts": [
+      "Saluran lantai dapur kantin mampet, air menggenang.",
+      "The floor drain in the canteen kitchen is blocked and water is pooling.",
+      "floor drain dapur mampet"
+    ]
+  },
+  {
+    "id": "rusted_pipe",
+    "split": "heldout",
+    "category": ["plumbing"],
+    "priority": ["low", "normal", "high"],
+    "phrase_terms": ["rust", "pipe", "corrosion"],
+    "location": "Basement B2",
+    "prompt": "Phone photo of a heavily rusted horizontal pipe along a basement ceiling with orange streaks and a small wet spot, realistic",
+    "texts": [
+      "Pipa di plafon basement B2 berkarat parah dan agak basah.",
+      "A pipe along the B2 basement ceiling is badly rusted and slightly wet.",
+      "pipa B2 karat parah"
+    ]
+  },
+  {
+    "id": "scorched_socket",
+    "split": "heldout",
+    "category": ["electrical"],
+    "priority": ["high", "urgent"],
+    "phrase_terms": ["scorch", "socket", "outlet", "burn", "mark"],
+    "location": "Pantry lantai 5",
+    "prompt": "Phone photo of a white wall power socket in an office pantry with black scorch marks around it, realistic",
+    "texts": [
+      "Stop kontak pantry lantai 5 gosong, tadi ada bau terbakar.",
+      "The power socket in the floor 5 pantry is scorched and there was a burning smell earlier.",
+      "stopkontak pantry lt 5 gosong"
+    ]
+  },
+  {
+    "id": "dead_elevator_button",
+    "split": "heldout",
+    "category": ["electrical", "other"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["button", "panel", "elevator", "lift"],
+    "location": "Lift barang",
+    "prompt": "Phone photo of an elevator control panel with one button cracked and pushed in, realistic",
+    "texts": [
+      "Tombol lantai 3 di lift barang pecah dan masuk ke dalam.",
+      "The floor 3 button in the goods lift is cracked and pushed in.",
+      "tombol lift brg lt 3 rusak"
+    ]
+  },
+  {
+    "id": "mouldy_vent",
+    "split": "heldout",
+    "category": ["hvac"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["vent", "mold", "mould", "grille"],
+    "location": "Ruang arsip",
+    "prompt": "Phone photo of a ceiling air vent grille with black mold around its edges in an office archive room, realistic",
+    "texts": [
+      "Kisi AC di ruang arsip berjamur hitam di pinggirnya.",
+      "The air vent in the archive room has black mould around its edges.",
+      "vent r.arsip jamuran"
+    ]
+  },
+  {
+    "id": "broken_floor_tile",
+    "split": "heldout",
+    "category": ["building_fabric"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["tile", "floor", "crack"],
+    "location": "Lobby timur",
+    "prompt": "Phone photo of a ceramic lobby floor with two broken cracked tiles lifting at the edges, realistic",
+    "texts": [
+      "Dua keramik lobby timur pecah dan naik pinggirnya.",
+      "Two floor tiles in the east lobby are broken and lifting at the edges.",
+      "keramik lobby timur pecah 2"
+    ]
+  },
+  {
+    "id": "leaking_faucet",
+    "split": "heldout",
+    "category": ["plumbing"],
+    "priority": ["low", "normal"],
+    "phrase_terms": ["faucet", "tap", "water", "drip"],
+    "location": "Toilet lantai 2",
+    "prompt": "Phone photo of a restroom sink faucet with water running from its base around a corroded joint, realistic",
+    "texts": [
+      "Keran wastafel toilet lantai 2 bocor di pangkalnya.",
+      "The sink tap in the floor 2 restroom is leaking at its base.",
+      "keran toilet lt2 bocor"
+    ]
+  }
+]
