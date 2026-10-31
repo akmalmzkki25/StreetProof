@@ -26,6 +26,18 @@ describe("securityHeaders", () => {
     }
   });
 
+  it("lets our own pages use the microphone, and no frames can", () => {
+    const headers = securityHeaders({
+      photoEndpoint: undefined,
+      isDevelopment: false,
+    });
+
+    expect(headers["Permissions-Policy"]).toContain("microphone=(self)");
+    expect(headers["Content-Security-Policy"]).toContain(
+      "frame-ancestors 'none'",
+    );
+  });
+
   it("blocks framing, plugins and forms posting elsewhere", () => {
     const policy = policyOf({ photoEndpoint: undefined, isDevelopment: false });
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { categoryLabel, PRIORITY_LABELS } from "../labels";
 import { AiRefresher } from "./ai-refresher";
+import { DamageFigure } from "./damage-figure";
 import { RetryDraftButton } from "./retry-draft-button";
 
 const PENDING_STATES = ["queued", "running", "failed_retryable"];
@@ -112,6 +113,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
       </div>
 
       <p>{draft.summary}</p>
+      <DamageFigure regions={ticket.damageRegions} />
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
         <dt className="text-muted-foreground">Category</dt>

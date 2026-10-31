@@ -3,6 +3,7 @@ export * from "./clarification-commands";
 export * from "./client";
 export * from "./dashboard-queries";
 export * from "./audit";
+export * from "./damage-regions";
 export * from "./jobs";
 export * from "./log";
 export * from "./members";

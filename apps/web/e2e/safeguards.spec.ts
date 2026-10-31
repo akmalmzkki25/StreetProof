@@ -165,6 +165,7 @@ async function deliverDraft(description: string, duplicateOfTicketId: string) {
         { ticketId: duplicateOfTicketId, reason: "Reason written by AI" },
       ],
       limitations: [],
+      damagePhrase: "",
     },
     latencyMs: 1,
     usage: {},

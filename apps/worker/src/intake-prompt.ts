@@ -1,7 +1,7 @@
 import type { DraftInput } from "@streetproof/db";
 import type { IntakeDraft } from "@streetproof/contracts";
 
-export const PROMPT_VERSION = "intake-draft-prompt-v3";
+export const PROMPT_VERSION = "intake-draft-prompt-v4";
 
 // Stable and first, so Meta's automatic prefix caching can reuse it.
 export const INTAKE_INSTRUCTIONS = `You prepare a draft for a human facility operator who reviews damage reports for a building. The operator decides everything; you only suggest.
@@ -18,7 +18,10 @@ Rules:
 - duplicateCandidates: only tickets from the list provided, by their given ID, and only if they plausibly describe the same physical problem. Otherwise leave it empty. Those IDs are internal: use them only in duplicateCandidates.ticketId and never write one in any text a person reads, including reasons and inferences. Describe the other ticket by its location or problem instead.
 - limitations: what limits this draft, such as a dark or blurred photo, an irrelevant photo, or a conflict between text and photo.
 - If a photo appears to show an emergency such as fire, exposed live wiring or structural collapse, say so in limitations and suggest urgent human review. You don't decide it is one.
-- Write summary and all free text in the same language as the report. Keep the summary under 25 words.`;
+- damagePhrase: a short English noun phrase of one to four words naming the damage visible in the first photo, for a tool that outlines it, such as "water puddle" or "ceiling stain". Leave it empty when the photo shows no damage or there's no photo.
+- Write summary and all other free text in the same language as the report. Keep the summary under 25 words.`;
+
+const MAX_DAMAGE_PHRASE_LENGTH = 60;
 
 export type PromptMaps = {
   photoRefs: string[];
@@ -92,6 +95,12 @@ export function applyDraftPolicy(
 
   return {
     ...draft,
+    // Goes to another model, so it stays one short phrase whatever came back.
+    damagePhrase: draft.damagePhrase
+      .replace(/[^\p{L}\p{N} -]/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, MAX_DAMAGE_PHRASE_LENGTH),
     summary: readable(draft.summary),
     priorityRationale: readable(draft.priorityRationale),
     missing_fields: draft.missing_fields.map(readable),

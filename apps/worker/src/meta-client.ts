@@ -1,4 +1,5 @@
 const REQUEST_TIMEOUT_MS = 45_000;
+const SAM_MODEL = "sam-3.1";
 
 export type ModelFailureClass = "retryable" | "terminal" | "auth";
 
@@ -65,6 +66,83 @@ function retryAfterMs(header: string | null) {
   return header && Number.isFinite(seconds) ? seconds * 1000 : null;
 }
 
+export type SamRequest = {
+  phrase: string;
+  image: { contentType: string; base64: string };
+};
+
+export type CallSam = (request: SamRequest) => Promise<ModelResponse>;
+
+// No matches is a valid answer from SAM, so empty output isn't a failure here.
+export function createSamClient(config: {
+  apiKey: string;
+  baseUrl: string;
+}): CallSam {
+  return async function callSam(request) {
+    const startedAt = Date.now();
+    const payload = await postResponses(config, {
+      model: SAM_MODEL,
+      store: false,
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [
+            { type: "input_text", text: request.phrase },
+            {
+              type: "input_image",
+              image_url: `data:${request.image.contentType};base64,${request.image.base64}`,
+            },
+          ],
+        },
+      ],
+    });
+    return {
+      outputText: outputTextOf(payload) ?? "",
+      usage: payload.usage ?? {},
+      latencyMs: Date.now() - startedAt,
+    };
+  };
+}
+
+function outputTextOf(payload: ResponsesPayload) {
+  return payload.output
+    ?.find((item) => item.type === "message")
+    ?.content?.find((part) => part.type === "output_text")?.text;
+}
+
+async function postResponses(
+  config: { apiKey: string; baseUrl: string },
+  body: Record<string, unknown>,
+) {
+  let response: Response;
+  try {
+    response = await fetch(`${config.baseUrl}/responses`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json",
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new ModelCallError("retryable", "network_or_timeout");
+  }
+
+  const payload = (await response.json().catch(() => ({}))) as ResponsesPayload;
+
+  if (!response.ok) {
+    const code = payload.error?.code ?? null;
+    throw new ModelCallError(
+      classifyHttpFailure(response.status, code),
+      code ?? `http_${response.status}`,
+      retryAfterMs(response.headers.get("retry-after")),
+    );
+  }
+  return payload;
+}
+
 export function createMetaClient(config: {
   apiKey: string;
   baseUrl: string;
@@ -72,65 +150,37 @@ export function createMetaClient(config: {
 }): CallModel {
   return async function callMeta(request) {
     const startedAt = Date.now();
-    let response: Response;
-    try {
-      response = await fetch(`${config.baseUrl}/responses`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-        body: JSON.stringify({
-          model: config.model,
-          // Keeps no retrievable copy at Meta. Prompt caching still works.
-          store: false,
-          reasoning: { effort: "low" },
-          safety_identifier: request.safetyIdentifier,
-          instructions: request.instructions,
-          input: [
-            {
-              type: "message",
-              role: "user",
-              content: [
-                { type: "input_text", text: request.text },
-                ...request.images.map((image) => ({
-                  type: "input_image",
-                  image_url: `data:${image.contentType};base64,${image.base64}`,
-                })),
-              ],
-            },
+    const payload = await postResponses(config, {
+      model: config.model,
+      // Keeps no retrievable copy at Meta. Prompt caching still works.
+      store: false,
+      reasoning: { effort: "low" },
+      safety_identifier: request.safetyIdentifier,
+      instructions: request.instructions,
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [
+            { type: "input_text", text: request.text },
+            ...request.images.map((image) => ({
+              type: "input_image",
+              image_url: `data:${image.contentType};base64,${image.base64}`,
+            })),
           ],
-          text: {
-            format: {
-              type: "json_schema",
-              name: request.schemaName,
-              strict: true,
-              schema: request.jsonSchema,
-            },
-          },
-        }),
-      });
-    } catch {
-      throw new ModelCallError("retryable", "network_or_timeout");
-    }
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: request.schemaName,
+          strict: true,
+          schema: request.jsonSchema,
+        },
+      },
+    });
 
-    const payload = (await response
-      .json()
-      .catch(() => ({}))) as ResponsesPayload;
-
-    if (!response.ok) {
-      const code = payload.error?.code ?? null;
-      throw new ModelCallError(
-        classifyHttpFailure(response.status, code),
-        code ?? `http_${response.status}`,
-        retryAfterMs(response.headers.get("retry-after")),
-      );
-    }
-
-    const outputText = payload.output
-      ?.find((item) => item.type === "message")
-      ?.content?.find((part) => part.type === "output_text")?.text;
+    const outputText = outputTextOf(payload);
     if (!outputText) {
       throw new ModelCallError("retryable", "empty_output");
     }

@@ -40,7 +40,11 @@ async function ReportContent({
           emergencies.
         </p>
       </header>
-      <ReportForm intakeCode={code} locations={site.locations} />
+      <ReportForm
+        intakeCode={code}
+        locations={site.locations}
+        canRecordVoice={Boolean(process.env.META_API_KEY)}
+      />
     </>
   );
 }

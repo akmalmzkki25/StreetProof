@@ -23,15 +23,18 @@ import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";
 import { MAX_PHOTOS } from "@/lib/photos";
+import { VoiceNoteButton } from "./voice-note-button";
 
 const initialState: ReportFormState = { status: "idle", error: null };
 
 export function ReportForm({
   intakeCode,
   locations,
+  canRecordVoice,
 }: {
   intakeCode: string;
   locations: { id: string; name: string }[];
+  canRecordVoice: boolean;
 }) {
   const [state, formAction, isPending] = useActionState(
     submitReportAction.bind(null, intakeCode),
@@ -39,6 +42,15 @@ export function ReportForm({
   );
   const [location, setLocation] = useState<string | null>(null);
   const submissionKey = useRef<string | null>(null);
+  const description = useRef<HTMLTextAreaElement>(null);
+
+  // Added to what's there, and left editable, because a transcript can be wrong.
+  function addTranscript(text: string) {
+    const field = description.current;
+    if (!field) return;
+    field.value = field.value ? `${field.value} ${text}` : text;
+    field.focus();
+  }
 
   const locationItems = [
     ...locations.map((item) => ({ value: item.id, label: item.name })),
@@ -132,9 +144,13 @@ export function ReportForm({
             name="description"
             rows={4}
             maxLength={2000}
+            ref={description}
             required
             placeholder="Water dripping from the ceiling near the lift"
           />
+          {canRecordVoice ? (
+            <VoiceNoteButton onTranscript={addTranscript} />
+          ) : null}
         </Field>
 
         <Field>

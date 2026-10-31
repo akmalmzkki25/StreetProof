@@ -36,6 +36,7 @@ const validDraft = {
   priorityRationale: "Not enough evidence",
   duplicateCandidates: [],
   limitations: [],
+  damagePhrase: "water puddle",
 };
 
 describe("intakeDraftJsonSchema", () => {

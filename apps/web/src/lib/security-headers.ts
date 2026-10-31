@@ -30,8 +30,9 @@ export function securityHeaders({
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    // Our own pages keep the camera, in case a browser ties the photo picker to it.
-    "Permissions-Policy": "camera=(self), microphone=(), geolocation=()",
+    // Our own pages keep the camera, in case a browser ties the photo picker to it,
+    // and the microphone, for voice notes on the report form.
+    "Permissions-Policy": "camera=(self), microphone=(self), geolocation=()",
     ...(isDevelopment
       ? {}
       : { "Strict-Transport-Security": "max-age=31536000" }),

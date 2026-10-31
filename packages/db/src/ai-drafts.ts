@@ -207,6 +207,18 @@ export async function recordDraftSuccess(
       type: "ai_draft_ready",
       payload: { reportId: key.reportId, promptVersion: key.promptVersion },
     });
+
+    if (key.draft.damagePhrase) {
+      await tx.insert(outbox).values({
+        tenantId: key.tenantId,
+        topic: "report.locate_damage",
+        payload: {
+          reportId: key.reportId,
+          ticketId: key.ticketId,
+          phrase: key.draft.damagePhrase,
+        },
+      });
+    }
   });
 }
 

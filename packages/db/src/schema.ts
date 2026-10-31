@@ -631,6 +631,40 @@ export const proofChecks = pgTable(
   ],
 );
 
+// Where a model thinks the damage is on a report photo. Coordinates are in a frame
+// of frameWidth by frameHeight, whatever the source, so an overlay needs one rule.
+export const damageRegions = pgTable(
+  "damage_regions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    reportId: uuid().notNull(),
+    uploadId: uuid().notNull(),
+    source: text().notNull().$type<"sam" | "grounding">(),
+    label: text().notNull(),
+    frameWidth: integer().notNull(),
+    frameHeight: integer().notNull(),
+    left: integer().notNull(),
+    top: integer().notNull(),
+    right: integer().notNull(),
+    bottom: integer().notNull(),
+    // An SVG path relative to left and top, when the model gave an exact outline.
+    maskPath: text(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index().on(table.reportId),
+    foreignKey({
+      columns: [table.tenantId, table.reportId],
+      foreignColumns: [reports.tenantId, reports.id],
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.uploadId],
+      foreignColumns: [uploads.id],
+    }).onDelete("cascade"),
+  ],
+);
+
 // One row per email sent, so a retried job doesn't mail someone twice.
 export const reporterNotifications = pgTable(
   "reporter_notifications",

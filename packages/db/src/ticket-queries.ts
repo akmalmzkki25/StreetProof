@@ -23,6 +23,7 @@ import {
   aiDrafts,
   clarifications,
   completionSubmissions,
+  damageRegions,
   duplicateLinks,
   proofChecks,
   locations,
@@ -387,6 +388,29 @@ export async function getTicketDetail(
     .where(eq(ticketNotes.ticketId, ticketId))
     .orderBy(asc(ticketNotes.createdAt));
 
+  const regions = await db
+    .select({
+      id: damageRegions.id,
+      objectKey: uploads.objectKey,
+      source: damageRegions.source,
+      label: damageRegions.label,
+      frameWidth: damageRegions.frameWidth,
+      frameHeight: damageRegions.frameHeight,
+      left: damageRegions.left,
+      top: damageRegions.top,
+      right: damageRegions.right,
+      bottom: damageRegions.bottom,
+      maskPath: damageRegions.maskPath,
+    })
+    .from(damageRegions)
+    .innerJoin(uploads, eq(uploads.id, damageRegions.uploadId))
+    .where(
+      inArray(
+        damageRegions.reportId,
+        ticketReports.map((report) => report.id),
+      ),
+    );
+
   const checks = await db
     .select({
       completionId: proofChecks.completionId,
@@ -424,6 +448,7 @@ export async function getTicketDetail(
     ...ticket,
     aiDraft: drafts[0] ?? null,
     reports: ticketReports,
+    damageRegions: regions,
     notes,
     clarifications: questions,
     duplicateOf: outgoing

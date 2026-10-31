@@ -17,7 +17,12 @@ import {
   runDraftJob,
   type JobOutcome,
 } from "./draft-job";
-import { createMetaClient } from "./meta-client";
+import {
+  handleUnexpectedLocateFailure,
+  LOCATE_DAMAGE_TOPIC,
+  runLocateDamageJob,
+} from "./locate-damage-job";
+import { createMetaClient, createSamClient } from "./meta-client";
 import {
   handleUnexpectedNotificationFailure,
   NOTIFICATION_TOPIC,
@@ -48,6 +53,7 @@ const appUrl = process.env.APP_URL ?? "";
 const db = getDb();
 const storage = createStorage(storageConfigFromEnv());
 const callModel = createMetaClient({ apiKey, baseUrl, model });
+const callSam = createSamClient({ apiKey, baseUrl });
 const sendMail = createMailer();
 const modelDeps = { db, callModel, readPhoto: storage.getObjectBytes, model };
 
@@ -67,6 +73,15 @@ const HANDLERS: readonly {
     topic: PROOF_CHECK_TOPIC,
     run: (job) => runProofCheckJob(modelDeps, job),
     onCrash: (job) => handleUnexpectedProofFailure(db, job),
+  },
+  {
+    topic: LOCATE_DAMAGE_TOPIC,
+    run: (job) =>
+      runLocateDamageJob(
+        { db, callModel, callSam, readPhoto: storage.getObjectBytes },
+        job,
+      ),
+    onCrash: (job) => handleUnexpectedLocateFailure(db, job),
   },
   {
     topic: NOTIFICATION_TOPIC,

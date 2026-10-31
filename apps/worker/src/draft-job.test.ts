@@ -37,6 +37,7 @@ const validDraft: IntakeDraft = {
   priorityRationale: "Water on the floor",
   duplicateCandidates: [],
   limitations: [],
+  damagePhrase: "",
 };
 
 function replying(text: string): CallModel {
@@ -168,6 +169,35 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
       "report_submitted",
       "ai_draft_ready",
     ]);
+  });
+
+  it("queues the damage outline only when the draft names something", async () => {
+    const locateJobs = (ticketId: string) =>
+      db
+        .select()
+        .from(outbox)
+        .where(
+          and(
+            eq(outbox.topic, "report.locate_damage"),
+            eq(sql`${outbox.payload}->>'ticketId'`, ticketId),
+          ),
+        );
+
+    const silent = await newJob();
+    await runDraftJob(deps(replying(JSON.stringify(validDraft))), silent.job);
+    expect(await locateJobs(silent.ticketId)).toEqual([]);
+
+    const named = await newJob();
+    await runDraftJob(
+      deps(
+        replying(
+          JSON.stringify({ ...validDraft, damagePhrase: "water puddle" }),
+        ),
+      ),
+      named.job,
+    );
+    const [job] = await locateJobs(named.ticketId);
+    expect(job?.payload).toMatchObject({ phrase: "water puddle" });
   });
 
   it("retries bad output, then gives up and leaves the ticket for manual triage", async () => {

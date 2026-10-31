@@ -71,6 +71,13 @@
       "when": 1793423829076,
       "tag": "0009_notifications_audit_heartbeats",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793425463712,
+      "tag": "0010_damage_regions",
+      "breakpoints": true
     }
   ]
 }

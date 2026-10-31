@@ -11,10 +11,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@meta-sam/parser": "^0.1.0",
     "@streetproof/contracts": "workspace:*",
     "@streetproof/db": "workspace:*",
     "@streetproof/domain": "workspace:*",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22",

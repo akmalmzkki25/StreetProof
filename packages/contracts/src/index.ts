@@ -1,7 +1,7 @@
 import { TICKET_CATEGORIES, TICKET_PRIORITIES } from "@streetproof/domain";
 import { z } from "zod";
 
-export const DRAFT_SCHEMA_VERSION = "intake-draft-v1";
+export const DRAFT_SCHEMA_VERSION = "intake-draft-v2";
 
 // The AI draft wire schema from plan/en/04-technical/api-and-event-contracts.md.
 // Every field is required because Meta's strict mode demands it; "unknown" and
@@ -30,6 +30,8 @@ export const intakeDraftSchema = z.object({
     z.object({ ticketId: z.string(), reason: z.string() }),
   ),
   limitations: z.array(z.string()),
+  // What a segmentation model should outline. Empty when no damage is visible.
+  damagePhrase: z.string(),
 });
 
 export type IntakeDraft = z.infer<typeof intakeDraftSchema>;
