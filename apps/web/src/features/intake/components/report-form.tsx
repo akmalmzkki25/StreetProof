@@ -153,6 +153,22 @@ export function ReportForm({
             showing people&apos;s faces.
           </FieldDescription>
         </Field>
+
+        <Field>
+          <FieldLabel htmlFor="reporterEmail">Email (optional)</FieldLabel>
+          <Input
+            id="reporterEmail"
+            name="reporterEmail"
+            type="email"
+            autoComplete="email"
+            maxLength={200}
+            className="max-sm:h-11"
+          />
+          <FieldDescription>
+            We only use it to tell you when the status changes, and to send a
+            new status link if you lose yours.
+          </FieldDescription>
+        </Field>
       </FieldGroup>
 
       {state.error ? (

@@ -1,10 +1,17 @@
-import { getDb, getTicketDetail } from "@streetproof/db";
+import {
+  errorFields,
+  getDb,
+  getTicketDetail,
+  logEvent,
+  recordAudit,
+} from "@streetproof/db";
 import { canViewTicket } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import { cn } from "@streetproof/ui/lib/utils";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { Suspense } from "react";
 import { z } from "zod";
 
@@ -56,6 +63,21 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
     notFound();
   }
 
+  // After the response, so a page view never waits on or fails because of its log.
+  after(async function logView() {
+    try {
+      await recordAudit(getDb(), {
+        tenantId: member.tenantId,
+        actorId: member.userId,
+        action: "ticket.viewed",
+        targetType: "ticket",
+        targetId: ticket.id,
+      });
+    } catch (error) {
+      logEvent("error", "Audit entry failed", errorFields(error));
+    }
+  });
+
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
@@ -74,7 +96,7 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-8">
           <Attempts ticket={ticket} member={member} />
-          <Reports ticket={ticket} />
+          <Reports ticket={ticket} member={member} />
           <ClarificationList ticket={ticket} />
           <LinkedReports ticket={ticket} member={member} />
           {member.roles.includes("operator") &&

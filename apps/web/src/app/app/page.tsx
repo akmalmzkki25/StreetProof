@@ -26,7 +26,8 @@ const ROLE_WORK: Record<Role, { title: string; description: string }> = {
   },
   tenant_admin: {
     title: "Tenant admin",
-    description: "Follow backlog and outcomes across your sites.",
+    description:
+      "Manage members and teams, and check who did what in the audit log.",
   },
 };
 
@@ -34,7 +35,7 @@ const ROLE_LINKS: Record<Role, { href: string; label: string }> = {
   operator: { href: "/app/queue", label: "Open the queue" },
   technician: { href: "/app/work", label: "Open my work" },
   supervisor: { href: "/app/reviews", label: "Open reviews" },
-  tenant_admin: { href: "/app/dashboard", label: "Open the overview" },
+  tenant_admin: { href: "/app/members", label: "Manage members" },
 };
 
 export default function WorkspacePage() {

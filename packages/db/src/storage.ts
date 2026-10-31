@@ -66,6 +66,15 @@ export function createStorage(config: StorageConfig) {
     }
   }
 
+  async function isReachable() {
+    try {
+      await client.send(new HeadBucketCommand({ Bucket: config.bucket }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function putObject(key: string, body: Uint8Array, contentType: string) {
     await client.send(
       new PutObjectCommand({
@@ -100,6 +109,7 @@ export function createStorage(config: StorageConfig) {
     client,
     bucket: config.bucket,
     ensureBucket,
+    isReachable,
     putObject,
     getObjectBytes,
     signedReadUrl,

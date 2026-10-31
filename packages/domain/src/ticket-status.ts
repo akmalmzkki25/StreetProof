@@ -219,6 +219,19 @@ const REPORTER_STAGE_BY_STATUS: Record<TicketStatus, ReporterStage> = {
   cancelled: "closed_without_repair",
 };
 
+export type ReporterNotice = ReporterStage | "question";
+
+// What a reporter hears about a change, in the same collapsed terms as their
+// status page. Most internal steps say nothing new.
+export function reporterNotice(
+  from: TicketStatus,
+  to: TicketStatus,
+): ReporterNotice | null {
+  if (to === "needs_clarification") return "question";
+  const stage = reporterStage(to);
+  return stage === reporterStage(from) ? null : stage;
+}
+
 export function isOverdue(
   ticket: { status: TicketStatus; dueAt: Date | null },
   now: Date,

@@ -1,6 +1,17 @@
-import { and, asc, eq, lt, lte, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  lt,
+  lte,
+  min,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Db } from "./client";
-import { outbox } from "./schema";
+import { outbox, serviceHeartbeats } from "./schema";
 
 // A worker that dies mid-job leaves its row "processing". Once the lease runs
 // out, another claim picks it up.
@@ -77,4 +88,52 @@ export async function failOutboxJob(db: Db, jobId: string, errorClass: string) {
     .update(outbox)
     .set({ status: "failed", lockedAt: null, lastError: errorClass })
     .where(eq(outbox.id, jobId));
+}
+
+export async function recordHeartbeat(db: Db, service: string) {
+  const lastSeenAt = new Date();
+  await db
+    .insert(serviceHeartbeats)
+    .values({ service, lastSeenAt })
+    .onConflictDoUpdate({
+      target: serviceHeartbeats.service,
+      set: { lastSeenAt },
+    });
+}
+
+// What a monitor needs to tell whether work is flowing.
+export async function getJobHealth(db: Db, now = new Date()) {
+  const [heartbeat] = await db
+    .select({ lastSeenAt: serviceHeartbeats.lastSeenAt })
+    .from(serviceHeartbeats)
+    .where(eq(serviceHeartbeats.service, "worker"));
+  const rows = await db
+    .select({
+      topic: outbox.topic,
+      status: outbox.status,
+      total: count(),
+      oldest: min(outbox.availableAt),
+    })
+    .from(outbox)
+    .where(inArray(outbox.status, ["pending", "processing", "failed"]))
+    .groupBy(outbox.topic, outbox.status);
+
+  const oldestWaiting = rows
+    .filter((row) => row.status === "pending" && row.oldest)
+    .map((row) => (row.oldest as Date).getTime())
+    .sort((first, second) => first - second)[0];
+
+  return {
+    workerLastSeenSeconds: heartbeat
+      ? Math.floor((now.getTime() - heartbeat.lastSeenAt.getTime()) / 1000)
+      : null,
+    oldestWaitingSeconds: oldestWaiting
+      ? Math.max(0, Math.floor((now.getTime() - oldestWaiting) / 1000))
+      : 0,
+    jobs: rows.map((row) => ({
+      topic: row.topic,
+      status: row.status,
+      total: row.total,
+    })),
+  };
 }

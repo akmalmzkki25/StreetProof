@@ -234,6 +234,8 @@ export const reports = pgTable(
     locationText: text(),
     description: text().notNull(),
     reporterName: text(),
+    // Optional, for status emails and link recovery. Never sent to a model.
+    reporterEmail: text(),
     canonicalTicketId: uuid().notNull(),
     revision: integer().notNull().default(0),
     createdAt: createdAt(),
@@ -628,6 +630,49 @@ export const proofChecks = pgTable(
     }).onDelete("cascade"),
   ],
 );
+
+// One row per email sent, so a retried job doesn't mail someone twice.
+export const reporterNotifications = pgTable(
+  "reporter_notifications",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    reportId: uuid().notNull(),
+    eventSeq: integer().notNull(),
+    sentAt: createdAt(),
+  },
+  (table) => [
+    unique().on(table.reportId, table.eventSeq),
+    foreignKey({
+      columns: [table.tenantId, table.reportId],
+      foreignColumns: [reports.tenantId, reports.id],
+    }).onDelete("cascade"),
+  ],
+);
+
+// Who did what outside the ticket workflow: sign-ins, account changes, ticket views.
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id),
+    actorId: text().references(() => user.id, { onDelete: "set null" }),
+    action: text().notNull(),
+    targetType: text(),
+    targetId: text(),
+    metadata: jsonb().$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: createdAt(),
+  },
+  (table) => [index().on(table.tenantId, table.createdAt)],
+);
+
+// Written by the worker while it runs, so monitoring can tell when it stops.
+export const serviceHeartbeats = pgTable("service_heartbeats", {
+  service: text().primaryKey(),
+  lastSeenAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
 
 // --- Reporter access and retries -------------------------------------------------
 

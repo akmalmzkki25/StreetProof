@@ -8,6 +8,7 @@ import {
   FieldLabel,
 } from "@streetproof/ui/components/field";
 import { Input } from "@streetproof/ui/components/input";
+import Link from "next/link";
 import { useActionState, useRef } from "react";
 
 import { signIn, type SignInState } from "../actions";
@@ -73,6 +74,12 @@ export function SignInForm({
         <Button type="submit" size="lg" disabled={isPending}>
           {isPending ? "Signing in…" : "Sign in"}
         </Button>
+        <Link
+          href="/forgot-password"
+          className="type-caption self-start text-brand-text underline underline-offset-4"
+        >
+          Forgot your password?
+        </Link>
       </form>
 
       {demoPassword && demoAccounts.length > 0 ? (

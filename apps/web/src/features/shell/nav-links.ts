@@ -17,5 +17,11 @@ export function navLinksFor(roles: readonly Role[]): NavLink[] {
     ...(canViewDashboard(roles)
       ? [{ href: "/app/dashboard", label: "Overview" }]
       : []),
+    ...(roles.includes("tenant_admin")
+      ? [
+          { href: "/app/members", label: "Members" },
+          { href: "/app/audit", label: "Audit log" },
+        ]
+      : []),
   ];
 }

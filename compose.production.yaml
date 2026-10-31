@@ -14,6 +14,9 @@ x-app-env: &app-env
   S3_SECRET_KEY: ${S3_SECRET_KEY:?}
   S3_BUCKET: ${S3_BUCKET:-streetproof}
   S3_REGION: ${S3_REGION:-us-east-1}
+  APP_URL: ${APP_URL:?}
+  SMTP_URL: ${SMTP_URL:-}
+  MAIL_FROM: ${MAIL_FROM:-}
 
 services:
   postgres:
@@ -69,8 +72,11 @@ services:
     restart: unless-stopped
     environment:
       <<: *app-env
-      APP_URL: ${APP_URL:?}
       AUTH_SECRET: ${AUTH_SECRET:?}
+      MONITORING_TOKEN: ${MONITORING_TOKEN:-}
+      # Voice notes are transcribed on the server, with the key kept there.
+      META_API_KEY: ${META_API_KEY:?}
+      META_API_BASE_URL: ${META_API_BASE_URL:-https://api.meta.ai/v1}
     ports:
       - ${WEB_PORT:-3000}:3000
     depends_on:
@@ -103,13 +109,49 @@ services:
       - sh
       - -c
       - node --import tsx scripts/seed.ts && node --import tsx scripts/seed-demo.ts
-    environment:
-      <<: *app-env
-      APP_URL: ${APP_URL:?}
+    environment: *app-env
     depends_on:
       prepare:
         condition: service_completed_successfully
 
+  # Nightly database dump and photo copy, kept in the backups volume.
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    entrypoint: ["sh", "/scripts/backup-loop.sh"]
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      PGHOST: postgres
+      PGUSER: streetproof
+      PGDATABASE: streetproof
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./scripts/backup:/scripts:ro
+      - backups:/backups
+      - minio-data:/minio-data:ro
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
+  # Puts one backup back. Only runs when asked for by name, see docs/deployment.md.
+  restore:
+    profiles: [restore]
+    image: postgres:16
+    entrypoint: ["sh", "/scripts/restore.sh"]
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      PGHOST: postgres
+      PGUSER: streetproof
+      PGDATABASE: streetproof
+    volumes:
+      - ./scripts/backup:/scripts:ro
+      - backups:/backups:ro
+      - minio-data:/minio-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres-data:
   minio-data:
+  backups:

@@ -43,7 +43,14 @@ export default defineConfig({
           url: `${baseURL}/login`,
           timeout: 300_000,
           reuseExistingServer: false,
-          env: { DATABASE_URL: E2E_DATABASE_URL, APP_URL: baseURL },
+          env: {
+            DATABASE_URL: E2E_DATABASE_URL,
+            APP_URL: baseURL,
+            MONITORING_TOKEN: "e2e-monitoring-token",
+            // Never a mail server or the model, whatever the root .env holds.
+            SMTP_URL: "",
+            META_API_KEY: "",
+          },
         },
       }),
 });

@@ -12,6 +12,7 @@ import {
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
@@ -81,6 +82,12 @@ async function ReportStatus() {
             need an update.
           </EmptyDescription>
         </EmptyHeader>
+        <Link
+          href="/status/recover"
+          className="text-brand-text underline underline-offset-4"
+        >
+          Get a new status link
+        </Link>
       </Empty>
     );
   }

@@ -1,6 +1,7 @@
 import { reporterStage, type ReporterStage } from "@streetproof/domain";
-import { and, asc, count, eq, gt, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, isNull } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
+import { recordAudit } from "./audit";
 import type { Db, Transaction } from "./client";
 import { hashReporterToken } from "./reporter-token";
 import {
@@ -19,6 +20,7 @@ import {
 
 const RECEIPT_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const MAX_RECEIPTS_PER_REPORT = 4;
+const MAX_RECOVERY_LINKS = 10;
 const INTAKE_SCOPE = "intake";
 
 export type ReportPhoto = {
@@ -35,6 +37,7 @@ export type SubmitReportInput = {
   locationId: string | null;
   locationText: string | null;
   description: string;
+  reporterEmail?: string | null;
   photos: readonly ReportPhoto[];
   idempotencyKey: string;
   requestDigest: string;
@@ -169,6 +172,7 @@ export async function submitReport(
       locationId: input.locationId,
       locationText: input.locationText,
       description: input.description,
+      reporterEmail: input.reporterEmail?.toLowerCase() ?? null,
       canonicalTicketId: ticketId,
     });
 
@@ -214,6 +218,81 @@ export async function submitReport(
       reporterToken,
       replayed: false,
     };
+  });
+}
+
+// New links alongside any the reporter still has, so asking on someone else's
+// behalf can't cut them off. Reports at the receipt limit are left out.
+export async function issueRecoveryLinks(db: Db, email: string) {
+  return db.transaction(async function run(tx) {
+    const rows = await tx
+      .select({ reportId: reports.id, tenantId: reports.tenantId })
+      .from(reports)
+      .where(eq(reports.reporterEmail, email.toLowerCase()))
+      .orderBy(desc(reports.createdAt))
+      .limit(MAX_RECOVERY_LINKS)
+      .for("update");
+
+    const links: { reference: string; token: string }[] = [];
+    for (const row of rows) {
+      const [issued] = await tx
+        .select({ total: count() })
+        .from(reporterCredentials)
+        .where(
+          and(
+            eq(reporterCredentials.reportId, row.reportId),
+            isNull(reporterCredentials.revokedAt),
+            gt(reporterCredentials.expiresAt, new Date()),
+          ),
+        );
+      if ((issued?.total ?? 0) >= MAX_RECEIPTS_PER_REPORT) continue;
+      links.push({
+        reference: reportReference(row.reportId),
+        token: await issueReceipt(tx, row.tenantId, row.reportId),
+      });
+    }
+    return links;
+  });
+}
+
+// For a reporter with no email who asks the building team. It replaces their old
+// links, since the person asking might be the reason they need a new one.
+export async function reissueStatusLink(
+  db: Db,
+  input: { tenantId: string; reportId: string; actorId: string },
+): Promise<{ ok: true; token: string } | { ok: false }> {
+  return db.transaction(async function run(tx) {
+    const [report] = await tx
+      .select({ id: reports.id, ticketId: reports.canonicalTicketId })
+      .from(reports)
+      .where(
+        and(
+          eq(reports.tenantId, input.tenantId),
+          eq(reports.id, input.reportId),
+        ),
+      )
+      .for("update");
+    if (!report) return { ok: false };
+
+    await tx
+      .update(reporterCredentials)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(
+          eq(reporterCredentials.reportId, report.id),
+          isNull(reporterCredentials.revokedAt),
+        ),
+      );
+    const token = await issueReceipt(tx, input.tenantId, report.id);
+    await recordAudit(tx, {
+      tenantId: input.tenantId,
+      actorId: input.actorId,
+      action: "status_link.reissued",
+      targetType: "ticket",
+      targetId: report.ticketId,
+      metadata: { reportId: report.id },
+    });
+    return { ok: true, token };
   });
 }
 

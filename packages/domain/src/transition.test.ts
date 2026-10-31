@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isOverdue,
+  reporterNotice,
   reporterStage,
   TICKET_STATUSES,
   TRANSITIONS,
@@ -151,6 +152,26 @@ describe("checkTransition", () => {
         missing: ["reason", "independent_review"],
       },
     });
+  });
+});
+
+describe("reporterNotice", () => {
+  it("speaks up when the reporter's stage changes", () => {
+    expect(reporterNotice("triaged", "assigned")).toBe("in_progress");
+    expect(reporterNotice("completion_submitted", "verified_closed")).toBe(
+      "resolved",
+    );
+  });
+
+  it("stays quiet about internal steps, including rejected proof", () => {
+    expect(reporterNotice("assigned", "accepted")).toBeNull();
+    expect(
+      reporterNotice("completion_submitted", "rejected_with_reason"),
+    ).toBeNull();
+  });
+
+  it("always tells them about a question", () => {
+    expect(reporterNotice("submitted", "needs_clarification")).toBe("question");
   });
 });
 

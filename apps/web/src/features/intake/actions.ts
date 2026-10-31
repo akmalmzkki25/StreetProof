@@ -1,15 +1,19 @@
 "use server";
 
 import {
+  errorFields,
   findIntakeSite,
   getDb,
   hasIntakeSubmission,
+  logEvent,
   reportReference,
   submitReport,
   type ReportPhoto,
 } from "@streetproof/db";
+import { createMailer, receiptMail } from "@streetproof/db/mail";
 import { createHash, randomUUID } from "node:crypto";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
 
 import { readPhotos, storePhotos } from "@/lib/photo-upload";
@@ -35,6 +39,10 @@ const reportFields = z.object({
     .trim()
     .min(5, "Describe the damage in a few words.")
     .max(2000, "Keep the description under 2,000 characters."),
+  reporterEmail: z.union([
+    z.literal(""),
+    z.email("Check the email address, or leave it empty."),
+  ]),
 });
 
 const isSubmissionAllowed = createRateLimiter({
@@ -44,6 +52,24 @@ const isSubmissionAllowed = createRateLimiter({
 
 function failure(error: string): ReportFormState {
   return { status: "error", error };
+}
+
+// After the response: a slow or failing mail server must never fail a report.
+async function sendReceipt(to: string, reportId: string, token: string) {
+  const sendMail = createMailer();
+  if (!sendMail) return;
+  try {
+    await sendMail(
+      receiptMail({
+        to,
+        reference: reportReference(reportId),
+        token,
+        appUrl: process.env.APP_URL ?? "",
+      }),
+    );
+  } catch (error) {
+    logEvent("error", "Receipt email failed", errorFields(error));
+  }
 }
 
 export async function submitReportAction(
@@ -67,11 +93,13 @@ export async function submitReportAction(
     location: formData.get("location") ?? "",
     locationText: formData.get("locationText") ?? "",
     description: formData.get("description") ?? "",
+    reporterEmail: String(formData.get("reporterEmail") ?? "").trim(),
   });
   if (!fields.success) {
     return failure(fields.error.issues[0]?.message ?? "Check the form.");
   }
-  const { submissionKey, location, locationText, description } = fields.data;
+  const { submissionKey, location, locationText, description, reporterEmail } =
+    fields.data;
 
   const isOtherLocation = location === OTHER_LOCATION;
   if (isOtherLocation && locationText.length === 0) {
@@ -91,6 +119,7 @@ export async function submitReportAction(
         location,
         locationText,
         description,
+        reporterEmail,
         photos: read.photos.map((photo) => photo.sha256),
       }),
     )
@@ -119,6 +148,7 @@ export async function submitReportAction(
     locationId,
     locationText: isOtherLocation ? locationText : null,
     description,
+    reporterEmail: reporterEmail || null,
     photos,
     idempotencyKey: submissionKey,
     requestDigest,
@@ -130,6 +160,11 @@ export async function submitReportAction(
         ? "This report was already sent with different details. Reload the page to send a new one."
         : "This report was already sent. Ask the building team for its status.",
     );
+  }
+
+  if (reporterEmail) {
+    const { reportId, reporterToken } = outcome;
+    after(() => sendReceipt(reporterEmail, reportId, reporterToken));
   }
 
   return {

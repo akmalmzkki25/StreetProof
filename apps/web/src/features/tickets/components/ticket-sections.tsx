@@ -13,6 +13,7 @@ import { categoryLabel, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
 import { UnlinkDuplicateForm } from "./duplicate-forms";
 import { NoteForm } from "./note-form";
 import { ProofCheckPanel } from "./proof-check-panel";
+import { ReissueLinkForm } from "./reissue-link-form";
 
 // Set by the worker rather than a person.
 const WORKER_EVENT_TYPES = ["ai_draft_ready", "ai_proof_check_ready"];
@@ -175,7 +176,14 @@ export function Attempts({
   );
 }
 
-export function Reports({ ticket }: { ticket: TicketDetail }) {
+export function Reports({
+  ticket,
+  member,
+}: {
+  ticket: TicketDetail;
+  member: Member;
+}) {
+  const canReissueLink = canManageDuplicates(member.roles);
   return (
     <section aria-labelledby="reports" className="flex flex-col gap-4">
       <h2 id="reports" className="type-title">
@@ -192,6 +200,9 @@ export function Reports({ ticket }: { ticket: TicketDetail }) {
             {formatDateTime(report.createdAt)}
           </p>
           <PhotoGrid photos={report.photos} label="Report photo" />
+          {canReissueLink ? (
+            <ReissueLinkForm ticketId={ticket.id} reportId={report.id} />
+          ) : null}
         </article>
       ))}
     </section>
