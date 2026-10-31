@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
         outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
       }
     : {}),
+  poweredByHeader: false,
   transpilePackages: [
     "@streetproof/ui",
     "@streetproof/contracts",

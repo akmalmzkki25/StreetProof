@@ -28,6 +28,12 @@
 
 Keep PostgreSQL off the public internet. The compose file publishes no port for it.
 
+## Security headers
+
+`apps/web/src/proxy.ts` adds them at request time. Its content security policy allows images only from this app and `S3_PUBLIC_ENDPOINT_URL`, so a wrong value shows up as photos that don't load. Inline scripts stay allowed, because Next.js can't put a nonce in a prerendered shell, so the policy doesn't stop an injected inline script.
+
+The app also sends `Strict-Transport-Security` for a year, without `includeSubDomains`. Once a browser opens the app over `https`, it refuses plain `http` on that domain until the year runs out.
+
 ## Behind a proxy that routes by domain
 
 On Coolify or similar, use the Docker Compose build pack with `compose.production.yaml`, and route one domain to `web:3000` and another to `minio:9000`. Set the variables above in the platform's environment settings. Host port mappings can stay, or be removed if they clash with something else on the server.

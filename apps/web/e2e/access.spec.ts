@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   ACCOUNTS,
+  INTAKE_PATH,
   openFromQueue,
   signIn,
   submitReport,
@@ -23,6 +24,47 @@ test("the health check answers without saying anything else", async ({
   const response = await request.get("/api/health");
   expect(response.ok()).toBe(true);
   expect(await response.json()).toEqual({ ok: true });
+});
+
+test("pages send security headers and nothing they load breaks the policy", async ({
+  browser,
+  page,
+}) => {
+  const description = unique("Policy check near the lift");
+  await submitReport(browser, description);
+  const operator = await signIn(browser, ACCOUNTS.operator);
+
+  const violations: string[] = [];
+  for (const watched of [page, operator]) {
+    watched.on("console", (message) => {
+      if (message.text().includes("Content Security Policy")) {
+        violations.push(message.text());
+      }
+    });
+  }
+
+  for (const path of ["/", "/login", INTAKE_PATH, "/status"]) {
+    const response = await page.goto(path);
+    const headers = response?.headers() ?? {};
+    expect(headers["content-security-policy"]).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(headers["x-content-type-options"]).toBe("nosniff");
+    expect(headers["x-frame-options"]).toBe("DENY");
+    expect(headers["x-powered-by"]).toBeUndefined();
+  }
+
+  await openFromQueue(operator, description);
+  const photo = operator.getByRole("img", { name: "Report photo 1" });
+  await expect
+    .poll(() => photo.evaluate((image: HTMLImageElement) => image.naturalWidth))
+    .toBeGreaterThan(0);
+  await operator.goto("/app/dashboard");
+  await expect(
+    operator.getByRole("heading", { name: "Where open work sits" }),
+  ).toBeVisible();
+
+  expect(violations).toEqual([]);
 });
 
 test("a bad password shows a message and no session", async ({ page }) => {
