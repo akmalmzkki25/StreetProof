@@ -31,6 +31,7 @@ export type Requirement =
   | "triage_fields"
   | "completion_proof"
   | "ready_evidence"
+  | "independent_review"
   | "next_review_at";
 
 export type TransitionRule = {
@@ -140,14 +141,14 @@ export const TRANSITIONS: readonly TransitionRule[] = [
     to: "verified_closed",
     actor: "supervisor",
     mustBeCurrentAssignee: false,
-    requires: ["reason", "ready_evidence"],
+    requires: ["reason", "ready_evidence", "independent_review"],
   },
   {
     from: "completion_submitted",
     to: "rejected_with_reason",
     actor: "supervisor",
     mustBeCurrentAssignee: false,
-    requires: ["reason"],
+    requires: ["reason", "independent_review"],
   },
   {
     from: "rejected_with_reason",

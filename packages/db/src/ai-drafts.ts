@@ -15,6 +15,7 @@ import {
   clarifications,
   duplicateLinks,
   locations,
+  outbox,
   reports,
   ticketEvents,
   tickets,
@@ -144,6 +145,12 @@ export type DraftInput = NonNullable<
   Awaited<ReturnType<typeof loadDraftInput>>
 >;
 
+const ONE_DRAFT_PER_INPUT = [
+  aiDrafts.reportId,
+  aiDrafts.inputRevision,
+  aiDrafts.promptVersion,
+];
+
 // One row per report revision and prompt version, however many times it retries.
 export async function markDraftRunning(
   db: Db,
@@ -153,11 +160,7 @@ export async function markDraftRunning(
     .insert(aiDrafts)
     .values({ ...key, state: "running" })
     .onConflictDoUpdate({
-      target: [
-        aiDrafts.reportId,
-        aiDrafts.inputRevision,
-        aiDrafts.promptVersion,
-      ],
+      target: ONE_DRAFT_PER_INPUT,
       set: {
         state: "running",
         model: key.model,
@@ -207,6 +210,8 @@ export async function recordDraftSuccess(
   });
 }
 
+// A job can fail before any row exists, as when its photos can't be read. A draft
+// that already succeeded stays: the failure came after the operator could use it.
 export async function recordDraftFailure(
   db: Db,
   key: DraftKey & {
@@ -214,14 +219,92 @@ export async function recordDraftFailure(
     errorClass: string | null;
   },
 ) {
+  const failure = {
+    state: key.state,
+    error: key.errorClass,
+    completedAt: key.state === "failed_retryable" ? null : new Date(),
+  };
   await db
-    .update(aiDrafts)
-    .set({
-      state: key.state,
-      error: key.errorClass,
-      completedAt: key.state === "failed_retryable" ? null : new Date(),
+    .insert(aiDrafts)
+    .values({
+      tenantId: key.tenantId,
+      reportId: key.reportId,
+      inputRevision: key.inputRevision,
+      promptVersion: key.promptVersion,
+      ...failure,
     })
-    .where(draftWhere(key));
+    .onConflictDoUpdate({
+      target: ONE_DRAFT_PER_INPUT,
+      set: failure,
+      setWhere: ne(aiDrafts.state, "succeeded"),
+    });
+}
+
+export type RetryDraftOutcome =
+  | { ok: true }
+  | { ok: false; code: "not_found" | "not_awaiting_triage" | "not_failed" };
+
+// Only after a final failure, so repeated clicks can't queue paid calls. Status
+// and revision are untouched, so a form the operator has open stays valid.
+export async function retryDraft(
+  db: Db,
+  command: { tenantId: string; ticketId: string; actorId: string },
+): Promise<RetryDraftOutcome> {
+  return db.transaction(async function run(tx) {
+    const [ticket] = await tx
+      .select({ status: tickets.status })
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, command.tenantId),
+          eq(tickets.id, command.ticketId),
+        ),
+      )
+      .for("update");
+    if (!ticket) return { ok: false, code: "not_found" };
+    if (ticket.status !== "submitted") {
+      return { ok: false, code: "not_awaiting_triage" };
+    }
+
+    const [latest] = await tx
+      .select({
+        id: aiDrafts.id,
+        state: aiDrafts.state,
+        reportId: aiDrafts.reportId,
+        reportRevision: reports.revision,
+      })
+      .from(aiDrafts)
+      .innerJoin(reports, eq(reports.id, aiDrafts.reportId))
+      .where(eq(reports.canonicalTicketId, command.ticketId))
+      .orderBy(desc(aiDrafts.createdAt))
+      .limit(1);
+    if (latest?.state !== "failed_terminal") {
+      return { ok: false, code: "not_failed" };
+    }
+
+    await tx
+      .update(aiDrafts)
+      .set({ state: "queued", error: null, completedAt: null })
+      .where(eq(aiDrafts.id, latest.id));
+    await tx.insert(outbox).values({
+      tenantId: command.tenantId,
+      topic: "report.submitted",
+      payload: {
+        reportId: latest.reportId,
+        ticketId: command.ticketId,
+        inputRevision: latest.reportRevision,
+      },
+    });
+    await tx.insert(ticketEvents).values({
+      tenantId: command.tenantId,
+      ticketId: command.ticketId,
+      seq: await nextEventSeq(tx, command.ticketId),
+      type: "ai_draft_retried",
+      actorId: command.actorId,
+      payload: { reportId: latest.reportId },
+    });
+    return { ok: true };
+  });
 }
 
 function draftWhere(key: DraftKey) {

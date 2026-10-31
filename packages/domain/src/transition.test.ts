@@ -134,7 +134,7 @@ describe("checkTransition", () => {
     });
   });
 
-  it("requires a reason to reject a completion", () => {
+  it("requires a reason and an independent reviewer to reject a completion", () => {
     const result = checkTransition(
       request({
         status: "completion_submitted",
@@ -145,7 +145,10 @@ describe("checkTransition", () => {
 
     expect(result).toEqual({
       ok: false,
-      rejection: { code: "missing_requirements", missing: ["reason"] },
+      rejection: {
+        code: "missing_requirements",
+        missing: ["reason", "independent_review"],
+      },
     });
   });
 });

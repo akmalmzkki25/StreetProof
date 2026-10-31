@@ -125,7 +125,10 @@ export async function decideCompletion(
   command: WorkCommand & { decision: "accepted" | "rejected"; reason: string },
 ) {
   const [proof] = await db
-    .select({ photoCount: count(uploads.id) })
+    .select({
+      photoCount: count(uploads.id),
+      submittedBy: completionSubmissions.submittedBy,
+    })
     .from(completionSubmissions)
     .leftJoin(
       uploads,
@@ -139,11 +142,15 @@ export async function decideCompletion(
         eq(completionSubmissions.ticketId, command.ticketId),
         eq(completionSubmissions.status, "pending"),
       ),
-    );
+    )
+    .groupBy(completionSubmissions.submittedBy);
   const provided: Requirement[] = [
     ...(command.reason.trim() ? (["reason"] as const) : []),
     ...(canVerifyAttempt({ photoCount: proof?.photoCount ?? 0 })
       ? (["ready_evidence"] as const)
+      : []),
+    ...(proof?.submittedBy !== command.actor.userId
+      ? (["independent_review"] as const)
       : []),
   ];
 

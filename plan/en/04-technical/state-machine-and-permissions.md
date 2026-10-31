@@ -46,8 +46,8 @@ stateDiagram-v2
 | in_progress | waiting_for_parts / waiting_for_access | Assigned technician, reason and next review time |
 | waiting_for_parts / waiting_for_access | in_progress | Assigned technician, resume note |
 | in_progress | completion_submitted | Assigned technician, ready completion evidence and note |
-| completion_submitted | verified_closed | Supervisor, current pending attempt, evidence reviewed, decision reason |
-| completion_submitted | rejected_with_reason | Supervisor, reason and requested correction |
+| completion_submitted | verified_closed | Supervisor who did not submit the attempt, current pending attempt, evidence reviewed, decision reason |
+| completion_submitted | rejected_with_reason | Supervisor who did not submit the attempt, reason and requested correction |
 | rejected_with_reason | in_progress | Assigned technician acknowledges rejection |
 | verified_closed | reopened | Supervisor, reason and prior verification reference |
 | reopened | assigned | Operator, new/renewed assignment |

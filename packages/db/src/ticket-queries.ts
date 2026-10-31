@@ -294,6 +294,7 @@ export async function getTicketDetail(
       exceptionReason: completionSubmissions.exceptionReason,
       status: completionSubmissions.status,
       submittedAt: completionSubmissions.submittedAt,
+      submittedBy: completionSubmissions.submittedBy,
       submitterName: submitter.name,
       decisionReason: verifications.reason,
       decidedAt: verifications.decidedAt,

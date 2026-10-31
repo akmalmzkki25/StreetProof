@@ -46,8 +46,8 @@ stateDiagram-v2
 | in_progress | waiting_for_parts / waiting_for_access | Teknisi ditugaskan, alasan dan waktu tinjau berikutnya |
 | waiting_for_parts / waiting_for_access | in_progress | Teknisi ditugaskan, catatan melanjutkan |
 | in_progress | completion_submitted | Teknisi ditugaskan, bukti penyelesaian ready dan catatan |
-| completion_submitted | verified_closed | Supervisor, upaya terkini yang menunggu, bukti ditinjau, alasan keputusan |
-| completion_submitted | rejected_with_reason | Supervisor, alasan dan koreksi yang diminta |
+| completion_submitted | verified_closed | Supervisor yang bukan pengirim upaya, upaya terkini yang menunggu, bukti ditinjau, alasan keputusan |
+| completion_submitted | rejected_with_reason | Supervisor yang bukan pengirim upaya, alasan dan koreksi yang diminta |
 | rejected_with_reason | in_progress | Teknisi ditugaskan mengakui penolakan |
 | verified_closed | reopened | Supervisor, alasan dan referensi verifikasi sebelumnya |
 | reopened | assigned | Operator, penugasan baru/diperbarui |

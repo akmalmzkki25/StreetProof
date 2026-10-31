@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { categoryLabel, PRIORITY_LABELS } from "../labels";
 import { DraftRefresher } from "./draft-refresher";
+import { RetryDraftButton } from "./retry-draft-button";
 
 const PENDING_STATES = ["queued", "running", "failed_retryable"];
 
@@ -14,7 +15,13 @@ export function readDraft(ticket: TicketDetail): IntakeDraft | null {
   return parsed.success ? parsed.data : null;
 }
 
-function Notice({ children }: { children: React.ReactNode }) {
+function Notice({
+  children,
+  action,
+}: {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) {
   return (
     <section
       aria-labelledby="ai-draft"
@@ -24,6 +31,7 @@ function Notice({ children }: { children: React.ReactNode }) {
         AI suggestion
       </h2>
       <p className="text-muted-foreground">{children}</p>
+      {action}
     </section>
   );
 }
@@ -73,6 +81,14 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
   const draft = readDraft(ticket);
   if (!draft) {
     if (!isAwaitingTriage) return null;
+    if (state === "failed_terminal") {
+      return (
+        <Notice action={<RetryDraftButton ticketId={ticket.id} />}>
+          The suggestion couldn&apos;t be prepared. You can try again, or triage
+          this report by hand.
+        </Notice>
+      );
+    }
     return (
       <Notice>
         No suggestion is available for this report. Please triage it by hand.

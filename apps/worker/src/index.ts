@@ -1,9 +1,9 @@
-import { claimOutboxJob, getDb, retryOutboxJob } from "@streetproof/db";
+import { claimOutboxJob, getDb } from "@streetproof/db";
 import { createStorage, storageConfigFromEnv } from "@streetproof/db/storage";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { backoffMs, DRAFT_TOPIC, runDraftJob } from "./draft-job";
+import { DRAFT_TOPIC, handleUnexpectedFailure, runDraftJob } from "./draft-job";
 import { createMetaClient } from "./meta-client";
 
 const POLL_INTERVAL_MS = 2000;
@@ -55,12 +55,7 @@ async function runOnce(): Promise<number> {
     return 0;
   } catch (error) {
     console.error(`Draft job ${job.id} failed unexpectedly`, error);
-    await retryOutboxJob(
-      db,
-      job.id,
-      new Date(Date.now() + backoffMs(job.attempts)),
-      "worker_error",
-    );
+    await handleUnexpectedFailure(db, job);
     return POLL_INTERVAL_MS;
   }
 }

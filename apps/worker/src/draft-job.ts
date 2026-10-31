@@ -27,6 +27,7 @@ export const DRAFT_TOPIC = "report.submitted";
 
 const MAX_ATTEMPTS = 3;
 const BASE_BACKOFF_MS = 1000;
+const WORKER_ERROR = "worker_error";
 
 export type JobOutcome =
   | "succeeded"
@@ -50,12 +51,51 @@ export function backoffMs(attempt: number, random = Math.random()) {
   return BASE_BACKOFF_MS * 2 ** attempt + random * BASE_BACKOFF_MS;
 }
 
+// The ticket stays where it is and the operator triages by hand, or retries.
+async function giveUpOnJob(db: Db, job: OutboxJob) {
+  await failOutboxJob(db, job.id, WORKER_ERROR);
+  await recordDraftFailure(db, {
+    tenantId: job.tenantId,
+    reportId: String(job.payload.reportId),
+    inputRevision: Number(job.payload.inputRevision),
+    promptVersion: PROMPT_VERSION,
+    state: "failed_terminal",
+    errorClass: WORKER_ERROR,
+  });
+}
+
+// Anything that isn't a model failure, such as storage being down. It's capped
+// like a model failure, so one job can't retry forever.
+export async function handleUnexpectedFailure(
+  db: Db,
+  job: OutboxJob,
+): Promise<JobOutcome> {
+  if (job.attempts < MAX_ATTEMPTS) {
+    await retryOutboxJob(
+      db,
+      job.id,
+      new Date(Date.now() + backoffMs(job.attempts)),
+      WORKER_ERROR,
+    );
+    return "retrying";
+  }
+  await giveUpOnJob(db, job);
+  return "failed_terminal";
+}
+
 export async function runDraftJob(
   deps: Deps,
   job: OutboxJob,
 ): Promise<JobOutcome> {
   const { db, callModel, readPhoto, model } = deps;
   const reportId = String(job.payload.reportId);
+
+  // Over the limit only when workers died mid-job and leases expired, so no
+  // failure was ever handled. The job may be what kills them.
+  if (job.attempts > MAX_ATTEMPTS) {
+    await giveUpOnJob(db, job);
+    return "failed_terminal";
+  }
 
   const input = await loadDraftInput(db, reportId);
   if (!input) {

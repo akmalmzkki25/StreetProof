@@ -115,6 +115,9 @@ export async function NextStep({
   const canComplete = allowed.includes("completion_submitted");
   const canDecide = allowed.includes("verified_closed");
   const canReopen = allowed.includes("reopened");
+  const pendingAttempt = ticket.attempts.find(
+    (attempt) => attempt.status === "pending",
+  );
 
   if (allowed.length === 0) {
     return (
@@ -224,14 +227,18 @@ export async function NextStep({
       ) : null}
       {canDecide ? (
         <Panel id="decide" title="Review the proof">
-          <DecisionForm
-            {...ref}
-            canVerify={canVerifyAttempt({
-              photoCount:
-                ticket.attempts.find((attempt) => attempt.status === "pending")
-                  ?.photos.length ?? 0,
-            })}
-          />
+          {pendingAttempt?.submittedBy === member.userId ? (
+            <p className="text-muted-foreground">
+              You submitted this work, so another supervisor has to review it.
+            </p>
+          ) : (
+            <DecisionForm
+              {...ref}
+              canVerify={canVerifyAttempt({
+                photoCount: pendingAttempt?.photos.length ?? 0,
+              })}
+            />
+          )}
         </Panel>
       ) : null}
       {canReopen ? (

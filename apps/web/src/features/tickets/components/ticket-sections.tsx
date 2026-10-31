@@ -257,6 +257,7 @@ export function Reviewed({ ticket }: { ticket: TicketDetail }) {
 
 function eventLabel(event: TicketDetail["events"][number]) {
   if (event.type === "ai_draft_ready") return "AI suggestion ready";
+  if (event.type === "ai_draft_retried") return "AI suggestion requested again";
   if (event.type === "clarification_answered") return "Reporter answered";
   if (
     event.fromStatus === "needs_clarification" &&

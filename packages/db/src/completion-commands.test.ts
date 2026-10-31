@@ -175,6 +175,58 @@ describe.skipIf(!url)(
       };
     }
 
+    it("won't let someone with both roles review their own attempt", async () => {
+      const { tenantId, ticketId, revision, technician, supervisor } =
+        await ticketInProgress();
+      const submitted = revisionOf(
+        await submitCompletion(db, {
+          tenantId,
+          ticketId,
+          actor: technician,
+          expectedRevision: revision,
+          note: "Replaced the seal.",
+          photos: [proof()],
+          checkedItemIds: ALL_CHECKS,
+          exceptionReason: null,
+        }),
+      );
+      const bothRoles = {
+        userId: technician.userId,
+        roles: ["technician", "supervisor"] as Role[],
+      };
+
+      for (const decision of ["accepted", "rejected"] as const) {
+        const outcome = await decideCompletion(db, {
+          tenantId,
+          ticketId,
+          actor: bothRoles,
+          expectedRevision: submitted,
+          decision,
+          reason: "Looks right to me.",
+        });
+        expect(outcome).toEqual({
+          ok: false,
+          rejection: {
+            code: "missing_requirements",
+            missing: ["independent_review"],
+          },
+        });
+      }
+
+      const reviewed = await decideCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: supervisor,
+        expectedRevision: submitted,
+        decision: "accepted",
+        reason: "The photo shows a dry floor.",
+      });
+      expect(reviewed).toMatchObject({
+        ok: true,
+        ticket: { status: "verified_closed" },
+      });
+    });
+
     it("records when the technician accepted the work", async () => {
       const { ticketId } = await ticketInProgress();
 

@@ -3,17 +3,18 @@ import {
   claimOutboxJob,
   createDb,
   linkDuplicate,
+  retryDraft,
   schema,
   submitReport,
   triageTicket,
 } from "@streetproof/db";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
-import { DRAFT_TOPIC, runDraftJob } from "./draft-job";
+import { DRAFT_TOPIC, handleUnexpectedFailure, runDraftJob } from "./draft-job";
 import { ModelCallError, type CallModel } from "./meta-client";
 
 const rootEnv = fileURLToPath(new URL("../../../.env", import.meta.url));
@@ -189,6 +190,145 @@ describe.skipIf(!url)("runDraftJob (needs the seeded local database)", () => {
       .from(tickets)
       .where(eq(tickets.id, ticketId));
     expect(ticket).toMatchObject({ status: "submitted" });
+  });
+
+  it("retries a crash, then gives up so the ticket stops waiting on a draft", async () => {
+    const { job, reportId, ticketId } = await newJob();
+    const readJob = async () => {
+      const [row] = await db.select().from(outbox).where(eq(outbox.id, job.id));
+      return row;
+    };
+
+    const first = await handleUnexpectedFailure(db, { ...job, attempts: 1 });
+    expect(first).toBe("retrying");
+    expect(await readJob()).toMatchObject({
+      status: "pending",
+      lastError: "worker_error",
+    });
+    expect(await draftOf(reportId)).toBeUndefined();
+
+    const last = await handleUnexpectedFailure(db, { ...job, attempts: 3 });
+    expect(last).toBe("failed_terminal");
+    expect(await readJob()).toMatchObject({
+      status: "failed",
+      lastError: "worker_error",
+    });
+    // Nothing had written a draft row yet, as when photos can't be read.
+    expect(await draftOf(reportId)).toMatchObject({
+      state: "failed_terminal",
+      error: "worker_error",
+    });
+
+    const [ticket] = await db
+      .select()
+      .from(tickets)
+      .where(eq(tickets.id, ticketId));
+    expect(ticket).toMatchObject({ status: "submitted" });
+  });
+
+  it("drops a job whose worker keeps dying before it can report", async () => {
+    const { job, reportId } = await newJob();
+    const callModel = replying(JSON.stringify(validDraft));
+
+    const outcome = await runDraftJob(deps(callModel), { ...job, attempts: 4 });
+
+    expect(outcome).toBe("failed_terminal");
+    expect(callModel).not.toHaveBeenCalled();
+    expect(await draftOf(reportId)).toMatchObject({
+      state: "failed_terminal",
+      error: "worker_error",
+    });
+  });
+
+  it("lets an operator retry a failed draft once, without moving the ticket", async () => {
+    const { job, reportId, ticketId, tenantId } = await newJob();
+    await runDraftJob(deps(replying("not json")), { ...job, attempts: 3 });
+    const [operator] = await db
+      .select({ userId: memberships.userId })
+      .from(memberships)
+      .where(eq(memberships.tenantId, tenantId));
+    if (!operator) throw new Error("no member");
+    const command = { tenantId, ticketId, actorId: operator.userId };
+
+    expect(await retryDraft(db, command)).toEqual({ ok: true });
+    expect(await draftOf(reportId)).toMatchObject({
+      state: "queued",
+      error: null,
+      completedAt: null,
+    });
+    // The first click already queued it, so a second can't pay for another.
+    expect(await retryDraft(db, command)).toEqual({
+      ok: false,
+      code: "not_failed",
+    });
+
+    const jobs = await db
+      .select()
+      .from(outbox)
+      .where(eq(sql`${outbox.payload}->>'ticketId'`, ticketId));
+    const retried = jobs.find((row) => row.id !== job.id);
+    if (!retried) throw new Error("no new job");
+    expect(jobs).toHaveLength(2);
+
+    const outcome = await runDraftJob(
+      deps(replying(JSON.stringify(validDraft))),
+      { ...retried, attempts: 1 },
+    );
+    expect(outcome).toBe("succeeded");
+    expect(await draftOf(reportId)).toMatchObject({ state: "succeeded" });
+
+    const [ticket] = await db
+      .select()
+      .from(tickets)
+      .where(eq(tickets.id, ticketId));
+    expect(ticket).toMatchObject({ status: "submitted", revision: 0 });
+    const events = await db
+      .select()
+      .from(ticketEvents)
+      .where(eq(ticketEvents.ticketId, ticketId));
+    expect(events.map((event) => event.type)).toContain("ai_draft_retried");
+    expect(
+      events.find((event) => event.type === "ai_draft_retried")?.actorId,
+    ).toBe(operator.userId);
+  });
+
+  it("refuses a retry from another tenant or after triage", async () => {
+    const { job, ticketId, tenantId } = await newJob();
+    await runDraftJob(deps(replying("not json")), { ...job, attempts: 3 });
+    const [operator] = await db
+      .select({ userId: memberships.userId })
+      .from(memberships)
+      .where(
+        and(
+          eq(memberships.tenantId, tenantId),
+          eq(memberships.role, "operator"),
+        ),
+      );
+    if (!operator) throw new Error("no operator");
+
+    expect(
+      await retryDraft(db, {
+        tenantId: randomUUID(),
+        ticketId,
+        actorId: operator.userId,
+      }),
+    ).toEqual({ ok: false, code: "not_found" });
+
+    const triaged = await triageTicket(db, {
+      tenantId,
+      ticketId,
+      actor: { userId: operator.userId, roles: ["operator"] },
+      expectedRevision: 0,
+      summary: "Leak under the sink",
+      category: "plumbing",
+      priority: "normal",
+      locationId: null,
+    });
+    expect(triaged.ok).toBe(true);
+
+    expect(
+      await retryDraft(db, { tenantId, ticketId, actorId: operator.userId }),
+    ).toEqual({ ok: false, code: "not_awaiting_triage" });
   });
 
   it("doesn't retry a content policy denial", async () => {

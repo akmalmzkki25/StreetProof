@@ -9,6 +9,7 @@ import {
   linkDuplicate,
   requestClarification,
   resumeAfterClarification,
+  retryDraft,
   submitCompletion,
   transitionTicket,
   triageTicket,
@@ -469,8 +470,9 @@ export async function decisionAction(
   });
   if (!outcome.ok && outcome.rejection.code === "missing_requirements") {
     return {
-      error:
-        "This attempt has no photo, so it can't be verified. Request corrected proof instead.",
+      error: outcome.rejection.missing.includes("independent_review")
+        ? "You submitted this work, so another supervisor has to review it."
+        : "This attempt has no photo, so it can't be verified. Request corrected proof instead.",
     };
   }
   return finish(outcome, fields.data.ticketId);
@@ -585,6 +587,31 @@ export async function requestClarificationAction(
     ...fields.data,
   });
   return finish(outcome, fields.data.ticketId);
+}
+
+export async function retryDraftAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireRole("operator");
+  const ticketId = z.uuid().safeParse(formData.get("ticketId"));
+  if (!ticketId.success) return unavailable;
+
+  const ticket = await ticketInScope(member, ticketId.data);
+  if (!ticket) return unavailable;
+
+  const outcome = await retryDraft(getDb(), {
+    tenantId: member.tenantId,
+    ticketId: ticketId.data,
+    actorId: member.userId,
+  });
+  if (!outcome.ok) {
+    return outcome.code === "not_found"
+      ? unavailable
+      : { error: "This report doesn't need a new suggestion now." };
+  }
+  revalidatePath(`/app/tickets/${ticketId.data}`);
+  return { error: null };
 }
 
 export async function resumeAfterClarificationAction(
