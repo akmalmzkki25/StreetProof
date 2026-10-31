@@ -14,6 +14,7 @@ import {
   completionSubmissions,
   memberships,
   outbox,
+  proofChecks,
   sites,
   tenants,
   ticketEvents,
@@ -174,6 +175,70 @@ describe.skipIf(!url)(
         sha256: "abc",
       };
     }
+
+    it("queues a proof check only for an attempt with a photo", async () => {
+      const { tenantId, ticketId, revision, technician, supervisor } =
+        await ticketInProgress();
+      const proofJobs = () =>
+        db
+          .select({ payload: outbox.payload })
+          .from(outbox)
+          .where(
+            and(
+              eq(outbox.topic, "completion.submitted"),
+              eq(sql`${outbox.payload}->>'ticketId'`, ticketId),
+            ),
+          );
+
+      const withoutPhoto = await submitCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        expectedRevision: revision,
+        note: "Replaced the breaker.",
+        photos: [],
+        checkedItemIds: [],
+        exceptionReason: "Cameras aren't allowed in the electrical room.",
+      });
+      expect(await proofJobs()).toEqual([]);
+
+      const rejected = await decideCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: supervisor,
+        expectedRevision: revisionOf(withoutPhoto),
+        decision: "rejected",
+        reason: "Send a photo once you can.",
+      });
+      const resumed = await transitionTicket(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        to: "in_progress",
+        expectedRevision: revisionOf(rejected),
+        provided: [],
+      });
+      await submitCompletion(db, {
+        tenantId,
+        ticketId,
+        actor: technician,
+        expectedRevision: revisionOf(resumed),
+        note: "Replaced the seal.",
+        photos: [proof()],
+        checkedItemIds: ALL_CHECKS,
+        exceptionReason: null,
+      });
+
+      const jobs = await proofJobs();
+      expect(jobs).toHaveLength(1);
+      const [check] = await db
+        .select()
+        .from(proofChecks)
+        .where(
+          eq(proofChecks.completionId, String(jobs[0]?.payload.completionId)),
+        );
+      expect(check?.state).toBe("queued");
+    });
 
     it("won't let someone with both roles review their own attempt", async () => {
       const { tenantId, ticketId, revision, technician, supervisor } =

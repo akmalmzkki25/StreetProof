@@ -10,6 +10,8 @@ import type { ReportPhoto } from "./reports";
 import {
   assignments,
   completionSubmissions,
+  outbox,
+  proofChecks,
   tickets,
   uploads,
   verifications,
@@ -116,6 +118,16 @@ export async function submitCompletion(
           uploadedBy: command.actor.userId,
         })),
       );
+
+      await tx.insert(proofChecks).values({
+        tenantId: ticket.tenantId,
+        completionId: attempt.id,
+      });
+      await tx.insert(outbox).values({
+        tenantId: ticket.tenantId,
+        topic: "completion.submitted",
+        payload: { ticketId: ticket.id, completionId: attempt.id },
+      });
     },
   });
 }

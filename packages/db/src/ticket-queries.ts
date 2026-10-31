@@ -18,6 +18,7 @@ import {
   clarifications,
   completionSubmissions,
   duplicateLinks,
+  proofChecks,
   locations,
   memberships,
   reports,
@@ -327,6 +328,21 @@ export async function getTicketDetail(
       ),
     );
 
+  const checks = await db
+    .select({
+      completionId: proofChecks.completionId,
+      state: proofChecks.state,
+      result: proofChecks.result,
+      model: proofChecks.model,
+    })
+    .from(proofChecks)
+    .where(
+      inArray(
+        proofChecks.completionId,
+        attempts.map((attempt) => attempt.id),
+      ),
+    );
+
   const drafts = await db
     .select({
       id: aiDrafts.id,
@@ -367,6 +383,8 @@ export async function getTicketDetail(
     attempts: attempts.map((attempt) => ({
       ...attempt,
       photos: proofPhotos.filter((photo) => photo.completionId === attempt.id),
+      proofCheck:
+        checks.find((check) => check.completionId === attempt.id) ?? null,
     })),
     events,
   };

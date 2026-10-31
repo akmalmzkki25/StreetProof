@@ -8,7 +8,7 @@ Daftar isi: [Rekomendasi dan kewenangan](#rekomendasi-dan-kewenangan) · [Pipeli
 
 ## Rekomendasi dan kewenangan
 
-Gunakan AI untuk menyusun draf intake terstruktur, menemukan konteks yang kurang, dan mengurutkan kandidat duplikat. Operator menyetujui kategori, prioritas, ringkasan, serta penugasan. Supervisor memutuskan penutupan. Model tidak dapat mengesahkan perbaikan dari foto sebelum/sesudah, menyimpulkan kerusakan tersembunyi, atau menyatakan darurat selesai. Panduan darurat terlihat sebelum AI dan menggunakan instruksi site yang disetujui.
+Gunakan AI untuk menyusun draf intake terstruktur, menemukan konteks yang kurang, dan mengurutkan kandidat duplikat. Operator menyetujui kategori, prioritas, ringkasan, serta penugasan. Supervisor memutuskan penutupan. Model tidak dapat mengesahkan perbaikan dari foto sebelum/sesudah, menyimpulkan kerusakan tersembunyi, atau menyatakan darurat selesai. Model boleh menunjukkan hal yang perlu diperhatikan supervisor pada foto tersebut, sebagai petunjuk belum terverifikasi yang tidak pernah mengubah status atau menghalangi keputusan (D-12). Panduan darurat terlihat sebelum AI dan menggunakan instruksi site yang disetujui.
 
 Mulai dengan foto + teks Indonesia dan lokasi manual. Tunda suara, segmentasi SAM, tool otonom, dan pemeliharaan prediktif. [Katalog model Meta saat ini](https://dev.meta.ai/docs/models) (T-12) menjelaskan kemampuan model; bukan bukti akses akun atau akurasi lapangan. Evaluasi adapter Muse Spark mode Standard dengan kasus sama seperti baseline manual. Tetapkan ID model tepat setelah probe akun berhasil. Catat kemampuan yang tidak tersedia, jangan mengganti API yang bekerja dengan demonstrasi.
 

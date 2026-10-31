@@ -554,6 +554,38 @@ export const aiDrafts = pgTable(
   ],
 );
 
+// A hint for the supervisor, one per completion attempt that has a photo. Like a
+// draft, it never changes ticket status.
+export const proofChecks = pgTable(
+  "proof_checks",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    completionId: uuid().notNull().unique(),
+    model: text(),
+    promptVersion: text(),
+    state: aiDraftStateEnum().notNull().default("queued"),
+    result: jsonb().$type<Record<string, unknown>>(),
+    // Error class only, as on ai_drafts.
+    error: text(),
+    attempts: integer().notNull().default(0),
+    inputDigest: text(),
+    latencyMs: integer(),
+    usage: jsonb().$type<Record<string, unknown>>(),
+    createdAt: createdAt(),
+    completedAt: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tenantId, table.completionId],
+      foreignColumns: [
+        completionSubmissions.tenantId,
+        completionSubmissions.id,
+      ],
+    }).onDelete("cascade"),
+  ],
+);
+
 // --- Reporter access and retries -------------------------------------------------
 
 // Only the SHA-256 of the receipt token is stored; the raw token is shown once.

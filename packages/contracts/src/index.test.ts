@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { intakeDraftJsonSchema, parseIntakeDraft } from "./index";
+import {
+  intakeDraftJsonSchema,
+  parseIntakeDraft,
+  proofCheckJsonSchema,
+} from "./index";
 
 type JsonObject = {
   type?: string;
@@ -43,6 +47,31 @@ describe("intakeDraftJsonSchema", () => {
     const schema = intakeDraftJsonSchema() as JsonObject;
 
     expect(Object.keys(schema.properties ?? {})).not.toContain("location");
+  });
+});
+
+describe("proofCheckJsonSchema", () => {
+  it("meets Meta's strict subset at every level", () => {
+    assertStrict(proofCheckJsonSchema() as JsonObject);
+  });
+
+  it("offers the model no way to give a verdict on the repair", () => {
+    const schema = proofCheckJsonSchema() as {
+      properties: Record<string, { enum?: string[] }>;
+    };
+
+    expect(Object.keys(schema.properties).sort()).toEqual([
+      "limitations",
+      "missingProof",
+      "observations",
+      "reportedProblem",
+      "sameLocation",
+    ]);
+    expect(schema.properties.reportedProblem?.enum).toEqual([
+      "not_visible",
+      "still_visible",
+      "unclear",
+    ]);
   });
 });
 

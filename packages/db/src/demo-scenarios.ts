@@ -580,6 +580,30 @@ export async function seedDemoScenarios(context: DemoContext) {
     "repaired_ceiling",
   );
 
+  // The proof shows the wrong thing and is still waiting, so the worker's comparison
+  // has something to flag. The supervisor still decides.
+  const wrongProofWaiting = await reportFlow({
+    age: 2,
+    description: "Pipe under the floor 3 pantry sink drips onto the cabinet.",
+    place: "Floor 3 pantry",
+    scene: "pipe_leak_wide",
+    draft: "skip",
+  });
+  await wrongProofWaiting.triage(1.9, {
+    summary: "Dripping pipe under the pantry sink",
+    category: "plumbing",
+    priority: "normal",
+  });
+  await wrongProofWaiting.assign(1.8, rina);
+  await wrongProofWaiting.accept(1.6, rina);
+  await wrongProofWaiting.start(1.4, rina);
+  await wrongProofWaiting.complete(
+    0.2,
+    rina,
+    "Replaced the seal under the sink.",
+    "wrong_object",
+  );
+
   const rejected = await reportFlow({
     age: 4,
     description:
@@ -761,6 +785,7 @@ export async function seedDemoScenarios(context: DemoContext) {
       linkedDuplicate: linkedDuplicate.ticketId,
       waitingForParts: waitingForParts.ticketId,
       secondAttempt: secondAttempt.ticketId,
+      wrongProofWaiting: wrongProofWaiting.ticketId,
       rejected: rejected.ticketId,
       proofException: proofException.ticketId,
       closedOnTime: closedOnTime.ticketId,

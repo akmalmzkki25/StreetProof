@@ -17,7 +17,7 @@
    docker compose -f compose.production.yaml --env-file .env.production run --rm demo-seed
    ```
 
-   It prints the reporter status links, which are shown only once. It also queues two real drafts, so the worker spends about $0.02 of model credits straight away.
+   It prints the reporter status links, which are shown only once. It also queues two real drafts and two proof comparisons, so the worker spends about $0.04 of model credits straight away.
 
 `GET /api/health` answers `{"ok":true}` when the web app can reach the database. The image's health check uses it.
 

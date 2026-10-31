@@ -22,6 +22,7 @@ Every row is an author-proposed planning decision, not buyer approval. P resolve
 | D-09 | Voice/SAM/WhatsApp/MCP after core flow | Complexity needs evidence of benefit | Model stacking for demonstration | Observed blocker requires that capability |
 | D-10 | Bilingual documentation with shared IDs | Avoid two divergent specifications | English summary only | Any language change must propagate to its counterpart |
 | D-11 | Self-hosted PostgreSQL and S3-compatible object storage (MinIO) in Docker; authentication in the application; supersedes ADR-002 | Team already runs these services in Docker; no vendor account or service keys needed for the hackathon; plain SQL migrations stay portable | Supabase (ADR-002) | Hosted deployment needs managed backups or row-level security the team cannot operate |
+| D-12 | Muse Spark compares before and after photos as an unverified hint for supervisors; extends ADR-004's assistance scope ahead of its evaluation, for the hackathon on synthetic data only | Evidence review is the product's core, and a wrong-object photo is cheap to spot; the schema has no verdict field and the hint can't change status or block a decision | No AI on completion proof; AI that accepts or rejects proof | Evaluation shows supervisors follow wrong hints, or real data enters before that evaluation |
 
 ## Consequences and change costs
 

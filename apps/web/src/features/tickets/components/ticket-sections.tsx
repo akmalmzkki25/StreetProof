@@ -7,18 +7,25 @@ import { Panel } from "@/components/panel";
 import { formatDateTime } from "@/lib/format";
 import type { Member } from "@/lib/member";
 import { getStorage } from "@/lib/storage";
+import { cn } from "@/lib/utils";
 
 import { categoryLabel, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
 import { UnlinkDuplicateForm } from "./duplicate-forms";
+import { ProofCheckPanel } from "./proof-check-panel";
+
+// Set by the worker rather than a person.
+const WORKER_EVENT_TYPES = ["ai_draft_ready", "ai_proof_check_ready"];
 
 type StoredPhoto = { id: string; objectKey: string };
 
 async function PhotoGrid({
   photos,
   label,
+  columns = "grid-cols-2 sm:grid-cols-3",
 }: {
   photos: StoredPhoto[];
   label: string;
+  columns?: string;
 }) {
   if (photos.length === 0) return null;
 
@@ -31,7 +38,7 @@ async function PhotoGrid({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className={cn("grid gap-3", columns)}>
       {signed.map((photo, index) => (
         <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer">
           {/* Signed, short-lived URLs from the private bucket. */}
@@ -60,8 +67,43 @@ const ATTEMPT_VARIANTS = {
   rejected: "destructive",
 } as const;
 
-export function Attempts({ ticket }: { ticket: TicketDetail }) {
+function BeforeAfter({
+  before,
+  after,
+}: {
+  before: StoredPhoto[];
+  after: StoredPhoto[];
+}) {
+  // Two columns even on a phone: seeing both at once is the point.
+  const columns = "grid-cols-1";
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2">
+        <h3 className="type-caption text-muted-foreground">
+          Before, from the report
+        </h3>
+        <PhotoGrid photos={before} label="Before photo" columns={columns} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <h3 className="type-caption text-muted-foreground">
+          After, from the technician
+        </h3>
+        <PhotoGrid photos={after} label="Proof photo" columns={columns} />
+      </div>
+    </div>
+  );
+}
+
+export function Attempts({
+  ticket,
+  member,
+}: {
+  ticket: TicketDetail;
+  member: Member;
+}) {
   if (ticket.attempts.length === 0) return null;
+  const reportPhotos = ticket.reports.flatMap((report) => report.photos);
+  const isSupervisor = member.roles.includes("supervisor");
 
   return (
     <section aria-labelledby="attempts" className="flex flex-col gap-4">
@@ -110,7 +152,14 @@ export function Attempts({ ticket }: { ticket: TicketDetail }) {
               No photo was added.
             </p>
           ) : null}
-          <PhotoGrid photos={attempt.photos} label="Proof photo" />
+          {attempt.status === "pending" &&
+          attempt.photos.length > 0 &&
+          reportPhotos.length > 0 ? (
+            <BeforeAfter before={reportPhotos} after={attempt.photos} />
+          ) : (
+            <PhotoGrid photos={attempt.photos} label="Proof photo" />
+          )}
+          {isSupervisor ? <ProofCheckPanel attempt={attempt} /> : null}
           {attempt.decisionReason ? (
             <p>
               <span className="text-muted-foreground">
@@ -258,6 +307,7 @@ export function Reviewed({ ticket }: { ticket: TicketDetail }) {
 function eventLabel(event: TicketDetail["events"][number]) {
   if (event.type === "ai_draft_ready") return "AI suggestion ready";
   if (event.type === "ai_draft_retried") return "AI suggestion requested again";
+  if (event.type === "ai_proof_check_ready") return "AI comparison ready";
   if (event.type === "clarification_answered") return "Reporter answered";
   if (
     event.fromStatus === "needs_clarification" &&
@@ -287,7 +337,7 @@ export function Timeline({ ticket }: { ticket: TicketDetail }) {
             <span className="type-caption text-muted-foreground">
               {" "}
               ·{" "}
-              {event.type === "ai_draft_ready"
+              {WORKER_EVENT_TYPES.includes(event.type)
                 ? "Worker"
                 : (event.actorName ?? "Reporter")}{" "}
               · {formatDateTime(event.createdAt)}

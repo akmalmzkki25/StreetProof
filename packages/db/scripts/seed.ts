@@ -39,7 +39,7 @@ if (realTenant) {
 await db.execute(sql`
   truncate table
     idempotency_keys, reporter_credentials, ai_drafts, outbox, ticket_events,
-    clarifications, duplicate_links, uploads, verifications, completion_submissions, assignments,
+    clarifications, duplicate_links, uploads, proof_checks, verifications, completion_submissions, assignments,
     reports, tickets, memberships, locations, sites, tenants,
     verification, account, session, "user"
   cascade

@@ -66,6 +66,8 @@ The resource mutation is idempotent; receipt-secret issuance is an explicit rota
 
 Exact AI draft v1 fields: `{ summary, visibleFacts:[{text,evidenceRefs}], userContext:[{text,reportRevision}], inferences:[{text,evidenceRefs,uncertainty}], missing_fields:[], categoryCandidate, priorityCandidate, priorityRationale, duplicateCandidates:[{ticketId,reason}], limitations:[] }`. Fact/inference references must resolve to the authorized input evidence. User context refers to the source report revision. Missing information remains explicit, and priority has an operator-reviewable rationale. This is the shared AC-02/AC-19 wire schema.
 
+Exact AI proof check fields (D-12): `{ sameLocation:'same'|'different'|'unclear', reportedProblem:'not_visible'|'still_visible'|'unclear', observations:[], missingProof:[], limitations:[] }`. It runs once per completion attempt that has a photo, only while the attempt is pending and the report has a photo to compare with. No field states that a repair is done or that proof should be accepted.
+
 Both verification decisions require a nonempty reason. A category proof exception may create a pending supervisor review with `proofExceptionReason`, checklist results and proposed alternate proof; `verified_closed` still requires approved ready evidence. A failed upload is never alternate proof.
 
 ## Upload and async sequence

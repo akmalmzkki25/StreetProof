@@ -8,7 +8,7 @@ Contents: [Recommendation and authority](#recommendation-and-authority) · [Proc
 
 ## Recommendation and authority
 
-Use AI to draft structured intake, identify missing context and rank duplicate candidates. Operators approve category, priority, summary and assignment. Supervisors decide close-out. A model cannot certify a repair from before/after images, infer a hidden defect, or clear an emergency. Visible emergency guidance precedes AI and uses the site's approved instructions.
+Use AI to draft structured intake, identify missing context and rank duplicate candidates. Operators approve category, priority, summary and assignment. Supervisors decide close-out. A model cannot certify a repair from before/after images, infer a hidden defect, or clear an emergency. It may point out what a supervisor should look at in those images, as an unverified hint that never changes status or blocks a decision (D-12). Visible emergency guidance precedes AI and uses the site's approved instructions.
 
 Start with photo + Indonesian text and manual location. Defer voice, SAM segmentation, autonomous tools and predictive maintenance. [Meta's current model catalogue](https://dev.meta.ai/docs/models) (T-12) describes model capabilities; it does not prove account access or field accuracy. Evaluate a Standard-mode Muse Spark adapter on the same cases as a manual baseline. Pin the exact model ID after a successful account probe. Record any unavailable capability rather than substituting a demonstration for a working API.
 

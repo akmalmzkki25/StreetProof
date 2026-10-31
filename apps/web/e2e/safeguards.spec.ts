@@ -1,8 +1,10 @@
 import {
   createDb,
   markDraftRunning,
+  markProofCheckRunning,
   recordDraftFailure,
   recordDraftSuccess,
+  recordProofCheckSuccess,
   schema,
   submitReport,
 } from "@streetproof/db";
@@ -18,6 +20,7 @@ import {
   signIn,
   startWork,
   submitProof,
+  submitReport as reportThroughForm,
   triageAndAssign,
   unique,
   visibleText,
@@ -29,7 +32,7 @@ test.skip(
   "Needs direct access to the test database",
 );
 
-const { memberships, reports, sites, user } = schema;
+const { completionSubmissions, memberships, reports, sites, user } = schema;
 const { db, pool } = createDb(process.env.E2E_DATABASE_URL ?? "");
 
 test.afterAll(async () => {
@@ -218,6 +221,95 @@ test.describe("when a suggestion arrives on an open ticket", () => {
     ).toHaveText(/Plumbing/);
     await expect(operator.getByLabel("Summary")).toHaveValue(description);
   });
+});
+
+test("a supervisor compares the photos with an AI hint and still decides", async ({
+  browser,
+}) => {
+  const description = unique("Water under the pantry sink");
+  await reportThroughForm(browser, description);
+  const operator = await signIn(browser, ACCOUNTS.operator);
+  const ticketUrl = await triageAndAssign(
+    operator,
+    description,
+    unique("Leak under the pantry sink"),
+  );
+  const technician = await signIn(browser, ACCOUNTS.technician);
+  await startWork(technician, ticketUrl);
+  await submitProof(technician, "Tightened the joint.", PHOTOS.wrongObject);
+  await expect(
+    visibleText(technician, "Tightened the joint.", { exact: true }),
+  ).toBeVisible();
+
+  const supervisor = await signIn(browser, ACCOUNTS.supervisor);
+  await supervisor.goto(ticketUrl);
+  await expect(
+    supervisor.getByRole("img", { name: "Before photo 1" }),
+  ).toBeVisible();
+  await expect(
+    supervisor.getByRole("img", { name: "Proof photo 1" }),
+  ).toBeVisible();
+  await expect(
+    visibleText(supervisor, "AI is comparing the photos."),
+  ).toBeVisible();
+  await supervisor.getByLabel("Your reason").fill("I checked it on site.");
+
+  const [ticketReport] = await db
+    .select({ ticketId: reports.canonicalTicketId, tenantId: reports.tenantId })
+    .from(reports)
+    .where(eq(reports.description, description));
+  if (!ticketReport) throw new Error("Report not found.");
+  const [attempt] = await db
+    .select({ id: completionSubmissions.id })
+    .from(completionSubmissions)
+    .where(eq(completionSubmissions.ticketId, ticketReport.ticketId));
+  if (!attempt) throw new Error("Attempt not found.");
+  await markProofCheckRunning(db, {
+    completionId: attempt.id,
+    model: "e2e-model",
+    promptVersion: "e2e",
+    attempts: 1,
+    inputDigest: "e2e",
+  });
+  await recordProofCheckSuccess(db, {
+    ...ticketReport,
+    completionId: attempt.id,
+    result: {
+      sameLocation: "different",
+      reportedProblem: "unclear",
+      observations: ["The after photo shows a door."],
+      missingProof: ["A photo of the pipe joint"],
+      limitations: [],
+    },
+    latencyMs: 1,
+    usage: {},
+  });
+
+  // It arrives on its own, without disturbing what the supervisor is typing.
+  await expect(
+    visibleText(supervisor, "Looks like a different place or object"),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(
+    visibleText(supervisor, "The after photo shows a door."),
+  ).toBeVisible();
+  await expect(visibleText(supervisor, "Not verified")).toBeVisible();
+  await expect(supervisor.getByLabel("Your reason")).toHaveValue(
+    "I checked it on site.",
+  );
+
+  await technician.reload();
+  await expect(
+    visibleText(technician, "Tightened the joint.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    visibleText(technician, "The after photo shows a door."),
+  ).toBeHidden();
+
+  // The hint can't block a person: the supervisor can accept against it.
+  await supervisor.getByRole("button", { name: "Verify completion" }).click();
+  await expect(
+    visibleText(supervisor, "Verified closed", { exact: true }).first(),
+  ).toBeVisible();
 });
 
 test("someone with both roles can't review the work they submitted", async ({

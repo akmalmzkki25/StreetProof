@@ -66,6 +66,8 @@ Mutasi sumber idempoten; penerbitan rahasia tanda terima adalah pengecualian rot
 
 Kolom tepat draf AI v1: `{ summary, visibleFacts:[{text,evidenceRefs}], userContext:[{text,reportRevision}], inferences:[{text,evidenceRefs,uncertainty}], missing_fields:[], categoryCandidate, priorityCandidate, priorityRationale, duplicateCandidates:[{ticketId,reason}], limitations:[] }`. Referensi fakta/inferensi wajib ditemukan pada bukti input berwenang. Konteks pengguna mengacu revisi report sumber. Informasi hilang tetap eksplisit dan prioritas memiliki alasan dapat ditinjau operator. Ini skema wire bersama AC-02/AC-19.
 
+Kolom tepat pemeriksaan bukti AI (D-12): `{ sameLocation:'same'|'different'|'unclear', reportedProblem:'not_visible'|'still_visible'|'unclear', observations:[], missingProof:[], limitations:[] }`. Pemeriksaan berjalan sekali per upaya penyelesaian yang memiliki foto, hanya selama upaya menunggu dan laporan memiliki foto pembanding. Tidak ada kolom yang menyatakan perbaikan selesai atau bukti sebaiknya diterima.
+
 Kedua keputusan verifikasi memerlukan alasan tidak kosong. Pengecualian bukti kategori dapat membuat tinjauan supervisor menunggu dengan `proofExceptionReason`, hasil checklist, dan usulan bukti alternatif; `verified_closed` tetap memerlukan bukti ready disetujui. Unggahan gagal bukan bukti alternatif.
 
 ## Urutan unggahan dan async

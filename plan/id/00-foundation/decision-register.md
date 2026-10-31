@@ -22,6 +22,7 @@ Semua baris adalah keputusan perencanaan yang diusulkan penulis, bukan hasil per
 | D-09 | Voice/SAM/WhatsApp/MCP sesudah alur inti | Kompleksitas harus memiliki bukti manfaat | Tumpukan model untuk demo | Ada hambatan pengguna yang hanya terselesaikan kemampuan itu |
 | D-10 | Dokumentasi dua bahasa dengan ID sama | Mencegah dua spesifikasi berbeda | Ringkasan Inggris saja | Perubahan satu bahasa harus merambat ke pasangan |
 | D-11 | PostgreSQL dan object storage kompatibel S3 (MinIO) self-hosted di Docker; autentikasi di aplikasi; menggantikan ADR-002 | Tim sudah menjalankan layanan ini di Docker; tidak perlu akun vendor atau kunci service untuk hackathon; migrasi SQL biasa tetap portabel | Supabase (ADR-002) | Deploy hosted butuh backup terkelola atau row-level security yang tidak sanggup dioperasikan tim |
+| D-12 | Muse Spark membandingkan foto sebelum dan sesudah sebagai petunjuk belum terverifikasi untuk supervisor; memperluas cakupan bantuan ADR-004 sebelum evaluasinya, khusus hackathon dengan data sintetis | Tinjauan bukti adalah inti produk, dan foto objek yang salah murah untuk dikenali; skemanya tidak punya kolom vonis dan petunjuk tidak dapat mengubah status atau menghalangi keputusan | Tanpa AI pada bukti penyelesaian; AI yang menerima atau menolak bukti | Evaluasi menunjukkan supervisor mengikuti petunjuk yang salah, atau data nyata masuk sebelum evaluasi itu |
 
 ## Konsekuensi dan biaya perubahan
 

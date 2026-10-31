@@ -50,6 +50,13 @@
       "when": 1793380914029,
       "tag": "0006_completion_checklist",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793418930190,
+      "tag": "0007_proof_checks",
+      "breakpoints": true
     }
   ]
 }

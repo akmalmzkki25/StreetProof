@@ -6,9 +6,9 @@ import { useEffect } from "react";
 const REFRESH_INTERVAL_MS = 3000;
 const MAX_REFRESHES = 40;
 
-// Rendered only while a draft is pending. Stops on its own, so a stopped worker
+// Rendered only while AI work is pending. Stops on its own, so a stopped worker
 // doesn't leave the page refreshing forever.
-export function DraftRefresher() {
+export function AiRefresher() {
   const router = useRouter();
 
   useEffect(() => {

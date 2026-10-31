@@ -25,9 +25,9 @@ import { ModelCallError, type CallModel } from "./meta-client";
 
 export const DRAFT_TOPIC = "report.submitted";
 
-const MAX_ATTEMPTS = 3;
+export const MAX_ATTEMPTS = 3;
 const BASE_BACKOFF_MS = 1000;
-const WORKER_ERROR = "worker_error";
+export const WORKER_ERROR = "worker_error";
 
 export type JobOutcome =
   | "succeeded"
@@ -203,7 +203,7 @@ export async function runDraftJob(
   }
 }
 
-function safeJson(value: string): unknown {
+export function safeJson(value: string): unknown {
   try {
     return JSON.parse(value);
   } catch {

@@ -3,6 +3,7 @@ export * from "./clarification-commands";
 export * from "./client";
 export * from "./dashboard-queries";
 export * from "./jobs";
+export * from "./proof-checks";
 export * from "./completion-commands";
 export * from "./duplicate-commands";
 export * as schema from "./schema";

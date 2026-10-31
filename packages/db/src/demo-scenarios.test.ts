@@ -202,6 +202,7 @@ describe.skipIf(!url)(
             linkedDuplicate: "submitted",
             waitingForParts: "waiting_for_parts",
             secondAttempt: "completion_submitted",
+            wrongProofWaiting: "completion_submitted",
             rejected: "rejected_with_reason",
             proofException: "completion_submitted",
             closedOnTime: "verified_closed",
@@ -237,7 +238,7 @@ describe.skipIf(!url)(
           expect(dashboard.proof).toEqual({
             accepted: 5,
             rejected: 2,
-            waiting: 2,
+            waiting: 3,
             exceptions: 1,
           });
           expect(dashboard.verifiedResolution).toEqual({

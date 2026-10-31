@@ -72,7 +72,7 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
 
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-8">
-          <Attempts ticket={ticket} />
+          <Attempts ticket={ticket} member={member} />
           <Reports ticket={ticket} />
           <ClarificationList ticket={ticket} />
           <LinkedReports ticket={ticket} member={member} />

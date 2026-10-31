@@ -4,7 +4,7 @@ import { parseIntakeDraft, type IntakeDraft } from "@streetproof/contracts";
 import Link from "next/link";
 
 import { categoryLabel, PRIORITY_LABELS } from "../labels";
-import { DraftRefresher } from "./draft-refresher";
+import { AiRefresher } from "./ai-refresher";
 import { RetryDraftButton } from "./retry-draft-button";
 
 const PENDING_STATES = ["queued", "running", "failed_retryable"];
@@ -36,7 +36,7 @@ function Notice({
   );
 }
 
-function FactList({
+export function FactList({
   title,
   items,
 }: {
@@ -69,7 +69,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
     if (!isAwaitingTriage) return null;
     return (
       <>
-        <DraftRefresher />
+        <AiRefresher />
         <Notice>
           Preparing a suggestion. You don&apos;t have to wait: you can triage
           this report by hand now.

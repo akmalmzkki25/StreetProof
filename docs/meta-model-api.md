@@ -26,6 +26,17 @@ Three reports through `apps/worker`, using one synthetic leak photo generated wi
 
 The three drafts took 8 to 11.4 s and cost about $0.03 in total, roughly $0.01 per draft, of which reasoning is a large share. This is a smoke test on three cases, not an evaluation: the plan's 60-case set hasn't been run, and the photo is generated rather than real.
 
+## First proof comparison run (2026-10-31)
+
+Two pending demo attempts through `runProofCheckJob`, using generated photos. The worker skipped the seven decided attempts without calling the model.
+
+| Attempt                       | Result                                                                                | Time  | Cost    |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ----- | ------- |
+| New ceiling panel             | Same location, stain not visible; noted that photos can't show moisture above it      | 5.7 s | $0.0055 |
+| Door photo as proof of a leak | Different location; asked for a photo of the sink, and noted the door shows no repair | 9.3 s | $0.0081 |
+
+The second run also said the problem was `not_visible`, which reads as good news, so the worker now turns that into `unclear` when the location differs. This is a smoke test on two generated cases, not an evaluation.
+
 ## Connection
 
 | Item     | Value                                                                                                          |
@@ -46,7 +57,7 @@ Meta's examples name the key `MODEL_API_KEY`; ours is `META_API_KEY`. No SDK rea
 | Structured output       | same                        | same                                 | Guarantees the draft JSON shape                      | Core (strict schema) | **Build for the demo**    |
 | Prompt caching          | same                        | automatic                            | Stable prompt first, report and photos last          | Not in plan          | **Use, no code needed**   |
 | Perception grounding    | same                        | no extra charge                      | Box on the visible damage, as part of the same draft | Not in plan          | **Add if draft is solid** |
-| Before/after comparison | same                        | same                                 | Supervisor hint: what differs, what proof is missing | Limited by ADR-004   | Stretch                   |
+| Before/after comparison | same                        | same                                 | Supervisor hint: what differs, what proof is missing | D-12, hint only      | **Built**                 |
 | Segmentation            | `sam-3.1`                   | $2.50 per 1,000 images               | Pixel mask over damage or the repaired area          | Deferred (D-09)      | Stretch showcase          |
 | Speech to text          | `muse-voice-transcribe-1.0` | $0.18 per audio hour                 | Reporter or technician voice note to text            | Deferred (D-09)      | Stretch                   |
 | Image generation        | `muse-image-1.0`            | $0.01 per image                      | Synthetic demo and evaluation photos, offline only   | Not in plan          | Tooling only              |

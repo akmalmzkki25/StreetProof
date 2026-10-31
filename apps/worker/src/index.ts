@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 
 import { DRAFT_TOPIC, handleUnexpectedFailure, runDraftJob } from "./draft-job";
 import { createMetaClient } from "./meta-client";
+import {
+  handleUnexpectedProofFailure,
+  PROOF_CHECK_TOPIC,
+  runProofCheckJob,
+} from "./proof-check-job";
 
 const POLL_INTERVAL_MS = 2000;
 const AUTH_FAILURE_PAUSE_MS = 60_000;
@@ -37,15 +42,19 @@ function sleep(ms: number) {
 
 // Waits between jobs, not during one, so a stop signal lets the current job end.
 async function runOnce(): Promise<number> {
-  const job = await claimOutboxJob(db, DRAFT_TOPIC);
+  // Drafts first: an operator waits on one, while a proof check is only a hint.
+  const job =
+    (await claimOutboxJob(db, DRAFT_TOPIC)) ??
+    (await claimOutboxJob(db, PROOF_CHECK_TOPIC));
   if (!job) return POLL_INTERVAL_MS;
+  const isProofCheck = job.topic === PROOF_CHECK_TOPIC;
+  const deps = { db, callModel, readPhoto: storage.getObjectBytes, model };
 
   try {
-    const outcome = await runDraftJob(
-      { db, callModel, readPhoto: storage.getObjectBytes, model },
-      job,
-    );
-    console.info(`Draft job ${job.id}: ${outcome}`);
+    const outcome = await (isProofCheck
+      ? runProofCheckJob(deps, job)
+      : runDraftJob(deps, job));
+    console.info(`${job.topic} job ${job.id}: ${outcome}`);
     if (outcome === "auth_failed") {
       console.error(
         "Meta rejected the key, billing or permissions. Pausing before the next job.",
@@ -54,8 +63,10 @@ async function runOnce(): Promise<number> {
     }
     return 0;
   } catch (error) {
-    console.error(`Draft job ${job.id} failed unexpectedly`, error);
-    await handleUnexpectedFailure(db, job);
+    console.error(`${job.topic} job ${job.id} failed unexpectedly`, error);
+    await (isProofCheck
+      ? handleUnexpectedProofFailure(db, job)
+      : handleUnexpectedFailure(db, job));
     return POLL_INTERVAL_MS;
   }
 }

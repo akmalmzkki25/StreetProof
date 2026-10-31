@@ -42,3 +42,24 @@ export function intakeDraftJsonSchema() {
 export function parseIntakeDraft(value: unknown) {
   return intakeDraftSchema.safeParse(value);
 }
+
+// A hint for the supervisor comparing before and after photos. There is deliberately
+// no field for "repaired" or "accept": the model reports what it sees, not a verdict.
+export const proofCheckSchema = z.object({
+  sameLocation: z.enum(["same", "different", "unclear"]),
+  reportedProblem: z.enum(["not_visible", "still_visible", "unclear"]),
+  observations: z.array(z.string()),
+  missingProof: z.array(z.string()),
+  limitations: z.array(z.string()),
+});
+
+export type ProofCheck = z.infer<typeof proofCheckSchema>;
+
+export function proofCheckJsonSchema() {
+  const { $schema: _unused, ...schema } = z.toJSONSchema(proofCheckSchema);
+  return schema;
+}
+
+export function parseProofCheck(value: unknown) {
+  return proofCheckSchema.safeParse(value);
+}
