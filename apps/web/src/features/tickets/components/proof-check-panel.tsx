@@ -2,6 +2,8 @@ import { parseProofCheck } from "@streetproof/contracts";
 import type { TicketDetail } from "@streetproof/db";
 import { Badge } from "@streetproof/ui/components/badge";
 
+import { getI18n } from "@/lib/i18n/server";
+
 import { FactList } from "./ai-draft-panel";
 import { AiRefresher } from "./ai-refresher";
 
@@ -31,10 +33,11 @@ function asFacts(items: string[]) {
 
 // A hint beside the photos. It never blocks a decision, and nothing here reads as
 // approval: there's no "good" state, only things worth a closer look.
-export function ProofCheckPanel({ attempt }: { attempt: Attempt }) {
+export async function ProofCheckPanel({ attempt }: { attempt: Attempt }) {
   const check = attempt.proofCheck;
   if (!check || check.state === "skipped_manual") return null;
   const isUndecided = attempt.status === "pending";
+  const { t } = await getI18n();
 
   if (PENDING_STATES.includes(check.state)) {
     if (!isUndecided) return null;
@@ -42,7 +45,7 @@ export function ProofCheckPanel({ attempt }: { attempt: Attempt }) {
       <div className="rounded-4xl bg-surface-raised p-5 shadow-inset">
         <AiRefresher />
         <p className="text-muted-foreground">
-          AI is comparing the photos. You don&apos;t have to wait to decide.
+          {t("AI is comparing the photos. You don't have to wait to decide.")}
         </p>
       </div>
     );
@@ -54,7 +57,7 @@ export function ProofCheckPanel({ attempt }: { attempt: Attempt }) {
     return (
       <div className="rounded-4xl bg-surface-raised p-5 shadow-inset">
         <p className="text-muted-foreground">
-          The AI comparison isn&apos;t available. Review the photos yourself.
+          {t("The AI comparison isn't available. Review the photos yourself.")}
         </p>
       </div>
     );
@@ -63,30 +66,32 @@ export function ProofCheckPanel({ attempt }: { attempt: Attempt }) {
 
   return (
     <section
-      aria-label="AI comparison"
+      aria-label={t("AI comparison")}
       className="flex flex-col gap-4 rounded-4xl bg-surface-raised p-5 shadow-inset"
     >
       <div className="flex flex-col gap-2">
         <Badge variant="outline" className="self-start">
-          Not verified
+          {t("Not verified")}
         </Badge>
         <p className="type-caption text-muted-foreground">
-          AI comparison from {check.model}. It can&apos;t confirm a repair, and
-          the decision is yours.
+          {t(
+            "AI comparison from {model}. It can't confirm a repair, and the decision is yours.",
+            { model: check.model ?? "" },
+          )}
         </p>
       </div>
       <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_1fr]">
-        <dt className="text-muted-foreground">Location</dt>
+        <dt className="text-muted-foreground">{t("Location")}</dt>
         <dd>
           <Reading
-            label={SAME_LOCATION_LABELS[result.sameLocation]}
+            label={t(SAME_LOCATION_LABELS[result.sameLocation])}
             isWarning={result.sameLocation === "different"}
           />
         </dd>
-        <dt className="text-muted-foreground">Reported problem</dt>
+        <dt className="text-muted-foreground">{t("Reported problem")}</dt>
         <dd>
           <Reading
-            label={REPORTED_PROBLEM_LABELS[result.reportedProblem]}
+            label={t(REPORTED_PROBLEM_LABELS[result.reportedProblem])}
             isWarning={result.reportedProblem === "still_visible"}
           />
         </dd>

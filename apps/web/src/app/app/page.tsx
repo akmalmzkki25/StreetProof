@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { getI18n } from "@/lib/i18n/server";
 import { requireMember } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Workspace" };
@@ -50,6 +51,7 @@ export default function WorkspacePage() {
 
 async function Workspace() {
   const member = await requireMember();
+  const { t } = await getI18n();
 
   return (
     <>
@@ -57,12 +59,14 @@ async function Workspace() {
         <p className="type-caption text-muted-foreground">
           {member.tenantName}
         </p>
-        <h1 className="type-headline">Hello, {member.name}</h1>
+        <h1 className="type-headline">
+          {t("Hello, {name}", { name: member.name })}
+        </h1>
       </header>
 
       <section aria-labelledby="your-roles" className="flex flex-col gap-4">
         <h2 id="your-roles" className="type-caption text-muted-foreground">
-          Your roles
+          {t("Your roles")}
         </h2>
         <ul className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {member.roles.map((role) => (
@@ -70,15 +74,15 @@ async function Workspace() {
               key={role}
               className="flex flex-col gap-2 rounded-4xl bg-card p-6 shadow-card"
             >
-              <p className="type-title">{ROLE_WORK[role].title}</p>
+              <p className="type-title">{t(ROLE_WORK[role].title)}</p>
               <p className="text-muted-foreground">
-                {ROLE_WORK[role].description}
+                {t(ROLE_WORK[role].description)}
               </p>
               <Link
                 href={ROLE_LINKS[role].href}
                 className="self-start text-brand-text underline underline-offset-4"
               >
-                {ROLE_LINKS[role].label}
+                {t(ROLE_LINKS[role].label)}
               </Link>
             </li>
           ))}

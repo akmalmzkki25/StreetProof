@@ -11,6 +11,8 @@ import { Input } from "@streetproof/ui/components/input";
 import Link from "next/link";
 import { useActionState, useRef } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { signIn, type SignInState } from "../actions";
 
 const initialState: SignInState = { error: null, email: "" };
@@ -24,6 +26,7 @@ export function SignInForm({
   demoAccounts: DemoAccount[];
   demoPassword: string | null;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(signIn, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -43,7 +46,7 @@ export function SignInForm({
       <form ref={formRef} action={formAction} className="flex flex-col gap-5">
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <FieldLabel htmlFor="email">{t("Email")}</FieldLabel>
             <Input
               id="email"
               name="email"
@@ -54,7 +57,7 @@ export function SignInForm({
             />
           </Field>
           <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <FieldLabel htmlFor="password">{t("Password")}</FieldLabel>
             <Input
               id="password"
               name="password"
@@ -67,18 +70,18 @@ export function SignInForm({
 
         {state.error ? (
           <Alert variant="destructive">
-            <AlertDescription>{state.error}</AlertDescription>
+            <AlertDescription>{t(state.error)}</AlertDescription>
           </Alert>
         ) : null}
 
         <Button type="submit" size="lg" disabled={isPending}>
-          {isPending ? "Signing in…" : "Sign in"}
+          {isPending ? t("Signing in…") : t("Sign in")}
         </Button>
         <Link
           href="/forgot-password"
           className="type-caption self-start text-brand-text underline underline-offset-4"
         >
-          Forgot your password?
+          {t("Forgot your password?")}
         </Link>
       </form>
 
@@ -88,7 +91,7 @@ export function SignInForm({
           className="flex flex-col gap-3"
         >
           <h2 id="demo-accounts" className="type-caption text-muted-foreground">
-            Demo accounts (synthetic data)
+            {t("Demo accounts (synthetic data)")}
           </h2>
           <div className="flex flex-wrap gap-2">
             {demoAccounts.map((account) => (

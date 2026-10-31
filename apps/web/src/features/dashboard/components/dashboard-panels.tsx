@@ -9,10 +9,10 @@ import Link from "next/link";
 import { Panel } from "@/components/panel";
 import { categoryLabel } from "@/features/tickets/labels";
 import { formatDuration } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
+import type { Locale, Translate } from "@/lib/i18n/translate";
 
 import { AGE_LABELS, STAGE_LABELS } from "../labels";
-
-const PERIOD = `Last ${DASHBOARD_WINDOW_DAYS} days`;
 
 // The bar is the true share of the largest row. A zero draws nothing.
 function Bar({
@@ -65,7 +65,12 @@ function CountList({
   );
 }
 
-export function StagePanel({ dashboard }: { dashboard: Dashboard }) {
+function periodNote(t: Translate) {
+  return t("Last {days} days", { days: DASHBOARD_WINDOW_DAYS });
+}
+
+export async function StagePanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t, locale } = await getI18n();
   const max = Math.max(...dashboard.stages.map((row) => row.count));
 
   return (
@@ -73,7 +78,7 @@ export function StagePanel({ dashboard }: { dashboard: Dashboard }) {
       <p className="flex items-baseline gap-2">
         <span className="type-headline tabular-nums">{dashboard.open}</span>
         <span className="text-muted-foreground">
-          {dashboard.open === 1 ? "open ticket" : "open tickets"}
+          {dashboard.open === 1 ? t("open ticket") : t("open tickets")}
         </span>
       </p>
       <ul className="flex flex-1 flex-col justify-between gap-3">
@@ -81,13 +86,13 @@ export function StagePanel({ dashboard }: { dashboard: Dashboard }) {
           <li key={row.stage} className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between gap-4">
               <span className="min-w-0">
-                {STAGE_LABELS[row.stage].title}
+                {t(STAGE_LABELS[row.stage].title)}
                 <span className="type-caption text-muted-foreground">
                   {" "}
-                  · {STAGE_LABELS[row.stage].owner}
+                  · {t(STAGE_LABELS[row.stage].owner)}
                   {row.oldestAgeMs === null
                     ? ""
-                    : ` · oldest ${formatDuration(row.oldestAgeMs)}`}
+                    : ` · ${t("oldest {age}", { age: formatDuration(row.oldestAgeMs, locale) })}`}
                 </span>
               </span>
               <span className="tabular-nums">{row.count}</span>
@@ -100,26 +105,30 @@ export function StagePanel({ dashboard }: { dashboard: Dashboard }) {
   );
 }
 
-export function AgePanel({ dashboard }: { dashboard: Dashboard }) {
+export async function AgePanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   return (
     <Panel id="age" title="Age of open work" note="Since the report">
       <CountList
         rows={dashboard.ageBuckets.map((row) => ({
           key: row.bucket,
-          label: AGE_LABELS[row.bucket],
+          label: t(AGE_LABELS[row.bucket]),
           count: row.count,
         }))}
-        emptyMessage="No open tickets."
+        emptyMessage={t("No open tickets.")}
       />
     </Panel>
   );
 }
 
-export function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t, locale } = await getI18n();
   return (
     <Panel id="oldest" title="Oldest open tickets" className="lg:col-span-2">
       {dashboard.oldest.length === 0 ? (
-        <p className="type-caption text-muted-foreground">No open tickets.</p>
+        <p className="type-caption text-muted-foreground">
+          {t("No open tickets.")}
+        </p>
       ) : (
         <ol className="-mx-3 flex flex-col">
           {dashboard.oldest.map((ticket) => (
@@ -133,7 +142,7 @@ export function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
                   <span className="type-caption truncate text-muted-foreground">
                     {[
                       ticket.location,
-                      STAGE_LABELS[ticket.stage].title,
+                      t(STAGE_LABELS[ticket.stage].title),
                       ticket.assigneeName,
                     ]
                       .filter(Boolean)
@@ -141,7 +150,7 @@ export function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
                   </span>
                 </span>
                 <span className="shrink-0 tabular-nums">
-                  {formatDuration(ticket.ageMs)}
+                  {formatDuration(ticket.ageMs, locale)}
                 </span>
               </Link>
             </li>
@@ -152,7 +161,8 @@ export function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
   );
 }
 
-export function WorkloadPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function WorkloadPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   return (
     <Panel
       id="workload"
@@ -166,7 +176,7 @@ export function WorkloadPanel({ dashboard }: { dashboard: Dashboard }) {
           label: row.name,
           count: row.count,
         }))}
-        emptyMessage="No technician holds open work."
+        emptyMessage={t("No technician holds open work.")}
       />
     </Panel>
   );
@@ -197,106 +207,151 @@ function Outcome({
   );
 }
 
-function plural(count: number, noun: string) {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
-
-function rangeOf(duration: { minMs: number | null; maxMs: number | null }) {
+function rangeOf(
+  duration: { minMs: number | null; maxMs: number | null },
+  t: Translate,
+  locale: Locale,
+) {
   if (duration.minMs === null || duration.maxMs === null) return "";
-  return `, range ${formatDuration(duration.minMs)} to ${formatDuration(duration.maxMs)}`;
+  return t(", range {low} to {high}", {
+    low: formatDuration(duration.minMs, locale),
+    high: formatDuration(duration.maxMs, locale),
+  });
 }
 
 // A rate with a full window is shown as "x of y", never a bare percentage, and
 // what is still inside the window stays pending rather than joining either side.
 function rateDetail(
   rate: { denominator: number; pending: number },
-  noun: string,
+  noun: "ticket" | "closure",
+  t: Translate,
 ) {
+  const params = { days: OBSERVATION_DAYS, count: rate.denominator };
+  const isOne = rate.denominator === 1;
+  const observed =
+    noun === "ticket"
+      ? isOne
+        ? "1 ticket observed for {days} full days."
+        : "{count} tickets observed for {days} full days."
+      : isOne
+        ? "1 closure observed for {days} full days."
+        : "{count} closures observed for {days} full days.";
   const counted =
     rate.denominator === 0
-      ? `No ${noun} has had ${OBSERVATION_DAYS} full days yet.`
-      : `${plural(rate.denominator, noun)} observed for ${OBSERVATION_DAYS} full days.`;
-  return `${counted} ${rate.pending} still within ${OBSERVATION_DAYS} days.`;
+      ? t(
+          noun === "ticket"
+            ? "No ticket has had {days} full days yet."
+            : "No closure has had {days} full days yet.",
+          params,
+        )
+      : t(observed, params);
+  const pending = t("{count} still within {days} days.", {
+    count: rate.pending,
+    days: OBSERVATION_DAYS,
+  });
+  return `${counted} ${pending}`;
 }
 
-export function OutcomeStrip({ dashboard }: { dashboard: Dashboard }) {
+export async function OutcomeStrip({ dashboard }: { dashboard: Dashboard }) {
+  const { t, locale } = await getI18n();
   const { timeToTriage, timeToClose, verifiedResolution, reopenRate } =
     dashboard;
+  const ofTotal = (numerator: number, denominator: number) =>
+    t("{numerator} of {denominator}", { numerator, denominator });
 
   return (
     <section
-      aria-label={`Outcomes, ${PERIOD.toLowerCase()}`}
+      aria-label={t("Outcomes, last {days} days", {
+        days: DASHBOARD_WINDOW_DAYS,
+      })}
       className="grid gap-px overflow-hidden rounded-4xl bg-border shadow-card sm:grid-cols-2 lg:grid-cols-4"
     >
       <Outcome
-        label="Time to triage"
+        label={t("Time to triage")}
         value={
           timeToTriage.medianMs === null
             ? null
-            : formatDuration(timeToTriage.medianMs)
+            : formatDuration(timeToTriage.medianMs, locale)
         }
         detail={
           timeToTriage.count === 0
-            ? `Nothing triaged yet. ${timeToTriage.untriaged} waiting.`
-            : `Median of ${timeToTriage.count}${rangeOf(timeToTriage)}. ${timeToTriage.untriaged} not triaged.`
+            ? t("Nothing triaged yet. {count} waiting.", {
+                count: timeToTriage.untriaged,
+              })
+            : t("Median of {count}{range}. {waiting} not triaged.", {
+                count: timeToTriage.count,
+                range: rangeOf(timeToTriage, t, locale),
+                waiting: timeToTriage.untriaged,
+              })
         }
       />
       <Outcome
-        label="Time to verified close"
+        label={t("Time to verified close")}
         value={
           timeToClose.medianMs === null
             ? null
-            : formatDuration(timeToClose.medianMs)
+            : formatDuration(timeToClose.medianMs, locale)
         }
         detail={
           timeToClose.count === 0
-            ? `Nothing closed yet. ${timeToClose.stillOpen} open.`
-            : `Median of ${timeToClose.count}${rangeOf(timeToClose)}. ${timeToClose.stillOpen} still open.`
+            ? t("Nothing closed yet. {count} open.", {
+                count: timeToClose.stillOpen,
+              })
+            : t("Median of {count}{range}. {open} still open.", {
+                count: timeToClose.count,
+                range: rangeOf(timeToClose, t, locale),
+                open: timeToClose.stillOpen,
+              })
         }
       />
       <Outcome
-        label={`Verified within ${OBSERVATION_DAYS} days`}
+        label={t("Verified within {days} days", { days: OBSERVATION_DAYS })}
         value={
           verifiedResolution.denominator === 0
             ? null
-            : `${verifiedResolution.numerator} of ${verifiedResolution.denominator}`
+            : ofTotal(
+                verifiedResolution.numerator,
+                verifiedResolution.denominator,
+              )
         }
-        detail={rateDetail(verifiedResolution, "ticket")}
+        detail={rateDetail(verifiedResolution, "ticket", t)}
       />
       <Outcome
-        label={`Reopened within ${OBSERVATION_DAYS} days`}
+        label={t("Reopened within {days} days", { days: OBSERVATION_DAYS })}
         value={
           reopenRate.denominator === 0
             ? null
-            : `${reopenRate.numerator} of ${reopenRate.denominator}`
+            : ofTotal(reopenRate.numerator, reopenRate.denominator)
         }
-        detail={rateDetail(reopenRate, "closure")}
+        detail={rateDetail(reopenRate, "closure", t)}
       />
     </section>
   );
 }
 
-export function CategoryPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function CategoryPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   const { byCategory, notCategorized } = dashboard.period;
   const rows = [
     ...byCategory.map((row) => ({
       key: row.key,
-      label: categoryLabel(row.key) ?? row.key,
+      label: t(categoryLabel(row.key) ?? row.key),
       count: row.count,
     })),
     ...(notCategorized > 0
-      ? [{ key: "none", label: "Not triaged yet", count: notCategorized }]
+      ? [{ key: "none", label: t("Not triaged yet"), count: notCategorized }]
       : []),
   ];
 
   return (
-    <Panel id="categories" title="Tickets by category" note={PERIOD}>
-      <CountList rows={rows} emptyMessage="No tickets in this period." />
+    <Panel id="categories" title="Tickets by category" note={periodNote(t)}>
+      <CountList rows={rows} emptyMessage={t("No tickets in this period.")} />
     </Panel>
   );
 }
 
-export function LocationPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function LocationPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   const { byLocation, otherLocations } = dashboard.period;
   const rows = [
     ...byLocation.map((row) => ({
@@ -305,13 +360,13 @@ export function LocationPanel({ dashboard }: { dashboard: Dashboard }) {
       count: row.count,
     })),
     ...(otherLocations > 0
-      ? [{ key: "others", label: "Other places", count: otherLocations }]
+      ? [{ key: "others", label: t("Other places"), count: otherLocations }]
       : []),
   ];
 
   return (
-    <Panel id="locations" title="Reports by location" note={PERIOD}>
-      <CountList rows={rows} emptyMessage="No reports in this period." />
+    <Panel id="locations" title="Reports by location" note={periodNote(t)}>
+      <CountList rows={rows} emptyMessage={t("No reports in this period.")} />
     </Panel>
   );
 }
@@ -329,30 +384,43 @@ function FactRows({ rows }: { rows: { label: string; value: number }[] }) {
   );
 }
 
-export function ProofPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function ProofPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   return (
-    <Panel id="proof" title="Completion proof" note={PERIOD}>
+    <Panel id="proof" title="Completion proof" note={periodNote(t)}>
       <FactRows
         rows={[
-          { label: "Verified", value: dashboard.proof.accepted },
-          { label: "Rejected", value: dashboard.proof.rejected },
-          { label: "Waiting for a decision", value: dashboard.proof.waiting },
-          { label: "With an exception", value: dashboard.proof.exceptions },
+          { label: t("Verified"), value: dashboard.proof.accepted },
+          { label: t("Rejected"), value: dashboard.proof.rejected },
+          {
+            label: t("Waiting for a decision"),
+            value: dashboard.proof.waiting,
+          },
+          { label: t("With an exception"), value: dashboard.proof.exceptions },
         ]}
       />
     </Panel>
   );
 }
 
-export function DraftPanel({ dashboard }: { dashboard: Dashboard }) {
+export async function DraftPanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t } = await getI18n();
   return (
-    <Panel id="drafts" title="AI suggestions" note={PERIOD} className="flex-1">
+    <Panel
+      id="drafts"
+      title="AI suggestions"
+      note={periodNote(t)}
+      className="flex-1"
+    >
       <FactRows
         rows={[
-          { label: "Ready", value: dashboard.drafts.ready },
-          { label: "Still being prepared", value: dashboard.drafts.pending },
-          { label: "Failed, triage by hand", value: dashboard.drafts.failed },
-          { label: "Not needed", value: dashboard.drafts.notNeeded },
+          { label: t("Ready"), value: dashboard.drafts.ready },
+          { label: t("Still being prepared"), value: dashboard.drafts.pending },
+          {
+            label: t("Failed, triage by hand"),
+            value: dashboard.drafts.failed,
+          },
+          { label: t("Not needed"), value: dashboard.drafts.notNeeded },
         ]}
       />
     </Panel>

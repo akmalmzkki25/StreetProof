@@ -4,10 +4,12 @@ import Link from "next/link";
 
 import { StreetProofMark } from "@/components/street-proof-mark";
 import { SignInForm } from "@/features/auth/components/sign-in-form";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const { t } = await getI18n();
   const showDemoLogins = process.env.NODE_ENV === "development";
   const demoTenant = DEMO_TENANTS[0];
   const demoAccounts =
@@ -28,10 +30,11 @@ export default function LoginPage() {
           <StreetProofMark className="shrink-0" />
           StreetProof
         </Link>
-        <h1 className="type-headline">Sign in</h1>
+        <h1 className="type-headline">{t("Sign in")}</h1>
         <p className="type-caption text-muted-foreground">
-          Operators, technicians and supervisors sign in with the account their
-          building admin created.
+          {t(
+            "Operators, technicians and supervisors sign in with the account their building admin created.",
+          )}
         </p>
       </div>
       <SignInForm

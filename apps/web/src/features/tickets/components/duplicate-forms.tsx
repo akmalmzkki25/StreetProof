@@ -10,6 +10,8 @@ import {
 import { Textarea } from "@streetproof/ui/components/textarea";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import {
   linkDuplicateAction,
   unlinkDuplicateAction,
@@ -35,6 +37,7 @@ export function LinkDuplicateForm({
   defaultTargetId: string | null;
   defaultReason: string;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     linkDuplicateAction,
     initialState,
@@ -62,7 +65,7 @@ export function LinkDuplicateForm({
           onChange={markEdited}
         />
         <Field>
-          <FieldLabel htmlFor="link-reason">Why they match</FieldLabel>
+          <FieldLabel htmlFor="link-reason">{t("Why they match")}</FieldLabel>
           <Textarea
             id="link-reason"
             name="reason"
@@ -72,8 +75,9 @@ export function LinkDuplicateForm({
             required
           />
           <FieldDescription>
-            This report stays on record and its reporter follows the other
-            ticket&apos;s progress.
+            {t(
+              "This report stays on record and its reporter follows the other ticket's progress.",
+            )}
           </FieldDescription>
         </Field>
       </FieldGroup>
@@ -84,13 +88,14 @@ export function LinkDuplicateForm({
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Linking…" : "Link as duplicate"}
+        {isPending ? t("Linking…") : t("Link as duplicate")}
       </Button>
     </form>
   );
 }
 
 export function UnlinkDuplicateForm({ ticketId, revision }: TicketRef) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     unlinkDuplicateAction,
     initialState,
@@ -101,7 +106,7 @@ export function UnlinkDuplicateForm({ ticketId, revision }: TicketRef) {
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <Field>
         <FieldLabel htmlFor="unlink-reason">
-          Why this is a new problem
+          {t("Why this is a new problem")}
         </FieldLabel>
         <Textarea
           id="unlink-reason"
@@ -118,7 +123,7 @@ export function UnlinkDuplicateForm({ ticketId, revision }: TicketRef) {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Removing…" : "Remove link"}
+        {isPending ? t("Removing…") : t("Remove link")}
       </Button>
     </form>
   );

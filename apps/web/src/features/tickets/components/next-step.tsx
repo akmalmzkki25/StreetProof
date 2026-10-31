@@ -15,6 +15,7 @@ import {
 } from "@streetproof/domain";
 
 import { Panel } from "@/components/panel";
+import { getI18n } from "@/lib/i18n/server";
 import type { Member } from "@/lib/member";
 
 import { readDraft } from "./ai-draft-panel";
@@ -120,10 +121,12 @@ export async function NextStep({
     (attempt) => attempt.status === "pending",
   );
 
+  const { t } = await getI18n();
+
   if (allowed.length === 0) {
     return (
       <p className="type-caption text-muted-foreground">
-        No action is needed from you right now.
+        {t("No action is needed from you right now.")}
       </p>
     );
   }
@@ -194,8 +197,12 @@ export async function NextStep({
         >
           <p className="text-muted-foreground">
             {isAnswerWaiting
-              ? "Read the answer, then return this report to triage. AI prepares a new suggestion that includes it."
-              : "The report stays here until they answer. You can also continue without one."}
+              ? t(
+                  "Read the answer, then return this report to triage. AI prepares a new suggestion that includes it.",
+                )
+              : t(
+                  "The report stays here until they answer. You can also continue without one.",
+                )}
           </p>
           <ResumeAfterClarificationForm
             {...ref}
@@ -230,7 +237,9 @@ export async function NextStep({
         <Panel id="decide" title="Review the proof">
           {pendingAttempt?.submittedBy === member.userId ? (
             <p className="text-muted-foreground">
-              You submitted this work, so another supervisor has to review it.
+              {t(
+                "You submitted this work, so another supervisor has to review it.",
+              )}
             </p>
           ) : (
             <DecisionForm
@@ -254,8 +263,9 @@ export async function NextStep({
       ) : null}
       {canCancel && ticket.linkedDuplicates.length > 0 ? (
         <p className="type-caption text-muted-foreground">
-          To cancel this ticket, first remove the links from the reports that
-          point to it.
+          {t(
+            "To cancel this ticket, first remove the links from the reports that point to it.",
+          )}
         </p>
       ) : null}
     </div>

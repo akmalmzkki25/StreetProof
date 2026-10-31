@@ -1,5 +1,6 @@
 import type { TicketDetail } from "@streetproof/db";
 
+import { getI18n } from "@/lib/i18n/server";
 import { getStorage } from "@/lib/storage";
 
 type Region = TicketDetail["damageRegions"][number];
@@ -31,6 +32,7 @@ function Outline({ region }: { region: Region }) {
 export async function DamageFigure({ regions }: { regions: Region[] }) {
   const first = regions[0];
   if (!first) return null;
+  const { t } = await getI18n();
   const url = await getStorage().signedReadUrl(first.objectKey);
 
   return (
@@ -40,7 +42,9 @@ export async function DamageFigure({ regions }: { regions: Region[] }) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
-          alt={`Report photo with the AI suggested area marked: ${first.label}`}
+          alt={t("Report photo with the AI suggested area marked: {label}", {
+            label: first.label,
+          })}
           className="block w-full"
         />
         <svg
@@ -55,8 +59,9 @@ export async function DamageFigure({ regions }: { regions: Region[] }) {
         </svg>
       </div>
       <figcaption className="type-caption text-muted-foreground">
-        AI suggested area: {first.label}. It&apos;s a pointer, not a
-        measurement.
+        {t("AI suggested area: {label}. It's a pointer, not a measurement.", {
+          label: first.label,
+        })}
       </figcaption>
     </figure>
   );

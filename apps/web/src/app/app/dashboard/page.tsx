@@ -34,6 +34,8 @@ import {
 } from "@/features/dashboard/components/dashboard-panels";
 import { STAGE_LABELS } from "@/features/dashboard/labels";
 import { formatDurationInWords } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
+import type { Locale, Translate } from "@/lib/i18n/translate";
 import { requireMember, type Member } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Work overview" };
@@ -59,17 +61,30 @@ function mainAction(member: Member) {
   return null;
 }
 
-function finding(dashboard: Dashboard) {
+function finding(dashboard: Dashboard, t: Translate, locale: Locale) {
   const oldest = dashboard.oldest[0];
-  if (!oldest) return "Nothing is open right now.";
-  return `The oldest open ticket has waited ${formatDurationInWords(oldest.ageMs)} and ${STAGE_LABELS[oldest.stage].state}.`;
+  if (!oldest) return t("Nothing is open right now.");
+  return t("The oldest open ticket has waited {age} and {state}.", {
+    age: formatDurationInWords(oldest.ageMs, locale),
+    state: t(STAGE_LABELS[oldest.stage].state),
+  });
 }
 
-function periodSummary({ period }: Dashboard) {
+function periodSummary({ period }: Dashboard, t: Translate) {
   const parts = [
-    `${period.reports} ${period.reports === 1 ? "report" : "reports"} in the last ${DASHBOARD_WINDOW_DAYS} days`,
-    `${period.duplicates} linked as ${period.duplicates === 1 ? "a duplicate" : "duplicates"}`,
-    `${period.cancelled} cancelled`,
+    t(
+      period.reports === 1
+        ? "1 report in the last {days} days"
+        : "{count} reports in the last {days} days",
+      { count: period.reports, days: DASHBOARD_WINDOW_DAYS },
+    ),
+    t(
+      period.duplicates === 1
+        ? "1 linked as a duplicate"
+        : "{count} linked as duplicates",
+      { count: period.duplicates },
+    ),
+    t("{count} cancelled", { count: period.cancelled }),
   ];
   return `${parts.join(", ")}.`;
 }
@@ -77,6 +92,7 @@ function periodSummary({ period }: Dashboard) {
 async function Overview() {
   const member = await requireMember();
   if (!canViewDashboard(member.roles)) notFound();
+  const { t, locale } = await getI18n();
 
   const dashboard = await getDashboard(getDb(), {
     tenantId: member.tenantId,
@@ -90,16 +106,18 @@ async function Overview() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="type-headline">Work overview</h1>
+            <h1 className="type-headline">{t("Work overview")}</h1>
             {member.isSyntheticTenant ? (
-              <Badge variant="outline">Synthetic data</Badge>
+              <Badge variant="outline">{t("Synthetic data")}</Badge>
             ) : null}
           </div>
-          <p className="text-muted-foreground">{finding(dashboard)}</p>
+          <p className="text-muted-foreground">
+            {finding(dashboard, t, locale)}
+          </p>
         </div>
         {action && !isFirstRun ? (
           <Button nativeButton={false} render={<Link href={action.href} />}>
-            {action.label}
+            {t(action.label)}
           </Button>
         ) : null}
       </header>
@@ -110,15 +128,16 @@ async function Overview() {
             <EmptyMedia variant="icon">
               <HugeiconsIcon icon={TaskDaily01Icon} />
             </EmptyMedia>
-            <EmptyTitle>No reports yet</EmptyTitle>
+            <EmptyTitle>{t("No reports yet")}</EmptyTitle>
             <EmptyDescription>
-              Figures appear here once someone sends a report from a site&apos;s
-              report form.
+              {t(
+                "Figures appear here once someone sends a report from a site's report form.",
+              )}
             </EmptyDescription>
           </EmptyHeader>
           {action ? (
             <Button nativeButton={false} render={<Link href={action.href} />}>
-              {action.label}
+              {t(action.label)}
             </Button>
           ) : null}
         </Empty>
@@ -138,8 +157,8 @@ async function Overview() {
           </div>
           <OutcomeStrip dashboard={dashboard} />
           <p className="type-caption text-muted-foreground">
-            {periodSummary(dashboard)} Linked duplicates count as reports, not
-            as work.
+            {periodSummary(dashboard, t)}{" "}
+            {t("Linked duplicates count as reports, not as work.")}
           </p>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <CategoryPanel dashboard={dashboard} />

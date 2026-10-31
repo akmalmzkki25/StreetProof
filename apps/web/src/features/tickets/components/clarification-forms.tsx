@@ -9,6 +9,8 @@ import {
 import { Textarea } from "@streetproof/ui/components/textarea";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import {
   requestClarificationAction,
   resumeAfterClarificationAction,
@@ -25,6 +27,7 @@ export function RequestClarificationForm({
   revision,
   missingFields,
 }: TicketRef & { missingFields: string[] }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     requestClarificationAction,
     initialState,
@@ -34,7 +37,9 @@ export function RequestClarificationForm({
     <form action={formAction} className="flex flex-col gap-5">
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <Field>
-        <FieldLabel htmlFor="question">Question for the reporter</FieldLabel>
+        <FieldLabel htmlFor="question">
+          {t("Question for the reporter")}
+        </FieldLabel>
         <Textarea
           id="question"
           name="question"
@@ -43,12 +48,15 @@ export function RequestClarificationForm({
           required
         />
         <FieldDescription>
-          The reporter sees this exactly as you write it, on their status page.
+          {t(
+            "The reporter sees this exactly as you write it, on their status page.",
+          )}
         </FieldDescription>
         {missingFields.length > 0 ? (
           <FieldDescription>
-            AI suggestion, not verified. Possibly missing:{" "}
-            {missingFields.join(", ")}.
+            {t("AI suggestion, not verified. Possibly missing: {fields}.", {
+              fields: missingFields.join(", "),
+            })}
           </FieldDescription>
         ) : null}
       </Field>
@@ -59,7 +67,7 @@ export function RequestClarificationForm({
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Sending…" : "Ask the reporter"}
+        {isPending ? t("Sending…") : t("Ask the reporter")}
       </Button>
     </form>
   );
@@ -70,6 +78,7 @@ export function ResumeAfterClarificationForm({
   revision,
   needsReason,
 }: TicketRef & { needsReason: boolean }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     resumeAfterClarificationAction,
     initialState,
@@ -81,7 +90,7 @@ export function ResumeAfterClarificationForm({
       {needsReason ? (
         <Field>
           <FieldLabel htmlFor="resume-reason">
-            Why continue without an answer
+            {t("Why continue without an answer")}
           </FieldLabel>
           <Textarea
             id="resume-reason"
@@ -100,10 +109,10 @@ export function ResumeAfterClarificationForm({
         className="self-start"
       >
         {isPending
-          ? "Saving…"
+          ? t("Saving…")
           : needsReason
-            ? "Continue without an answer"
-            : "Back to triage"}
+            ? t("Continue without an answer")
+            : t("Back to triage")}
       </Button>
     </form>
   );

@@ -4,14 +4,16 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { TicketTable } from "@/features/tickets/components/ticket-table";
+import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "My work" };
 
-export default function WorkPage() {
+export default async function WorkPage() {
+  const { t } = await getI18n();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">My work</h1>
+      <h1 className="type-headline">{t("My work")}</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <AssignedWork />
       </Suspense>

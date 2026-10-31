@@ -22,6 +22,7 @@ import Link from "next/link";
 import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";
+import { useI18n } from "@/lib/i18n/client";
 import { MAX_PHOTOS } from "@/lib/photos";
 import { VoiceNoteButton } from "./voice-note-button";
 
@@ -36,6 +37,7 @@ export function ReportForm({
   locations: { id: string; name: string }[];
   canRecordVoice: boolean;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     submitReportAction.bind(null, intakeCode),
     initialState,
@@ -54,7 +56,7 @@ export function ReportForm({
 
   const locationItems = [
     ...locations.map((item) => ({ value: item.id, label: item.name })),
-    { value: "other", label: "Somewhere else" },
+    { value: "other", label: t("Somewhere else") },
   ];
 
   // Submitted by hand: React resets an uncontrolled form after an action, which
@@ -74,12 +76,15 @@ export function ReportForm({
       <section aria-labelledby="report-sent" className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <h2 id="report-sent" className="text-xl">
-            Report sent
+            {t("Report sent")}
           </h2>
           <p className="type-caption text-muted-foreground">
-            Your reference is{" "}
-            <span className="font-mono text-foreground">{state.reference}</span>
-            . The building team will review it.
+            {t(
+              "Your reference is {reference}. The building team will review it.",
+              {
+                reference: state.reference,
+              },
+            )}
           </p>
         </div>
         <Button
@@ -87,11 +92,12 @@ export function ReportForm({
           nativeButton={false}
           render={<Link href={state.statusPath} />}
         >
-          View status
+          {t("View status")}
         </Button>
         <p className="type-caption text-muted-foreground">
-          Open it now, because this link isn&apos;t shown again. After that, the
-          status page stays available on this device at /status.
+          {t(
+            "Open it now, because this link isn't shown again. After that, the status page stays available on this device at /status.",
+          )}
         </p>
       </section>
     );
@@ -101,14 +107,16 @@ export function ReportForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="location">Where is the damage?</FieldLabel>
+          <FieldLabel htmlFor="location">
+            {t("Where is the damage?")}
+          </FieldLabel>
           <Select
             items={locationItems}
             value={location}
             onValueChange={(value) => setLocation(value)}
           >
             <SelectTrigger id="location" className="w-full max-sm:h-11!">
-              <SelectValue placeholder="Choose a location" />
+              <SelectValue placeholder={t("Choose a location")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -125,20 +133,22 @@ export function ReportForm({
         {location === "other" ? (
           <Field>
             <FieldLabel htmlFor="locationText">
-              Describe the location
+              {t("Describe the location")}
             </FieldLabel>
             <Input
               id="locationText"
               name="locationText"
               maxLength={200}
               className="max-sm:h-11"
-              placeholder="Floor 2, west corridor"
+              placeholder={t("Floor 2, west corridor")}
             />
           </Field>
         ) : null}
 
         <Field>
-          <FieldLabel htmlFor="description">What did you see?</FieldLabel>
+          <FieldLabel htmlFor="description">
+            {t("What did you see?")}
+          </FieldLabel>
           <Textarea
             id="description"
             name="description"
@@ -146,7 +156,7 @@ export function ReportForm({
             maxLength={2000}
             ref={description}
             required
-            placeholder="Water dripping from the ceiling near the lift"
+            placeholder={t("Water dripping from the ceiling near the lift")}
           />
           {canRecordVoice ? (
             <VoiceNoteButton onTranscript={addTranscript} />
@@ -154,7 +164,7 @@ export function ReportForm({
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="photos">Photos</FieldLabel>
+          <FieldLabel htmlFor="photos">{t("Photos")}</FieldLabel>
           <Input
             id="photos"
             name="photos"
@@ -165,13 +175,17 @@ export function ReportForm({
             className="max-sm:h-11 max-sm:pt-2.5"
           />
           <FieldDescription>
-            Up to {MAX_PHOTOS} photos, JPEG, PNG or WebP, 10 MB each. Avoid
-            showing people&apos;s faces.
+            {t(
+              "Up to {count} photos, JPEG, PNG or WebP, 10 MB each. Avoid showing people's faces.",
+              { count: MAX_PHOTOS },
+            )}
           </FieldDescription>
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="reporterEmail">Email (optional)</FieldLabel>
+          <FieldLabel htmlFor="reporterEmail">
+            {t("Email (optional)")}
+          </FieldLabel>
           <Input
             id="reporterEmail"
             name="reporterEmail"
@@ -181,20 +195,21 @@ export function ReportForm({
             className="max-sm:h-11"
           />
           <FieldDescription>
-            We only use it to tell you when the status changes, and to send a
-            new status link if you lose yours.
+            {t(
+              "We only use it to tell you when the status changes, and to send a new status link if you lose yours.",
+            )}
           </FieldDescription>
         </Field>
       </FieldGroup>
 
       {state.error ? (
         <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
+          <AlertDescription>{t(state.error)}</AlertDescription>
         </Alert>
       ) : null}
 
       <Button type="submit" size="lg" disabled={isPending}>
-        {isPending ? "Sending report…" : "Submit report"}
+        {isPending ? t("Sending report…") : t("Submit report")}
       </Button>
     </form>
   );

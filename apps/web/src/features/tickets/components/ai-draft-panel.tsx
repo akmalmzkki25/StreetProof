@@ -3,6 +3,8 @@ import { Badge } from "@streetproof/ui/components/badge";
 import { parseIntakeDraft, type IntakeDraft } from "@streetproof/contracts";
 import Link from "next/link";
 
+import { getI18n } from "@/lib/i18n/server";
+
 import { categoryLabel, PRIORITY_LABELS } from "../labels";
 import { AiRefresher } from "./ai-refresher";
 import { DamageFigure } from "./damage-figure";
@@ -16,20 +18,21 @@ export function readDraft(ticket: TicketDetail): IntakeDraft | null {
   return parsed.success ? parsed.data : null;
 }
 
-function Notice({
+async function Notice({
   children,
   action,
 }: {
   children: React.ReactNode;
   action?: React.ReactNode;
 }) {
+  const { t } = await getI18n();
   return (
     <section
       aria-labelledby="ai-draft"
       className="flex flex-col gap-2 rounded-4xl bg-card p-6 shadow-card"
     >
       <h2 id="ai-draft" className="type-title">
-        AI suggestion
+        {t("AI suggestion")}
       </h2>
       <p className="text-muted-foreground">{children}</p>
       {action}
@@ -37,7 +40,7 @@ function Notice({
   );
 }
 
-export function FactList({
+export async function FactList({
   title,
   items,
 }: {
@@ -45,9 +48,10 @@ export function FactList({
   items: { key: string; text: string; detail?: string }[];
 }) {
   if (items.length === 0) return null;
+  const { t } = await getI18n();
   return (
     <div className="flex flex-col gap-1.5">
-      <h3 className="type-caption text-muted-foreground">{title}</h3>
+      <h3 className="type-caption text-muted-foreground">{t(title)}</h3>
       <ul className="flex flex-col gap-1.5">
         {items.map((item) => (
           <li key={item.key}>
@@ -62,9 +66,10 @@ export function FactList({
   );
 }
 
-export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
+export async function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
   const isAwaitingTriage = ticket.status === "submitted";
   const state = ticket.aiDraft?.state ?? "queued";
+  const { t } = await getI18n();
 
   if (PENDING_STATES.includes(state)) {
     if (!isAwaitingTriage) return null;
@@ -72,8 +77,9 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
       <>
         <AiRefresher />
         <Notice>
-          Preparing a suggestion. You don&apos;t have to wait: you can triage
-          this report by hand now.
+          {t(
+            "Preparing a suggestion. You don't have to wait: you can triage this report by hand now.",
+          )}
         </Notice>
       </>
     );
@@ -85,14 +91,17 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
     if (state === "failed_terminal") {
       return (
         <Notice action={<RetryDraftButton ticketId={ticket.id} />}>
-          The suggestion couldn&apos;t be prepared. You can try again, or triage
-          this report by hand.
+          {t(
+            "The suggestion couldn't be prepared. You can try again, or triage this report by hand.",
+          )}
         </Notice>
       );
     }
     return (
       <Notice>
-        No suggestion is available for this report. Please triage it by hand.
+        {t(
+          "No suggestion is available for this report. Please triage it by hand.",
+        )}
       </Notice>
     );
   }
@@ -104,11 +113,13 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
     >
       <div className="flex flex-col gap-2">
         <Badge variant="outline" className="self-start">
-          Not verified
+          {t("Not verified")}
         </Badge>
         <h2 id="ai-draft" className="type-caption text-muted-foreground">
-          AI suggestion from {ticket.aiDraft?.model}. Check it against the
-          report and photos.
+          {t(
+            "AI suggestion from {model}. Check it against the report and photos.",
+            { model: ticket.aiDraft?.model ?? "" },
+          )}
         </h2>
       </div>
 
@@ -116,19 +127,19 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
       <DamageFigure regions={ticket.damageRegions} />
 
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
-        <dt className="text-muted-foreground">Category</dt>
+        <dt className="text-muted-foreground">{t("Category")}</dt>
         <dd>
           {draft.categoryCandidate === "unknown"
-            ? "Unknown"
-            : categoryLabel(draft.categoryCandidate)}
+            ? t("Unknown")
+            : t(categoryLabel(draft.categoryCandidate) ?? "")}
         </dd>
-        <dt className="text-muted-foreground">Priority</dt>
+        <dt className="text-muted-foreground">{t("Priority")}</dt>
         <dd>
           {draft.priorityCandidate === "unknown"
-            ? "Unknown"
-            : PRIORITY_LABELS[draft.priorityCandidate]}
+            ? t("Unknown")
+            : t(PRIORITY_LABELS[draft.priorityCandidate])}
         </dd>
-        <dt className="text-muted-foreground">Why</dt>
+        <dt className="text-muted-foreground">{t("Why")}</dt>
         <dd>{draft.priorityRationale}</dd>
       </dl>
 
@@ -152,7 +163,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
         items={draft.inferences.map((inference) => ({
           key: inference.text,
           text: inference.text,
-          detail: `${inference.uncertainty} uncertainty`,
+          detail: t(`${inference.uncertainty} uncertainty`),
         }))}
       />
       <FactList
@@ -173,7 +184,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
       {draft.duplicateCandidates.length > 0 ? (
         <div className="flex flex-col gap-1.5">
           <h3 className="type-caption text-muted-foreground">
-            Possible duplicates
+            {t("Possible duplicates")}
           </h3>
           <ul className="flex flex-col gap-1.5">
             {draft.duplicateCandidates.map((candidate) => (
@@ -182,7 +193,7 @@ export function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
                   href={`/app/tickets/${candidate.ticketId}`}
                   className="text-brand-text underline underline-offset-4"
                 >
-                  Open ticket
+                  {t("Open ticket")}
                 </Link>
                 <span className="text-muted-foreground">
                   {" "}

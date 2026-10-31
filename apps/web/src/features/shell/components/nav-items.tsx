@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { signOut } from "@/features/auth/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 import type { NavLink } from "../nav-links";
 
@@ -24,6 +25,7 @@ function isActive(pathname: string, href: string) {
 
 export function DesktopNavLinks({ links }: { links: NavLink[] }) {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <ul className="hidden items-center gap-1 md:flex">
@@ -41,7 +43,7 @@ export function DesktopNavLinks({ links }: { links: NavLink[] }) {
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >
-              {link.label}
+              {t(link.label)}
             </Link>
           </li>
         );
@@ -51,12 +53,13 @@ export function DesktopNavLinks({ links }: { links: NavLink[] }) {
 }
 
 export function MobileNavMenu({ links }: { links: NavLink[] }) {
+  const { t } = useI18n();
   return (
     <div className="md:hidden">
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
           <HugeiconsIcon icon={Menu01Icon} />
-          <span className="sr-only">Open the menu</span>
+          <span className="sr-only">{t("Open the menu")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {links.map((link) => (
@@ -64,12 +67,12 @@ export function MobileNavMenu({ links }: { links: NavLink[] }) {
               key={link.href}
               render={<Link href={link.href} />}
             >
-              {link.label}
+              {t(link.label)}
             </DropdownMenuItem>
           ))}
           {links.length > 0 ? <DropdownMenuSeparator /> : null}
           <DropdownMenuItem onClick={() => void signOut()}>
-            Sign out
+            {t("Sign out")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

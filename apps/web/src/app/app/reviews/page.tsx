@@ -4,14 +4,16 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { TicketTable } from "@/features/tickets/components/ticket-table";
+import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Reviews" };
 
-export default function ReviewsPage() {
+export default async function ReviewsPage() {
+  const { t } = await getI18n();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">Reviews</h1>
+      <h1 className="type-headline">{t("Reviews")}</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <Reviews />
       </Suspense>
@@ -21,6 +23,7 @@ export default function ReviewsPage() {
 
 async function Reviews() {
   const member = await requireRole("supervisor");
+  const { t } = await getI18n();
   const db = getDb();
   const scope = { tenantId: member.tenantId, siteIds: member.siteIds };
   const [pending, closed] = await Promise.all([
@@ -32,7 +35,7 @@ async function Reviews() {
     <div className="flex flex-col gap-10">
       <section aria-labelledby="pending" className="flex flex-col gap-4">
         <h2 id="pending" className="type-title">
-          Awaiting your verification
+          {t("Awaiting your verification")}
         </h2>
         <TicketTable
           items={pending}
@@ -42,7 +45,7 @@ async function Reviews() {
       </section>
       <section aria-labelledby="closed" className="flex flex-col gap-4">
         <h2 id="closed" className="type-title">
-          Verified closed
+          {t("Verified closed")}
         </h2>
         <TicketTable
           items={closed}

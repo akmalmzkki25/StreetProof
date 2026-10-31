@@ -11,6 +11,8 @@ import { Input } from "@streetproof/ui/components/input";
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import {
   requestPasswordReset,
   setNewPassword,
@@ -22,26 +24,29 @@ const initialRequest: ResetRequestState = { isSent: false, error: null };
 const initialNewPassword: NewPasswordState = { isDone: false, error: null };
 
 function FormError({ error }: { error: string | null }) {
+  const { t } = useI18n();
   if (!error) return null;
   return (
     <Alert variant="destructive">
-      <AlertDescription>{error}</AlertDescription>
+      <AlertDescription>{t(error)}</AlertDescription>
     </Alert>
   );
 }
 
 function BackToSignIn() {
+  const { t } = useI18n();
   return (
     <Link
       href="/login"
       className="text-brand-text underline underline-offset-4"
     >
-      Back to sign in
+      {t("Back to sign in")}
     </Link>
   );
 }
 
 export function ForgotPasswordForm({ canEmail }: { canEmail: boolean }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     requestPasswordReset,
     initialRequest,
@@ -51,7 +56,7 @@ export function ForgotPasswordForm({ canEmail }: { canEmail: boolean }) {
     return (
       <div className="flex flex-col gap-4">
         <p role="status">
-          If that address has an account, a reset link is on its way.
+          {t("If that address has an account, a reset link is on its way.")}
         </p>
         <BackToSignIn />
       </div>
@@ -61,7 +66,7 @@ export function ForgotPasswordForm({ canEmail }: { canEmail: boolean }) {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <Field>
-        <FieldLabel htmlFor="email">Email</FieldLabel>
+        <FieldLabel htmlFor="email">{t("Email")}</FieldLabel>
         <Input
           id="email"
           name="email"
@@ -71,14 +76,15 @@ export function ForgotPasswordForm({ canEmail }: { canEmail: boolean }) {
         />
         {canEmail ? null : (
           <FieldDescription>
-            Email isn&apos;t set up on this server, so your building admin has
-            to set a new password for you.
+            {t(
+              "Email isn't set up on this server, so your building admin has to set a new password for you.",
+            )}
           </FieldDescription>
         )}
       </Field>
       <FormError error={state.error} />
       <Button type="submit" size="lg" disabled={isPending}>
-        {isPending ? "Sending…" : "Send reset link"}
+        {isPending ? t("Sending…") : t("Send reset link")}
       </Button>
       <BackToSignIn />
     </form>
@@ -86,6 +92,7 @@ export function ForgotPasswordForm({ canEmail }: { canEmail: boolean }) {
 }
 
 export function NewPasswordForm({ token }: { token: string }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     setNewPassword,
     initialNewPassword,
@@ -94,7 +101,9 @@ export function NewPasswordForm({ token }: { token: string }) {
   if (state.isDone) {
     return (
       <div className="flex flex-col gap-4">
-        <p role="status">Your password is changed. You can sign in with it.</p>
+        <p role="status">
+          {t("Your password is changed. You can sign in with it.")}
+        </p>
         <BackToSignIn />
       </div>
     );
@@ -104,7 +113,7 @@ export function NewPasswordForm({ token }: { token: string }) {
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="token" value={token} />
       <Field>
-        <FieldLabel htmlFor="password">New password</FieldLabel>
+        <FieldLabel htmlFor="password">{t("New password")}</FieldLabel>
         <Input
           id="password"
           name="password"
@@ -114,11 +123,11 @@ export function NewPasswordForm({ token }: { token: string }) {
           maxLength={128}
           required
         />
-        <FieldDescription>At least 8 characters.</FieldDescription>
+        <FieldDescription>{t("At least 8 characters.")}</FieldDescription>
       </Field>
       <FormError error={state.error} />
       <Button type="submit" size="lg" disabled={isPending}>
-        {isPending ? "Saving…" : "Set new password"}
+        {isPending ? t("Saving…") : t("Set new password")}
       </Button>
     </form>
   );

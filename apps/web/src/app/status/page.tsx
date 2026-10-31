@@ -20,6 +20,7 @@ import { ClarificationAnswerForm } from "@/features/reporter-status/components/c
 import { ReceiptExchange } from "@/features/reporter-status/components/receipt-exchange";
 import { REPORTER_COOKIE } from "@/features/reporter-status/cookie";
 import { formatDateTime } from "@/lib/format";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Report status",
@@ -50,10 +51,11 @@ const STAGE_COPY: Record<ReporterStage, { title: string; detail: string }> = {
   },
 };
 
-export default function StatusPage() {
+export default async function StatusPage() {
+  const { t } = await getI18n();
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
-      <h1 className="type-headline">Report status</h1>
+      <h1 className="type-headline">{t("Report status")}</h1>
       <ReceiptExchange>
         <Suspense fallback={<Skeleton className="h-48" />}>
           <ReportStatus />
@@ -65,6 +67,7 @@ export default function StatusPage() {
 
 async function ReportStatus() {
   await connection();
+  const { t, locale } = await getI18n();
   const cookieStore = await cookies();
   const token = cookieStore.get(REPORTER_COOKIE)?.value;
   const status = token ? await getReporterStatus(getDb(), token) : null;
@@ -76,17 +79,18 @@ async function ReportStatus() {
           <EmptyMedia variant="icon">
             <HugeiconsIcon icon={Link01Icon} />
           </EmptyMedia>
-          <EmptyTitle>This status link isn&apos;t available</EmptyTitle>
+          <EmptyTitle>{t("This status link isn't available")}</EmptyTitle>
           <EmptyDescription>
-            It may have expired or been replaced. Ask the building team if you
-            need an update.
+            {t(
+              "It may have expired or been replaced. Ask the building team if you need an update.",
+            )}
           </EmptyDescription>
         </EmptyHeader>
         <Link
           href="/status/recover"
           className="text-brand-text underline underline-offset-4"
         >
-          Get a new status link
+          {t("Get a new status link")}
         </Link>
       </Empty>
     );
@@ -97,20 +101,20 @@ async function ReportStatus() {
   return (
     <section className="flex flex-col gap-6">
       <div className="rounded-4xl bg-card p-6 shadow-card">
-        <p className="type-title">{stage.title}</p>
-        <p className="mt-1 text-muted-foreground">{stage.detail}</p>
+        <p className="type-title">{t(stage.title)}</p>
+        <p className="mt-1 text-muted-foreground">{t(stage.detail)}</p>
       </div>
       {status.clarifications.map((item) => (
         <article
           key={item.id}
-          aria-label="Question from the building team"
+          aria-label={t("Question from the building team")}
           className="flex flex-col gap-4 rounded-4xl bg-card p-6 shadow-card"
         >
           <div className="flex flex-col gap-1">
             <h2 className="type-title">
               {item.isOpen
-                ? "The building team has a question"
-                : "You answered this question"}
+                ? t("The building team has a question")
+                : t("You answered this question")}
             </h2>
             <p className="whitespace-pre-wrap">{item.question}</p>
           </div>
@@ -124,21 +128,21 @@ async function ReportStatus() {
         </article>
       ))}
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
-        <dt className="text-muted-foreground">Reference</dt>
+        <dt className="text-muted-foreground">{t("Reference")}</dt>
         <dd className="font-mono">{status.reference}</dd>
-        <dt className="text-muted-foreground">Site</dt>
+        <dt className="text-muted-foreground">{t("Site")}</dt>
         <dd>{status.siteName}</dd>
-        <dt className="text-muted-foreground">Location</dt>
+        <dt className="text-muted-foreground">{t("Location")}</dt>
         <dd>{status.location}</dd>
-        <dt className="text-muted-foreground">Your report</dt>
+        <dt className="text-muted-foreground">{t("Your report")}</dt>
         <dd className="whitespace-pre-wrap">{status.description}</dd>
-        <dt className="text-muted-foreground">Sent</dt>
+        <dt className="text-muted-foreground">{t("Sent")}</dt>
         <dd className="font-mono text-xs">
-          {formatDateTime(status.submittedAt)}
+          {formatDateTime(status.submittedAt, locale)}
         </dd>
-        <dt className="text-muted-foreground">Last update</dt>
+        <dt className="text-muted-foreground">{t("Last update")}</dt>
         <dd className="font-mono text-xs">
-          {formatDateTime(status.updatedAt)}
+          {formatDateTime(status.updatedAt, locale)}
         </dd>
       </dl>
     </section>

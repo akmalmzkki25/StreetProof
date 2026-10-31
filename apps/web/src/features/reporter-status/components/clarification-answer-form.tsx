@@ -6,6 +6,8 @@ import { Field, FieldLabel } from "@streetproof/ui/components/field";
 import { Textarea } from "@streetproof/ui/components/textarea";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { answerClarificationAction, type AnswerState } from "../actions";
 
 const initialState: AnswerState = { error: null };
@@ -15,6 +17,7 @@ export function ClarificationAnswerForm({
 }: {
   clarificationId: string;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     answerClarificationAction,
     initialState,
@@ -24,7 +27,7 @@ export function ClarificationAnswerForm({
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="clarificationId" value={clarificationId} />
       <Field>
-        <FieldLabel htmlFor="answer">Your answer</FieldLabel>
+        <FieldLabel htmlFor="answer">{t("Your answer")}</FieldLabel>
         <Textarea
           id="answer"
           name="answer"
@@ -35,11 +38,11 @@ export function ClarificationAnswerForm({
       </Field>
       {state.error ? (
         <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
+          <AlertDescription>{t(state.error)}</AlertDescription>
         </Alert>
       ) : null}
       <Button type="submit" disabled={isPending} className="self-start">
-        {isPending ? "Sending…" : "Send answer"}
+        {isPending ? t("Sending…") : t("Send answer")}
       </Button>
     </form>
   );

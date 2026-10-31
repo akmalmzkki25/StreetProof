@@ -28,6 +28,7 @@ import {
 import { Textarea } from "@streetproof/ui/components/textarea";
 import { startTransition, useActionState, useState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
 import { MAX_PHOTOS } from "@/lib/photos";
 
 import {
@@ -59,16 +60,18 @@ export function TicketRefFields({ ticketId, revision }: TicketRef) {
 }
 
 export function FormError({ error }: { error: string | null }) {
+  const { t } = useI18n();
   if (!error) return null;
   return (
     <Alert variant="destructive">
-      <AlertDescription>{error}</AlertDescription>
+      <AlertDescription>{t(error)}</AlertDescription>
     </Alert>
   );
 }
 
 export function SelectField({
   id,
+  name = id,
   label,
   placeholder,
   options,
@@ -76,27 +79,34 @@ export function SelectField({
   onChange,
 }: {
   id: string;
+  name?: string;
   label: string;
   placeholder: string;
   options: Option[];
   defaultValue?: string | null;
   onChange?: () => void;
 }) {
+  const { t } = useI18n();
+  // Names from the database have no translation, so they come through unchanged.
+  const items = options.map((option) => ({
+    value: option.value,
+    label: t(option.label),
+  }));
   return (
     <Field>
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <FieldLabel htmlFor={id}>{t(label)}</FieldLabel>
       <Select
-        name={id}
-        items={options}
+        name={name}
+        items={items}
         defaultValue={defaultValue ?? null}
         onValueChange={() => onChange?.()}
       >
         <SelectTrigger id={id} className="w-full">
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={t(placeholder)} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            {options.map((option) => (
+            {items.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -134,6 +144,7 @@ export function TriageForm({
   locations: { id: string; name: string }[];
   defaultLocationId: string | null;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     triageAction,
     initialState,
@@ -157,7 +168,7 @@ export function TriageForm({
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="summary">Summary</FieldLabel>
+          <FieldLabel htmlFor="summary">{t("Summary")}</FieldLabel>
           <Input
             id="summary"
             name="summary"
@@ -196,7 +207,7 @@ export function TriageForm({
       </FieldGroup>
       <FormError error={state.error} />
       <Button type="submit" disabled={isPending} className="self-start">
-        {isPending ? "Saving…" : "Confirm triage"}
+        {isPending ? t("Saving…") : t("Confirm triage")}
       </Button>
     </form>
   );
@@ -211,6 +222,7 @@ export function AssignForm({
   technicians: { id: string; name: string }[];
   teams: { id: string; name: string }[];
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     assignAction,
     initialState,
@@ -241,19 +253,20 @@ export function AssignForm({
           />
         ) : null}
         <Field>
-          <FieldLabel htmlFor="dueAt">Due by, WIB (optional)</FieldLabel>
+          <FieldLabel htmlFor="dueAt">{t("Due by, WIB (optional)")}</FieldLabel>
           <Input id="dueAt" name="dueAt" type="datetime-local" />
         </Field>
       </FieldGroup>
       <FormError error={state.error} />
       <Button type="submit" disabled={isPending} className="self-start">
-        {isPending ? "Assigning…" : "Assign technician"}
+        {isPending ? t("Assigning…") : t("Assign technician")}
       </Button>
     </form>
   );
 }
 
 export function CancelForm({ ticketId, revision }: TicketRef) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     cancelAction,
     initialState,
@@ -263,7 +276,7 @@ export function CancelForm({ ticketId, revision }: TicketRef) {
     <form action={formAction} className="flex flex-col gap-5">
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <Field>
-        <FieldLabel htmlFor="reason">Reason for cancelling</FieldLabel>
+        <FieldLabel htmlFor="reason">{t("Reason for cancelling")}</FieldLabel>
         <Textarea id="reason" name="reason" rows={2} maxLength={500} required />
       </Field>
       <FormError error={state.error} />
@@ -273,7 +286,7 @@ export function CancelForm({ ticketId, revision }: TicketRef) {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Cancelling…" : "Cancel ticket"}
+        {isPending ? t("Cancelling…") : t("Cancel ticket")}
       </Button>
     </form>
   );
@@ -285,6 +298,7 @@ export function ProgressButton({
   to,
   label,
 }: TicketRef & { to: "accepted" | "in_progress"; label: string }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     progressAction,
     initialState,
@@ -301,7 +315,7 @@ export function ProgressButton({
         disabled={isPending}
         className="w-full sm:w-auto sm:self-start"
       >
-        {isPending ? "Saving…" : label}
+        {isPending ? t("Saving…") : t(label)}
       </Button>
     </form>
   );
@@ -313,6 +327,7 @@ const waitingOptions = [
 ];
 
 export function WaitForm({ ticketId, revision }: TicketRef) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     waitAction,
     initialState,
@@ -329,7 +344,7 @@ export function WaitForm({ ticketId, revision }: TicketRef) {
           options={waitingOptions}
         />
         <Field>
-          <FieldLabel htmlFor="waitReason">What&apos;s needed</FieldLabel>
+          <FieldLabel htmlFor="waitReason">{t("What's needed")}</FieldLabel>
           <Textarea
             id="waitReason"
             name="reason"
@@ -339,7 +354,9 @@ export function WaitForm({ ticketId, revision }: TicketRef) {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="nextReviewAt">Check again on (WIB)</FieldLabel>
+          <FieldLabel htmlFor="nextReviewAt">
+            {t("Check again on (WIB)")}
+          </FieldLabel>
           <Input
             id="nextReviewAt"
             name="nextReviewAt"
@@ -355,7 +372,7 @@ export function WaitForm({ ticketId, revision }: TicketRef) {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Saving…" : "Pause the work"}
+        {isPending ? t("Saving…") : t("Pause the work")}
       </Button>
     </form>
   );
@@ -366,6 +383,7 @@ export function CompletionForm({
   revision,
   checklist,
 }: TicketRef & { checklist: readonly ChecklistItem[] }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     completionAction,
     initialState,
@@ -385,11 +403,11 @@ export function CompletionForm({
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="note">What did you do?</FieldLabel>
+          <FieldLabel htmlFor="note">{t("What did you do?")}</FieldLabel>
           <Textarea id="note" name="note" rows={3} maxLength={1000} required />
         </Field>
         <FieldSet>
-          <FieldLegend variant="label">Before you finish</FieldLegend>
+          <FieldLegend variant="label">{t("Before you finish")}</FieldLegend>
           <FieldGroup className="gap-3">
             {checklist.map((item) => (
               <Field key={item.id} orientation="horizontal">
@@ -402,14 +420,14 @@ export function CompletionForm({
                   htmlFor={`check-${item.id}`}
                   className="font-normal"
                 >
-                  {item.label}
+                  {t(item.label)}
                 </FieldLabel>
               </Field>
             ))}
           </FieldGroup>
         </FieldSet>
         <Field>
-          <FieldLabel htmlFor="photos">Proof photos</FieldLabel>
+          <FieldLabel htmlFor="photos">{t("Proof photos")}</FieldLabel>
           <Input
             id="photos"
             name="photos"
@@ -420,8 +438,10 @@ export function CompletionForm({
             className="max-sm:h-11 max-sm:pt-2.5"
           />
           <FieldDescription>
-            Up to {MAX_PHOTOS} photos showing the finished repair. A supervisor
-            reviews them before the work closes.
+            {t(
+              "Up to {count} photos showing the finished repair. A supervisor reviews them before the work closes.",
+              { count: MAX_PHOTOS },
+            )}
           </FieldDescription>
         </Field>
         <Field orientation="horizontal">
@@ -431,13 +451,13 @@ export function CompletionForm({
             onCheckedChange={setHasException}
           />
           <FieldLabel htmlFor="has-exception" className="font-normal">
-            I can&apos;t confirm everything or add a photo
+            {t("I can't confirm everything or add a photo")}
           </FieldLabel>
         </Field>
         {hasException ? (
           <Field>
             <FieldLabel htmlFor="exceptionReason">
-              What&apos;s stopping you?
+              {t("What's stopping you?")}
             </FieldLabel>
             <Textarea
               id="exceptionReason"
@@ -447,8 +467,9 @@ export function CompletionForm({
               required
             />
             <FieldDescription>
-              A supervisor reads this and decides. Without a photo, they
-              can&apos;t close the work yet.
+              {t(
+                "A supervisor reads this and decides. Without a photo, they can't close the work yet.",
+              )}
             </FieldDescription>
           </Field>
         ) : null}
@@ -460,7 +481,7 @@ export function CompletionForm({
         disabled={isPending}
         className="w-full sm:w-auto sm:self-start"
       >
-        {isPending ? "Submitting…" : "Submit completion"}
+        {isPending ? t("Submitting…") : t("Submit completion")}
       </Button>
     </form>
   );
@@ -471,6 +492,7 @@ export function DecisionForm({
   revision,
   canVerify,
 }: TicketRef & { canVerify: boolean }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     decisionAction,
     initialState,
@@ -480,7 +502,7 @@ export function DecisionForm({
     <form action={formAction} className="flex flex-col gap-5">
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <Field>
-        <FieldLabel htmlFor="decisionReason">Your reason</FieldLabel>
+        <FieldLabel htmlFor="decisionReason">{t("Your reason")}</FieldLabel>
         <Textarea
           id="decisionReason"
           name="reason"
@@ -490,8 +512,12 @@ export function DecisionForm({
         />
         <FieldDescription>
           {canVerify
-            ? "Say what the proof shows, or what the technician needs to correct."
-            : "This attempt has no photo, so you can't verify it yet. Say what the technician needs to send."}
+            ? t(
+                "Say what the proof shows, or what the technician needs to correct.",
+              )
+            : t(
+                "This attempt has no photo, so you can't verify it yet. Say what the technician needs to send.",
+              )}
         </FieldDescription>
       </Field>
       <FormError error={state.error} />
@@ -503,7 +529,7 @@ export function DecisionForm({
             value="accepted"
             disabled={isPending}
           >
-            Verify completion
+            {t("Verify completion")}
           </Button>
         ) : null}
         <Button
@@ -513,7 +539,7 @@ export function DecisionForm({
           variant="outline"
           disabled={isPending}
         >
-          Request corrected proof
+          {t("Request corrected proof")}
         </Button>
       </div>
     </form>
@@ -521,6 +547,7 @@ export function DecisionForm({
 }
 
 export function ReopenForm({ ticketId, revision }: TicketRef) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     reopenAction,
     initialState,
@@ -530,7 +557,9 @@ export function ReopenForm({ ticketId, revision }: TicketRef) {
     <form action={formAction} className="flex flex-col gap-5">
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <Field>
-        <FieldLabel htmlFor="reopenReason">Why reopen this work?</FieldLabel>
+        <FieldLabel htmlFor="reopenReason">
+          {t("Why reopen this work?")}
+        </FieldLabel>
         <Textarea
           id="reopenReason"
           name="reason"
@@ -546,7 +575,7 @@ export function ReopenForm({ ticketId, revision }: TicketRef) {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Reopening…" : "Reopen ticket"}
+        {isPending ? t("Reopening…") : t("Reopen ticket")}
       </Button>
     </form>
   );

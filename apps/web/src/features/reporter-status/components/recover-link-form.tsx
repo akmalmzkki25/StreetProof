@@ -10,11 +10,14 @@ import {
 import { Input } from "@streetproof/ui/components/input";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { recoverLinksAction, type RecoverState } from "../actions";
 
 const initialState: RecoverState = { isSent: false, error: null };
 
 export function RecoverLinkForm() {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     recoverLinksAction,
     initialState,
@@ -23,8 +26,9 @@ export function RecoverLinkForm() {
   if (state.isSent) {
     return (
       <p role="status">
-        If a report was sent with that address, new links are on their way. Your
-        old links keep working.
+        {t(
+          "If a report was sent with that address, new links are on their way. Your old links keep working.",
+        )}
       </p>
     );
   }
@@ -32,7 +36,7 @@ export function RecoverLinkForm() {
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <Field>
-        <FieldLabel htmlFor="email">Email</FieldLabel>
+        <FieldLabel htmlFor="email">{t("Email")}</FieldLabel>
         <Input
           id="email"
           name="email"
@@ -42,17 +46,18 @@ export function RecoverLinkForm() {
           required
         />
         <FieldDescription>
-          The address you gave when you sent the report. Without one, ask the
-          building team for a new link.
+          {t(
+            "The address you gave when you sent the report. Without one, ask the building team for a new link.",
+          )}
         </FieldDescription>
       </Field>
       {state.error ? (
         <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
+          <AlertDescription>{t(state.error)}</AlertDescription>
         </Alert>
       ) : null}
       <Button type="submit" size="lg" disabled={isPending}>
-        {isPending ? "Sending…" : "Send my links"}
+        {isPending ? t("Sending…") : t("Send my links")}
       </Button>
     </form>
   );

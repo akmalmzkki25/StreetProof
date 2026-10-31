@@ -1,7 +1,9 @@
 import { cn } from "@streetproof/ui/lib/utils";
 
+import { getI18n } from "@/lib/i18n/server";
+
 // The flat panel from design.md, with its title wired up as the section's name.
-export function Panel({
+export async function Panel({
   id,
   title,
   note,
@@ -14,6 +16,7 @@ export function Panel({
   className?: string;
   children: React.ReactNode;
 }) {
+  const { t } = await getI18n();
   return (
     <section
       aria-labelledby={id}
@@ -24,10 +27,10 @@ export function Panel({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 id={id} className="type-title">
-          {title}
+          {t(title)}
         </h2>
         {note ? (
-          <p className="type-caption text-muted-foreground">{note}</p>
+          <p className="type-caption text-muted-foreground">{t(note)}</p>
         ) : null}
       </div>
       {children}

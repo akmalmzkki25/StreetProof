@@ -5,11 +5,13 @@ import { Button } from "@streetproof/ui/components/button";
 import { CaseStack } from "@/components/case-stack";
 import { ModeToggle } from "@/components/mode-toggle";
 import { StreetProofMark } from "@/components/street-proof-mark";
+import { getI18n } from "@/lib/i18n/server";
 
 // The seeded synthetic site. A real tenant shares its own site's report link.
 const DEMO_INTAKE_CODE = "graha-tower-a";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { t } = await getI18n();
   return (
     <div className="flex min-h-svh flex-col">
       <main className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-4 py-16 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
@@ -22,26 +24,26 @@ export default function HomePage() {
               </p>
             </div>
             <h1 className="type-display">
-              Reports become
+              {t("Reports become")}
               <br />
-              <span className="text-muted-foreground">repair work.</span>
+              <span className="text-muted-foreground">{t("repair work.")}</span>
             </h1>
             <p className="max-w-xl type-lead text-muted-foreground">
-              Facility damage reports turn into assigned tickets with completion
-              evidence and supervisor-controlled closure. AI drafts; people
-              decide.
+              {t(
+                "Facility damage reports turn into assigned tickets with completion evidence and supervisor-controlled closure. AI drafts; people decide.",
+              )}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Button nativeButton={false} render={<Link href="/login" />}>
-              Sign in
+              {t("Sign in")}
             </Button>
             <Button
               variant="secondary"
               nativeButton={false}
               render={<Link href={`/report/${DEMO_INTAKE_CODE}`} />}
             >
-              Try the report form
+              {t("Try the report form")}
             </Button>
           </div>
         </div>

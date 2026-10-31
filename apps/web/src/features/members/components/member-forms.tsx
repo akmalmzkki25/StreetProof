@@ -18,6 +18,7 @@ import {
   FormError,
   SelectField,
 } from "@/features/tickets/components/ticket-forms";
+import { useI18n } from "@/lib/i18n/client";
 
 import {
   addMemberAction,
@@ -47,9 +48,10 @@ function RoleChoices({
   idPrefix: string;
   checked: readonly Role[];
 }) {
+  const { t } = useI18n();
   return (
     <FieldSet>
-      <FieldLegend variant="label">Roles</FieldLegend>
+      <FieldLegend variant="label">{t("Roles")}</FieldLegend>
       <FieldGroup className="gap-2">
         {ROLES.map((role) => (
           <Field key={role} orientation="horizontal">
@@ -60,7 +62,7 @@ function RoleChoices({
               defaultChecked={checked.includes(role)}
             />
             <FieldLabel htmlFor={`${idPrefix}-${role}`} className="font-normal">
-              {ROLE_LABELS[role]}
+              {t(ROLE_LABELS[role])}
             </FieldLabel>
           </Field>
         ))}
@@ -70,6 +72,7 @@ function RoleChoices({
 }
 
 export function AddMemberForm({ sites }: { sites: Site[] }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     addMemberAction,
     initialState,
@@ -79,15 +82,15 @@ export function AddMemberForm({ sites }: { sites: Site[] }) {
     <form action={formAction} className="flex flex-col gap-5">
       <FieldGroup>
         <Field>
-          <FieldLabel htmlFor="new-name">Name</FieldLabel>
+          <FieldLabel htmlFor="new-name">{t("Name")}</FieldLabel>
           <Input id="new-name" name="name" maxLength={100} required />
         </Field>
         <Field>
-          <FieldLabel htmlFor="new-email">Email</FieldLabel>
+          <FieldLabel htmlFor="new-email">{t("Email")}</FieldLabel>
           <Input id="new-email" name="email" type="email" required />
         </Field>
         <Field>
-          <FieldLabel htmlFor="new-password">First password</FieldLabel>
+          <FieldLabel htmlFor="new-password">{t("First password")}</FieldLabel>
           <Input
             id="new-password"
             name="password"
@@ -97,13 +100,15 @@ export function AddMemberForm({ sites }: { sites: Site[] }) {
             required
           />
           <FieldDescription>
-            Pass it on privately. They can change it through &quot;Forgot your
-            password?&quot; when email is set up.
+            {t(
+              'Pass it on privately. They can change it through "Forgot your password?" when email is set up.',
+            )}
           </FieldDescription>
         </Field>
         <RoleChoices idPrefix="new" checked={[]} />
         <SelectField
-          id="site"
+          id="new-site"
+          name="site"
           label="Site"
           placeholder="Choose a site"
           options={siteOptions(sites)}
@@ -111,9 +116,9 @@ export function AddMemberForm({ sites }: { sites: Site[] }) {
         />
       </FieldGroup>
       <FormError error={state.error} />
-      {state.isDone ? <p role="status">Member added.</p> : null}
+      {state.isDone ? <p role="status">{t("Member added.")}</p> : null}
       <Button type="submit" disabled={isPending} className="self-start">
-        {isPending ? "Adding…" : "Add member"}
+        {isPending ? t("Adding…") : t("Add member")}
       </Button>
     </form>
   );
@@ -130,6 +135,7 @@ export function MemberAccessForm({
   siteId: string | null;
   sites: Site[];
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     updateAccessAction,
     initialState,
@@ -140,7 +146,8 @@ export function MemberAccessForm({
       <input type="hidden" name="userId" value={userId} />
       <RoleChoices idPrefix={userId} checked={roles} />
       <SelectField
-        id="site"
+        id={`site-${userId}`}
+        name="site"
         label="Site"
         placeholder="Choose a site"
         options={siteOptions(sites)}
@@ -153,13 +160,14 @@ export function MemberAccessForm({
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Saving…" : "Save access"}
+        {isPending ? t("Saving…") : t("Save access")}
       </Button>
     </form>
   );
 }
 
 export function SetPasswordForm({ userId }: { userId: string }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     setPasswordAction,
     initialState,
@@ -169,7 +177,9 @@ export function SetPasswordForm({ userId }: { userId: string }) {
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="userId" value={userId} />
       <Field>
-        <FieldLabel htmlFor={`password-${userId}`}>New password</FieldLabel>
+        <FieldLabel htmlFor={`password-${userId}`}>
+          {t("New password")}
+        </FieldLabel>
         <Input
           id={`password-${userId}`}
           name="password"
@@ -182,7 +192,7 @@ export function SetPasswordForm({ userId }: { userId: string }) {
       <FormError error={state.error} />
       {state.isDone ? (
         <p role="status" className="type-caption text-muted-foreground">
-          Password set. They were signed out everywhere.
+          {t("Password set. They were signed out everywhere.")}
         </p>
       ) : null}
       <Button
@@ -191,7 +201,7 @@ export function SetPasswordForm({ userId }: { userId: string }) {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Saving…" : "Set password"}
+        {isPending ? t("Saving…") : t("Set password")}
       </Button>
     </form>
   );
@@ -204,6 +214,7 @@ export function MemberActiveForm({
   userId: string;
   isActive: boolean;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     setActiveAction,
     initialState,
@@ -220,13 +231,14 @@ export function MemberActiveForm({
         disabled={isPending}
         className="self-start"
       >
-        {isActive ? "Deactivate" : "Reactivate"}
+        {isActive ? t("Deactivate") : t("Reactivate")}
       </Button>
     </form>
   );
 }
 
 export function AddTeamForm() {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     addTeamAction,
     initialState,
@@ -235,7 +247,7 @@ export function AddTeamForm() {
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <Field>
-        <FieldLabel htmlFor="team-name">New team</FieldLabel>
+        <FieldLabel htmlFor="team-name">{t("New team")}</FieldLabel>
         <Input id="team-name" name="name" maxLength={60} required />
       </Field>
       <FormError error={state.error} />
@@ -245,7 +257,7 @@ export function AddTeamForm() {
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Adding…" : "Add team"}
+        {isPending ? t("Adding…") : t("Add team")}
       </Button>
     </form>
   );

@@ -22,25 +22,29 @@ import Link from "next/link";
 
 import { formatDateTime } from "@/lib/format";
 
+import { getI18n } from "@/lib/i18n/server";
+
 import { categoryLabel, STATUS_LABELS, statusBadgeVariant } from "../labels";
 
-function DueDate({ item }: { item: QueueItem & { dueAt: Date | null } }) {
+async function DueDate({ item }: { item: QueueItem & { dueAt: Date | null } }) {
   if (!item.dueAt) return null;
+  const { t, locale } = await getI18n();
+  const date = formatDateTime(item.dueAt, locale);
   if (!isOverdue(item, new Date())) {
     return (
       <p className="text-xs text-muted-foreground">
-        Due {formatDateTime(item.dueAt)}
+        {t("Due {date}", { date })}
       </p>
     );
   }
   return (
     <p className="text-xs text-destructive">
-      Overdue since {formatDateTime(item.dueAt)}
+      {t("Overdue since {date}", { date })}
     </p>
   );
 }
 
-export function TicketTable({
+export async function TicketTable({
   items,
   emptyTitle,
   emptyMessage,
@@ -49,6 +53,7 @@ export function TicketTable({
   emptyTitle: string;
   emptyMessage: string;
 }) {
+  const { t, locale } = await getI18n();
   if (items.length === 0) {
     return (
       <Empty className="flex-none rounded-4xl bg-card shadow-card">
@@ -56,8 +61,8 @@ export function TicketTable({
           <EmptyMedia variant="icon">
             <HugeiconsIcon icon={TaskDaily01Icon} />
           </EmptyMedia>
-          <EmptyTitle>{emptyTitle}</EmptyTitle>
-          <EmptyDescription>{emptyMessage}</EmptyDescription>
+          <EmptyTitle>{t(emptyTitle)}</EmptyTitle>
+          <EmptyDescription>{t(emptyMessage)}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
@@ -68,11 +73,15 @@ export function TicketTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Report</TableHead>
-            <TableHead className="hidden sm:table-cell">Location</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="hidden md:table-cell">Category</TableHead>
-            <TableHead className="hidden md:table-cell">Sent</TableHead>
+            <TableHead>{t("Report")}</TableHead>
+            <TableHead className="hidden sm:table-cell">
+              {t("Location")}
+            </TableHead>
+            <TableHead>{t("Status")}</TableHead>
+            <TableHead className="hidden md:table-cell">
+              {t("Category")}
+            </TableHead>
+            <TableHead className="hidden md:table-cell">{t("Sent")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,17 +95,21 @@ export function TicketTable({
                   {item.title}
                 </Link>
                 <p className="text-xs text-muted-foreground sm:hidden">
-                  {item.location ?? "Location not set"}
+                  {item.location ?? t("Location not set")}
                 </p>
                 {item.linkedCount > 0 ? (
                   <p className="text-xs text-muted-foreground">
                     {item.linkedCount === 1
-                      ? "1 linked report"
-                      : `${item.linkedCount} linked reports`}
+                      ? t("1 linked report")
+                      : t("{count} linked reports", {
+                          count: item.linkedCount,
+                        })}
                   </p>
                 ) : null}
                 {item.hasUnreviewedAnswer ? (
-                  <p className="text-xs text-brand-text">Reporter answered</p>
+                  <p className="text-xs text-brand-text">
+                    {t("Reporter answered")}
+                  </p>
                 ) : null}
                 {item.teamName ? (
                   <p className="text-xs text-muted-foreground">
@@ -106,18 +119,18 @@ export function TicketTable({
                 {item.dueAt ? <DueDate item={item} /> : null}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
-                {item.location ?? "Not set"}
+                {item.location ?? t("Not set")}
               </TableCell>
               <TableCell>
                 <Badge variant={statusBadgeVariant(item.status)}>
-                  {STATUS_LABELS[item.status]}
+                  {t(STATUS_LABELS[item.status])}
                 </Badge>
               </TableCell>
               <TableCell className="hidden md:table-cell">
-                {categoryLabel(item.category) ?? "Not set"}
+                {t(categoryLabel(item.category) ?? "Not set")}
               </TableCell>
               <TableCell className="hidden font-mono text-xs text-muted-foreground md:table-cell">
-                {formatDateTime(item.createdAt)}
+                {formatDateTime(item.createdAt, locale)}
               </TableCell>
             </TableRow>
           ))}

@@ -12,8 +12,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const { t } = useI18n();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -38,17 +41,17 @@ export function ModeToggle() {
           icon={MoonFastWindIcon}
           className="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
         />
-        <span className="sr-only">Toggle theme</span>
+        <span className="sr-only">{t("Toggle theme")}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Day
+          {t("Day")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Night
+          {t("Night")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
+          {t("System")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

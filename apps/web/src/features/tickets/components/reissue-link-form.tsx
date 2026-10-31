@@ -4,6 +4,8 @@ import { Button } from "@streetproof/ui/components/button";
 import { Input } from "@streetproof/ui/components/input";
 import { useActionState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import {
   reissueStatusLinkAction,
   type ReissueState,
@@ -19,6 +21,7 @@ export function ReissueLinkForm({
   ticketId: string;
   reportId: string;
 }) {
+  const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     reissueStatusLinkAction,
     initialState,
@@ -29,13 +32,14 @@ export function ReissueLinkForm({
       <div className="flex flex-col gap-2">
         <Input
           readOnly
-          aria-label="New status link"
+          aria-label={t("New status link")}
           value={state.url}
           className="font-mono"
         />
         <p className="type-caption text-muted-foreground">
-          Send this to the reporter now. It isn&apos;t shown again, and their
-          old link has stopped working.
+          {t(
+            "Send this to the reporter now. It isn't shown again, and their old link has stopped working.",
+          )}
         </p>
       </div>
     );
@@ -53,7 +57,7 @@ export function ReissueLinkForm({
         disabled={isPending}
         className="self-start"
       >
-        {isPending ? "Creating…" : "Create a new status link"}
+        {isPending ? t("Creating…") : t("Create a new status link")}
       </Button>
     </form>
   );

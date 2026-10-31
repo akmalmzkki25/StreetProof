@@ -13,6 +13,7 @@ import { Suspense } from "react";
 
 import { QueueFilters } from "@/features/tickets/components/queue-filters";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
+import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Operator queue" };
@@ -24,10 +25,13 @@ function oneOf<T extends string>(value: unknown, allowed: readonly T[]) {
   return allowed.find((item) => item === value) ?? null;
 }
 
-export default function QueuePage({ searchParams }: PageProps<"/app/queue">) {
+export default async function QueuePage({
+  searchParams,
+}: PageProps<"/app/queue">) {
+  const { t } = await getI18n();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">Operator queue</h1>
+      <h1 className="type-headline">{t("Operator queue")}</h1>
       <Suspense fallback={<Skeleton className="h-64" />}>
         <Queue searchParams={searchParams} />
       </Suspense>
@@ -41,6 +45,7 @@ async function Queue({
   searchParams: Promise<SearchParams>;
 }) {
   const member = await requireRole("operator");
+  const { t } = await getI18n();
   const params = await searchParams;
   const search =
     typeof params.q === "string" ? params.q.trim().slice(0, 100) : "";
@@ -65,7 +70,7 @@ async function Queue({
     <div className="flex flex-col gap-6">
       {intakeSites.length > 0 ? (
         <p className="type-caption text-muted-foreground">
-          Report forms:{" "}
+          {t("Report forms:")}{" "}
           {intakeSites.map((site) => (
             <Link
               key={site.id}

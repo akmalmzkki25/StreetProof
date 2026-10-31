@@ -1,0 +1,30 @@
+import { ID_MESSAGES } from "./messages-id";
+
+export const LOCALE_COOKIE = "streetproof_locale";
+export const LOCALES = ["en", "id"] as const;
+
+export type Locale = (typeof LOCALES)[number];
+export type Params = Record<string, string | number>;
+export type Translate = (text: string, params?: Params) => string;
+
+// The English sentence is the key, so English needs no table and a missing entry
+// shows readable English instead of a code. messages.test.ts catches missing ones.
+export function translate(locale: Locale, text: string, params?: Params) {
+  const template = locale === "id" ? (ID_MESSAGES[text] ?? text) : text;
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) => {
+    const value = params[name];
+    return value === undefined ? placeholder : String(value);
+  });
+}
+
+// A saved choice wins. Otherwise the browser's first language decides, so someone
+// in Indonesia opening a report link gets Indonesian without being asked.
+export function chooseLocale(
+  saved: string | undefined,
+  acceptLanguage: string | null,
+): Locale {
+  if (saved === "en" || saved === "id") return saved;
+  const first = acceptLanguage?.split(",")[0]?.trim().toLowerCase() ?? "";
+  return first.startsWith("id") ? "id" : "en";
+}

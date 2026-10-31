@@ -3,6 +3,7 @@
 import { Button } from "@streetproof/ui/components/button";
 import { useEffect, useRef, useState } from "react";
 
+import { useI18n } from "@/lib/i18n/client";
 import { encodeWav } from "@/lib/wav";
 
 import { transcribeVoiceNote } from "../voice-action";
@@ -34,6 +35,7 @@ export function VoiceNoteButton({
 }: {
   onTranscript: (text: string) => void;
 }) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
@@ -100,10 +102,10 @@ export function VoiceNoteButton({
         className="self-start max-sm:h-11"
       >
         {status === "recording"
-          ? "Stop recording"
+          ? t("Stop recording")
           : status === "transcribing"
-            ? "Writing it down…"
-            : "Record a voice note"}
+            ? t("Writing it down…")
+            : t("Record a voice note")}
       </Button>
       <p
         role={error ? "alert" : "status"}
@@ -113,10 +115,11 @@ export function VoiceNoteButton({
             : "type-caption text-muted-foreground"
         }
       >
-        {error ??
-          (status === "recording"
-            ? "Recording. Up to one minute."
-            : "We write it down for you to check. The recording isn't kept.")}
+        {error
+          ? t(error)
+          : status === "recording"
+            ? t("Recording. Up to one minute.")
+            : t("We write it down for you to check. The recording isn't kept.")}
       </p>
     </div>
   );

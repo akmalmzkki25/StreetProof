@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
 import { StreetProofMark } from "@/components/street-proof-mark";
 import { signOut } from "@/features/auth/actions";
+import { getI18n } from "@/lib/i18n/server";
 import { getCurrentMember } from "@/lib/member";
 
 import { navLinksFor } from "../nav-links";
@@ -42,6 +43,7 @@ export async function AppNav() {
   if (!member) return <NavFrame />;
 
   const links = navLinksFor(member.roles);
+  const { t } = await getI18n();
 
   return (
     <NavFrame>
@@ -53,7 +55,7 @@ export async function AppNav() {
         <ModeToggle />
         <form action={signOut} className="hidden md:block">
           <Button type="submit" variant="ghost">
-            Sign out
+            {t("Sign out")}
           </Button>
         </form>
         <MobileNavMenu links={links} />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { LocaleBoundary } from "@/components/locale-boundary";
 import Providers from "@/components/providers";
 
 import "./globals.css";
@@ -18,7 +19,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className="min-h-full bg-background text-foreground antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <LocaleBoundary>{children}</LocaleBoundary>
+        </Providers>
       </body>
     </html>
   );

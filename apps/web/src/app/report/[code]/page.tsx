@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { ReportForm } from "@/features/intake/components/report-form";
+import { getI18n } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Report damage" };
 
@@ -28,16 +29,17 @@ async function ReportContent({
   await connection();
   const site = await findIntakeSite(getDb(), code);
   if (!site) notFound();
+  const { t } = await getI18n();
 
   return (
     <>
       <header className="flex flex-col gap-2">
         <p className="type-caption text-muted-foreground">{site.name}</p>
-        <h1 className="type-headline">Report damage</h1>
+        <h1 className="type-headline">{t("Report damage")}</h1>
         <p className="type-caption text-muted-foreground">
-          No account needed. For fire, injury or anything dangerous, leave the
-          area and call building security first. This form is not monitored for
-          emergencies.
+          {t(
+            "No account needed. For fire, injury or anything dangerous, leave the area and call building security first. This form is not monitored for emergencies.",
+          )}
         </p>
       </header>
       <ReportForm

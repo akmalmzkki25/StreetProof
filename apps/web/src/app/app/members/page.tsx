@@ -20,14 +20,16 @@ import {
   SetPasswordForm,
 } from "@/features/members/components/member-forms";
 import { ROLE_LABELS } from "@/features/members/labels";
+import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Members" };
 
-export default function MembersPage() {
+export default async function MembersPage() {
+  const { t } = await getI18n();
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">Members</h1>
+      <h1 className="type-headline">{t("Members")}</h1>
       <Suspense fallback={<Skeleton className="h-96" />}>
         <Members />
       </Suspense>
@@ -37,6 +39,7 @@ export default function MembersPage() {
 
 async function Members() {
   const member = await requireRole("tenant_admin");
+  const { t } = await getI18n();
   const db = getDb();
   const [members, sites, teams] = await Promise.all([
     listMembers(db, member.tenantId),
@@ -46,7 +49,10 @@ async function Members() {
 
   return (
     <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-      <section aria-label="Current members" className="flex flex-col gap-4">
+      <section
+        aria-label={t("Current members")}
+        className="flex flex-col gap-4"
+      >
         {members.map((person) => (
           <details
             key={person.userId}
@@ -59,11 +65,11 @@ async function Members() {
               </span>
               <span className="flex flex-wrap gap-2">
                 {person.isActive ? null : (
-                  <Badge variant="destructive">Deactivated</Badge>
+                  <Badge variant="destructive">{t("Deactivated")}</Badge>
                 )}
                 {person.roles.map((role) => (
                   <Badge key={role} variant="outline">
-                    {ROLE_LABELS[role]}
+                    {t(ROLE_LABELS[role])}
                   </Badge>
                 ))}
               </span>
@@ -102,14 +108,14 @@ async function Members() {
                   <form action={retireTeamAction}>
                     <input type="hidden" name="teamId" value={team.id} />
                     <Button type="submit" variant="ghost" size="sm">
-                      Retire
+                      {t("Retire")}
                     </Button>
                   </form>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-muted-foreground">No teams yet.</p>
+            <p className="text-muted-foreground">{t("No teams yet.")}</p>
           )}
           <AddTeamForm />
         </Panel>

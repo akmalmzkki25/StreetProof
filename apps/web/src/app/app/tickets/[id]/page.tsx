@@ -34,6 +34,7 @@ import {
   Timeline,
 } from "@/features/tickets/components/ticket-sections";
 import { STATUS_LABELS, statusBadgeVariant } from "@/features/tickets/labels";
+import { getI18n } from "@/lib/i18n/server";
 import { requireMember } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Ticket" };
@@ -63,6 +64,8 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
     notFound();
   }
 
+  const { t } = await getI18n();
+
   // After the response, so a page view never waits on or fails because of its log.
   after(async function logView() {
     try {
@@ -85,11 +88,11 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
           variant={statusBadgeVariant(ticket.status)}
           className="self-start"
         >
-          {STATUS_LABELS[ticket.status]}
+          {t(STATUS_LABELS[ticket.status])}
         </Badge>
         {/* A report's own words can run long, so not a headline size. */}
         <h1 className="type-lead font-medium">
-          {ticket.summary ?? ticket.reports[0]?.description ?? "Ticket"}
+          {ticket.summary ?? ticket.reports[0]?.description ?? t("Ticket")}
         </h1>
       </header>
 

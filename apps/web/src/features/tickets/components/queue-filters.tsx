@@ -11,6 +11,8 @@ import { Input } from "@streetproof/ui/components/input";
 import Form from "next/form";
 import Link from "next/link";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
 import { SelectField } from "./ticket-forms";
 
@@ -39,6 +41,7 @@ export function QueueFilters({
   category: string | null;
   priority: string | null;
 }) {
+  const { t } = useI18n();
   return (
     <Form
       action="/app/queue"
@@ -46,14 +49,14 @@ export function QueueFilters({
       className="grid grid-cols-1 items-end gap-4 rounded-4xl bg-card p-6 shadow-card sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]"
     >
       <Field>
-        <FieldLabel htmlFor="q">Search</FieldLabel>
+        <FieldLabel htmlFor="q">{t("Search")}</FieldLabel>
         <Input
           id="q"
           name="q"
           type="search"
           maxLength={100}
           defaultValue={search}
-          placeholder="Words from the report, summary or location"
+          placeholder={t("Words from the report, summary or location")}
         />
       </Field>
       <SelectField
@@ -79,13 +82,13 @@ export function QueueFilters({
       />
       <div className="flex items-center gap-4 sm:col-span-2 lg:col-span-4">
         <Button type="submit" variant="outline">
-          Apply filters
+          {t("Apply filters")}
         </Button>
         <Link
           href="/app/queue"
           className="type-caption text-brand-text underline underline-offset-4"
         >
-          Clear
+          {t("Clear")}
         </Link>
       </div>
     </Form>
