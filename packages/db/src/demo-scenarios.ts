@@ -285,6 +285,8 @@ function createFlows(context: DemoContext) {
             siteId: context.siteId,
             actor: people.operator,
             technicianId: technician.userId,
+            // Three days to do it, so older open work shows as overdue.
+            dueAt: ago(age - 3),
           }),
         ),
       accept: (age: number, technician: Person) =>

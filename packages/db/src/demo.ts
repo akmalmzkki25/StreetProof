@@ -10,6 +10,7 @@ export type DemoTenant = {
   siteName: string;
   intakeCode: string;
   locationNames: string[];
+  teamNames: string[];
   users: DemoUser[];
 };
 
@@ -24,6 +25,7 @@ export const DEMO_TENANTS: DemoTenant[] = [
       "Floor 7 restroom",
       "Basement parking B1",
     ],
+    teamNames: ["Building upkeep", "Electrical", "Plumbing"],
     users: [
       {
         name: "Dewi Operator",
@@ -58,6 +60,7 @@ export const DEMO_TENANTS: DemoTenant[] = [
     siteName: "Kampus Contoh Main Building",
     intakeCode: "kampus-main",
     locationNames: ["Library", "Hall B"],
+    teamNames: ["Campus facilities"],
     users: [
       {
         name: "Other Tenant Operator",

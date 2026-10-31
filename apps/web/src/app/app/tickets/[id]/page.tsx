@@ -19,6 +19,7 @@ import {
 } from "@/features/tickets/components/next-step";
 import {
   Attempts,
+  InternalNotes,
   DuplicateOf,
   LinkedReports,
   Reports,
@@ -95,6 +96,7 @@ async function Ticket({ idPromise }: { idPromise: Promise<string> }) {
             <NextStep ticket={ticket} member={member} />
           )}
           <LinkAsDuplicate ticket={ticket} member={member} />
+          <InternalNotes ticket={ticket} />
         </aside>
       </div>
     </div>

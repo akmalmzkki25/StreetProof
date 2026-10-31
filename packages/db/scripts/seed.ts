@@ -14,6 +14,7 @@ import {
   locations,
   memberships,
   sites,
+  teams,
   tenants,
   user,
 } from "../src/schema";
@@ -40,7 +41,7 @@ await db.execute(sql`
   truncate table
     idempotency_keys, reporter_credentials, ai_drafts, outbox, ticket_events,
     clarifications, duplicate_links, uploads, proof_checks, verifications, completion_submissions, assignments,
-    reports, tickets, memberships, locations, sites, tenants,
+    ticket_notes, reports, tickets, teams, memberships, locations, sites, tenants,
     verification, account, session, "user"
   cascade
 `);
@@ -89,6 +90,12 @@ async function seedTenant(demoTenant: DemoTenant) {
       name,
     })),
   );
+
+  await db
+    .insert(teams)
+    .values(
+      demoTenant.teamNames.map((name) => ({ tenantId: tenant.id, name })),
+    );
 
   for (const demoUser of demoTenant.users) {
     const userId = await createUser(demoUser);

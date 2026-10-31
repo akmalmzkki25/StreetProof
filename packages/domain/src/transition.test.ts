@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isOverdue,
   reporterStage,
   TICKET_STATUSES,
   TRANSITIONS,
@@ -150,6 +151,29 @@ describe("checkTransition", () => {
         missing: ["reason", "independent_review"],
       },
     });
+  });
+});
+
+describe("isOverdue", () => {
+  const now = new Date("2026-11-01T00:00:00Z");
+  const past = new Date("2026-10-31T00:00:00Z");
+
+  it("flags open work past its deadline only", () => {
+    expect(isOverdue({ status: "in_progress", dueAt: past }, now)).toBe(true);
+    expect(isOverdue({ status: "in_progress", dueAt: null }, now)).toBe(false);
+    expect(
+      isOverdue(
+        { status: "in_progress", dueAt: new Date("2026-11-02T00:00:00Z") },
+        now,
+      ),
+    ).toBe(false);
+  });
+
+  it("ignores finished work", () => {
+    expect(isOverdue({ status: "verified_closed", dueAt: past }, now)).toBe(
+      false,
+    );
+    expect(isOverdue({ status: "cancelled", dueAt: past }, now)).toBe(false);
   });
 });
 

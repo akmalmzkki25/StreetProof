@@ -1,9 +1,15 @@
-import { TICKET_STATUSES, type TicketStatus } from "@streetproof/domain";
+import {
+  TICKET_STATUSES,
+  type TicketPriority,
+  type TicketStatus,
+} from "@streetproof/domain";
 import {
   and,
   asc,
   desc,
   eq,
+  exists,
+  ilike,
   inArray,
   isNotNull,
   isNull,
@@ -23,7 +29,9 @@ import {
   memberships,
   reports,
   sites,
+  teams,
   ticketEvents,
+  ticketNotes,
   tickets,
   uploads,
   user,
@@ -50,7 +58,37 @@ export function inScope(scope: MemberScope): SQL | undefined {
 export type QueueFilter = {
   statuses?: readonly TicketStatus[];
   assigneeId?: string;
+  search?: string;
+  category?: string;
+  priority?: TicketPriority;
 };
+
+// So a typed % or _ means itself rather than "anything".
+function containsPattern(text: string) {
+  return `%${text.replace(/[\\%_]/g, "\\$&")}%`;
+}
+
+function matchesSearch(db: Db, search: string) {
+  const pattern = containsPattern(search);
+  return or(
+    ilike(tickets.summary, pattern),
+    ilike(locations.name, pattern),
+    exists(
+      db
+        .select({ id: reports.id })
+        .from(reports)
+        .where(
+          and(
+            eq(reports.canonicalTicketId, tickets.id),
+            or(
+              ilike(reports.description, pattern),
+              ilike(reports.locationText, pattern),
+            ),
+          ),
+        ),
+    ),
+  );
+}
 
 export async function listQueue(
   db: Db,
@@ -66,10 +104,13 @@ export async function listQueue(
       priority: tickets.priority,
       createdAt: tickets.createdAt,
       updatedAt: tickets.updatedAt,
+      dueAt: tickets.dueAt,
       locationName: locations.name,
+      teamName: teams.name,
     })
     .from(tickets)
     .leftJoin(locations, eq(locations.id, tickets.locationId))
+    .leftJoin(teams, eq(teams.id, tickets.teamId))
     .where(
       and(
         inScope(scope),
@@ -79,6 +120,9 @@ export async function listQueue(
         filter.assigneeId
           ? eq(tickets.currentAssigneeId, filter.assigneeId)
           : undefined,
+        filter.search ? matchesSearch(db, filter.search) : undefined,
+        filter.category ? eq(tickets.category, filter.category) : undefined,
+        filter.priority ? eq(tickets.priority, filter.priority) : undefined,
         // A linked duplicate needs no work of its own; it shows on its target.
         notInArray(
           tickets.id,
@@ -207,11 +251,14 @@ export async function getTicketDetail(
       locationName: locations.name,
       currentAssigneeId: tickets.currentAssigneeId,
       assigneeName: assignee.name,
+      teamName: teams.name,
+      dueAt: tickets.dueAt,
       createdAt: tickets.createdAt,
     })
     .from(tickets)
     .leftJoin(locations, eq(locations.id, tickets.locationId))
     .leftJoin(assignee, eq(assignee.id, tickets.currentAssigneeId))
+    .leftJoin(teams, eq(teams.id, tickets.teamId))
     .where(and(inScope(scope), eq(tickets.id, ticketId)));
   if (!ticket) return null;
 
@@ -328,6 +375,18 @@ export async function getTicketDetail(
       ),
     );
 
+  const notes = await db
+    .select({
+      id: ticketNotes.id,
+      body: ticketNotes.body,
+      authorName: user.name,
+      createdAt: ticketNotes.createdAt,
+    })
+    .from(ticketNotes)
+    .innerJoin(user, eq(user.id, ticketNotes.authorId))
+    .where(eq(ticketNotes.ticketId, ticketId))
+    .orderBy(asc(ticketNotes.createdAt));
+
   const checks = await db
     .select({
       completionId: proofChecks.completionId,
@@ -365,6 +424,7 @@ export async function getTicketDetail(
     ...ticket,
     aiDraft: drafts[0] ?? null,
     reports: ticketReports,
+    notes,
     clarifications: questions,
     duplicateOf: outgoing
       ? {
@@ -427,6 +487,14 @@ export async function listTechnicians(
       ),
     )
     .orderBy(asc(user.name));
+}
+
+export async function listTeams(db: Db, tenantId: string) {
+  return db
+    .select({ id: teams.id, name: teams.name })
+    .from(teams)
+    .where(and(eq(teams.tenantId, tenantId), eq(teams.active, true)))
+    .orderBy(asc(teams.name));
 }
 
 export async function listSiteLocations(

@@ -219,6 +219,16 @@ const REPORTER_STAGE_BY_STATUS: Record<TicketStatus, ReporterStage> = {
   cancelled: "closed_without_repair",
 };
 
+export function isOverdue(
+  ticket: { status: TicketStatus; dueAt: Date | null },
+  now: Date,
+) {
+  if (ticket.status === "verified_closed" || ticket.status === "cancelled") {
+    return false;
+  }
+  return ticket.dueAt !== null && ticket.dueAt.getTime() < now.getTime();
+}
+
 export function reporterStage(status: TicketStatus): ReporterStage {
   return REPORTER_STAGE_BY_STATUS[status];
 }

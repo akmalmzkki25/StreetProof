@@ -12,7 +12,9 @@ import {
   duplicateLinks,
   memberships,
   outbox,
+  teams,
   ticketEvents,
+  ticketNotes,
   tickets,
 } from "./schema";
 
@@ -20,7 +22,13 @@ type Ticket = typeof tickets.$inferSelect;
 type TicketChanges = Partial<
   Pick<
     Ticket,
-    "summary" | "category" | "priority" | "locationId" | "currentAssigneeId"
+    | "summary"
+    | "category"
+    | "priority"
+    | "locationId"
+    | "currentAssigneeId"
+    | "teamId"
+    | "dueAt"
   >
 >;
 
@@ -45,6 +53,7 @@ export type TransitionOutcome =
         | TransitionRejection
         | { code: "not_found" }
         | { code: "technician_not_eligible" }
+        | { code: "team_not_found" }
         | { code: "linked_as_duplicate" }
         | { code: "has_linked_duplicates" };
     };
@@ -198,8 +207,29 @@ export function triageTicket(
 
 export async function assignTicket(
   db: Db,
-  command: WorkCommand & { siteId: string; technicianId: string },
+  command: WorkCommand & {
+    siteId: string;
+    technicianId: string;
+    teamId?: string | null;
+    dueAt?: Date | null;
+  },
 ): Promise<TransitionOutcome> {
+  const teamId = command.teamId ?? null;
+  const dueAt = command.dueAt ?? null;
+  if (teamId) {
+    const [team] = await db
+      .select({ id: teams.id })
+      .from(teams)
+      .where(
+        and(
+          eq(teams.tenantId, command.tenantId),
+          eq(teams.id, teamId),
+          eq(teams.active, true),
+        ),
+      );
+    if (!team) return { ok: false, rejection: { code: "team_not_found" } };
+  }
+
   const [eligible] = await db
     .select({ id: memberships.id })
     .from(memberships)
@@ -223,7 +253,11 @@ export async function assignTicket(
     to: "assigned",
     expectedRevision: command.expectedRevision,
     provided: ["assignee"],
-    payload: { technicianId: command.technicianId },
+    payload: {
+      technicianId: command.technicianId,
+      teamId,
+      dueAt: dueAt?.toISOString() ?? null,
+    },
     apply: async function replaceAssignment(tx, ticket) {
       await tx
         .update(assignments)
@@ -237,7 +271,42 @@ export async function assignTicket(
         technicianId: command.technicianId,
         assignedBy: command.actor.userId,
       });
-      return { currentAssigneeId: command.technicianId };
+      return { currentAssigneeId: command.technicianId, teamId, dueAt };
     },
+  });
+}
+
+// Doesn't change status or revision: a note shouldn't invalidate an open form.
+export async function addTicketNote(
+  db: Db,
+  command: {
+    tenantId: string;
+    ticketId: string;
+    authorId: string;
+    body: string;
+  },
+): Promise<{ ok: true } | { ok: false; code: "not_found" }> {
+  return db.transaction(async function run(tx) {
+    const [ticket] = await tx
+      .select({ id: tickets.id })
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.tenantId, command.tenantId),
+          eq(tickets.id, command.ticketId),
+        ),
+      )
+      .for("update");
+    if (!ticket) return { ok: false, code: "not_found" };
+
+    await tx.insert(ticketNotes).values(command);
+    await tx.insert(ticketEvents).values({
+      tenantId: command.tenantId,
+      ticketId: command.ticketId,
+      seq: await nextEventSeq(tx, command.ticketId),
+      type: "note_added",
+      actorId: command.authorId,
+    });
+    return { ok: true };
   });
 }

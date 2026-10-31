@@ -8,6 +8,12 @@ export function formatDateTime(date: Date) {
   return `${dateTimeFormat.format(date)} WIB`;
 }
 
+// A datetime-local value means WIB, whatever timezone the server runs in.
+export function parseWibInput(value: string) {
+  const seconds = value.length === 16 ? ":00" : "";
+  return new Date(`${value}${seconds}+07:00`);
+}
+
 const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;

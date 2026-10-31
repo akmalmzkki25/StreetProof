@@ -168,6 +168,20 @@ export const memberships = pgTable(
   ],
 );
 
+export const teams = pgTable(
+  "teams",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid()
+      .notNull()
+      .references(() => tenants.id),
+    name: text().notNull(),
+    active: boolean().notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (table) => [unique().on(table.tenantId, table.id)],
+);
+
 // --- Tickets and reports ------------------------------------------------------
 
 export const ticketStatusEnum = pgEnum("ticket_status", TICKET_STATUSES);
@@ -186,12 +200,18 @@ export const tickets = pgTable(
     priority: priorityEnum(),
     locationId: uuid(),
     currentAssigneeId: text().references(() => user.id),
+    teamId: uuid(),
+    dueAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (table) => [
     unique().on(table.tenantId, table.id),
     index().on(table.tenantId, table.siteId, table.status, table.updatedAt),
+    foreignKey({
+      columns: [table.tenantId, table.teamId],
+      foreignColumns: [teams.tenantId, teams.id],
+    }),
     foreignKey({
       columns: [table.tenantId, table.siteId],
       foreignColumns: [sites.tenantId, sites.id],
@@ -438,6 +458,29 @@ export const ticketEvents = pgTable(
   },
   (table) => [
     unique().on(table.ticketId, table.seq),
+    foreignKey({
+      columns: [table.tenantId, table.ticketId],
+      foreignColumns: [tickets.tenantId, tickets.id],
+    }),
+  ],
+);
+
+// For staff only. The text stays out of ticket_events so that nothing building a
+// reporter's view from events could ever carry it.
+export const ticketNotes = pgTable(
+  "ticket_notes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    ticketId: uuid().notNull(),
+    authorId: text()
+      .notNull()
+      .references(() => user.id),
+    body: text().notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index().on(table.ticketId, table.createdAt),
     foreignKey({
       columns: [table.tenantId, table.ticketId],
       foreignColumns: [tickets.tenantId, tickets.id],

@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration, formatDurationInWords } from "./format";
+import { formatDuration, formatDurationInWords, parseWibInput } from "./format";
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
+
+describe("parseWibInput", () => {
+  it("reads a datetime-local value as WIB", () => {
+    expect(parseWibInput("2026-11-01T10:30").toISOString()).toBe(
+      "2026-11-01T03:30:00.000Z",
+    );
+  });
+});
 
 describe("formatDuration", () => {
   it("uses the largest whole unit and never rounds up", () => {

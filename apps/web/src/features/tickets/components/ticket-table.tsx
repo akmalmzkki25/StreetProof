@@ -1,6 +1,7 @@
 import { TaskDaily01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { QueueItem } from "@streetproof/db";
+import { isOverdue } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import {
   Empty,
@@ -22,6 +23,22 @@ import Link from "next/link";
 import { formatDateTime } from "@/lib/format";
 
 import { categoryLabel, STATUS_LABELS, statusBadgeVariant } from "../labels";
+
+function DueDate({ item }: { item: QueueItem & { dueAt: Date | null } }) {
+  if (!item.dueAt) return null;
+  if (!isOverdue(item, new Date())) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Due {formatDateTime(item.dueAt)}
+      </p>
+    );
+  }
+  return (
+    <p className="text-xs text-destructive">
+      Overdue since {formatDateTime(item.dueAt)}
+    </p>
+  );
+}
 
 export function TicketTable({
   items,
@@ -81,6 +98,12 @@ export function TicketTable({
                 {item.hasUnreviewedAnswer ? (
                   <p className="text-xs text-brand-text">Reporter answered</p>
                 ) : null}
+                {item.teamName ? (
+                  <p className="text-xs text-muted-foreground">
+                    {item.teamName}
+                  </p>
+                ) : null}
+                {item.dueAt ? <DueDate item={item} /> : null}
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 {item.location ?? "Not set"}

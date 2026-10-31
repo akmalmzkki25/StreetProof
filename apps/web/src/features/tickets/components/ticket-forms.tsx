@@ -206,7 +206,11 @@ export function AssignForm({
   ticketId,
   revision,
   technicians,
-}: TicketRef & { technicians: { id: string; name: string }[] }) {
+  teams,
+}: TicketRef & {
+  technicians: { id: string; name: string }[];
+  teams: { id: string; name: string }[];
+}) {
   const [state, formAction, isPending] = useActionState(
     assignAction,
     initialState,
@@ -215,15 +219,32 @@ export function AssignForm({
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <TicketRefFields ticketId={ticketId} revision={revision} />
-      <SelectField
-        id="technicianId"
-        label="Technician"
-        placeholder="Choose a technician"
-        options={technicians.map((technician) => ({
-          value: technician.id,
-          label: technician.name,
-        }))}
-      />
+      <FieldGroup>
+        <SelectField
+          id="technicianId"
+          label="Technician"
+          placeholder="Choose a technician"
+          options={technicians.map((technician) => ({
+            value: technician.id,
+            label: technician.name,
+          }))}
+        />
+        {teams.length > 0 ? (
+          <SelectField
+            id="teamId"
+            label="Team (optional)"
+            placeholder="No team"
+            options={teams.map((team) => ({
+              value: team.id,
+              label: team.name,
+            }))}
+          />
+        ) : null}
+        <Field>
+          <FieldLabel htmlFor="dueAt">Due by, WIB (optional)</FieldLabel>
+          <Input id="dueAt" name="dueAt" type="datetime-local" />
+        </Field>
+      </FieldGroup>
       <FormError error={state.error} />
       <Button type="submit" disabled={isPending} className="self-start">
         {isPending ? "Assigning…" : "Assign technician"}

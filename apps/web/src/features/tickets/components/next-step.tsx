@@ -2,6 +2,7 @@ import {
   getDb,
   listLinkCandidates,
   listSiteLocations,
+  listTeams,
   listTechnicians,
   type TicketDetail,
 } from "@streetproof/db";
@@ -211,6 +212,7 @@ export async function NextStep({
               member.tenantId,
               ticket.siteId,
             )}
+            teams={await listTeams(db, member.tenantId)}
           />
         </Panel>
       ) : null}

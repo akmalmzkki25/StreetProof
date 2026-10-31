@@ -1,5 +1,5 @@
 import type { TicketDetail } from "@streetproof/db";
-import { canManageDuplicates } from "@streetproof/domain";
+import { canManageDuplicates, isOverdue } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import Link from "next/link";
 
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 import { categoryLabel, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
 import { UnlinkDuplicateForm } from "./duplicate-forms";
+import { NoteForm } from "./note-form";
 import { ProofCheckPanel } from "./proof-check-panel";
 
 // Set by the worker rather than a person.
@@ -280,6 +281,29 @@ export function DuplicateOf({
   );
 }
 
+export function InternalNotes({ ticket }: { ticket: TicketDetail }) {
+  return (
+    <Panel id="internal-notes" title="Internal notes">
+      <p className="type-caption text-muted-foreground">
+        Your team can read these. The reporter never sees them.
+      </p>
+      {ticket.notes.length > 0 ? (
+        <ul className="flex flex-col gap-3">
+          {ticket.notes.map((note) => (
+            <li key={note.id}>
+              <p className="whitespace-pre-wrap">{note.body}</p>
+              <p className="type-caption text-muted-foreground">
+                {note.authorName} · {formatDateTime(note.createdAt)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <NoteForm ticketId={ticket.id} />
+    </Panel>
+  );
+}
+
 export function Reviewed({ ticket }: { ticket: TicketDetail }) {
   if (!ticket.category) return null;
   return (
@@ -299,6 +323,25 @@ export function Reviewed({ ticket }: { ticket: TicketDetail }) {
             <dd>{ticket.assigneeName}</dd>
           </>
         ) : null}
+        {ticket.teamName ? (
+          <>
+            <dt className="text-muted-foreground">Team</dt>
+            <dd>{ticket.teamName}</dd>
+          </>
+        ) : null}
+        {ticket.dueAt ? (
+          <>
+            <dt className="text-muted-foreground">Due by</dt>
+            <dd
+              className={
+                isOverdue(ticket, new Date()) ? "text-destructive" : undefined
+              }
+            >
+              {formatDateTime(ticket.dueAt)}
+              {isOverdue(ticket, new Date()) ? " (overdue)" : ""}
+            </dd>
+          </>
+        ) : null}
       </dl>
     </Panel>
   );
@@ -308,6 +351,7 @@ function eventLabel(event: TicketDetail["events"][number]) {
   if (event.type === "ai_draft_ready") return "AI suggestion ready";
   if (event.type === "ai_draft_retried") return "AI suggestion requested again";
   if (event.type === "ai_proof_check_ready") return "AI comparison ready";
+  if (event.type === "note_added") return "Internal note added";
   if (event.type === "clarification_answered") return "Reporter answered";
   if (
     event.fromStatus === "needs_clarification" &&

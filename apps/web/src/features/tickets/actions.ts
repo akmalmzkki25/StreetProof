@@ -2,6 +2,7 @@
 
 import {
   acceptWork,
+  addTicketNote,
   assignTicket,
   decideCompletion,
   getDb,
@@ -28,6 +29,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { parseWibInput } from "@/lib/format";
 import { requireMember, requireRole, type Member } from "@/lib/member";
 import { readPhotos, storePhotos } from "@/lib/photo-upload";
 
@@ -53,6 +55,19 @@ const triageFields = z.object({
 const assignFields = z.object({
   ...ticketRef,
   technicianId: z.string().min(1, "Choose a technician."),
+  teamId: z.uuid().nullable(),
+  dueAt: z.iso
+    .datetime({ local: true, error: "Choose a valid deadline." })
+    .nullable(),
+});
+
+const noteFields = z.object({
+  ticketId: z.uuid(),
+  body: z
+    .string()
+    .trim()
+    .min(2, "Write the note first.")
+    .max(1000, "Keep the note under 1,000 characters."),
 });
 
 const cancelFields = z.object({
@@ -141,6 +156,8 @@ function rejectionMessage(outcome: Extract<TransitionOutcome, { ok: false }>) {
       return "Someone else changed this ticket. Reload to see the latest version.";
     case "not_current_assignee":
       return "This work is assigned to someone else.";
+    case "team_not_found":
+      return "That team isn't available. Choose another one.";
     case "technician_not_eligible":
       return "That person can't take work on this site.";
     case "not_found":
@@ -265,9 +282,16 @@ export async function assignAction(
     ticketId: formData.get("ticketId"),
     expectedRevision: formData.get("expectedRevision"),
     technicianId: formData.get("technicianId") ?? "",
+    teamId: formData.get("teamId") || null,
+    dueAt: formData.get("dueAt") || null,
   });
   if (!fields.success) {
     return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const dueAt = fields.data.dueAt ? parseWibInput(fields.data.dueAt) : null;
+  if (dueAt && dueAt.getTime() < Date.now()) {
+    return { error: "The deadline has already passed." };
   }
 
   const ticket = await ticketInScope(member, fields.data.ticketId);
@@ -278,8 +302,36 @@ export async function assignAction(
     siteId: ticket.siteId,
     actor: actorOf(member),
     ...fields.data,
+    dueAt,
   });
   return finish(outcome, fields.data.ticketId);
+}
+
+export async function addNoteAction(
+  _previous: TicketActionState,
+  formData: FormData,
+): Promise<TicketActionState> {
+  const member = await requireMember();
+  const fields = noteFields.safeParse({
+    ticketId: formData.get("ticketId"),
+    body: formData.get("body") ?? "",
+  });
+  if (!fields.success) {
+    return { error: fields.error.issues[0]?.message ?? "Check the form." };
+  }
+
+  const ticket = await ticketInScope(member, fields.data.ticketId);
+  if (!ticket) return unavailable;
+
+  const outcome = await addTicketNote(getDb(), {
+    tenantId: member.tenantId,
+    ticketId: fields.data.ticketId,
+    authorId: member.userId,
+    body: fields.data.body,
+  });
+  if (!outcome.ok) return unavailable;
+  revalidatePath(`/app/tickets/${fields.data.ticketId}`);
+  return { error: null };
 }
 
 export async function cancelAction(

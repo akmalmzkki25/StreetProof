@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import {
   ACCOUNTS,
+  choose,
   openFromQueue,
   signIn,
   submitReport,
@@ -47,6 +48,48 @@ test("an operator asks, the reporter answers, and it returns to triage", async (
   await expect(
     operator.getByRole("heading", { name: description }),
   ).toBeVisible();
+});
+
+test("an assignment carries a team and deadline, and notes stay internal", async ({
+  browser,
+}) => {
+  const description = unique("Ceiling fan rattles");
+  const summary = unique("Rattling ceiling fan");
+  const reporter = await submitReport(browser, description);
+
+  const operator = await signIn(browser, ACCOUNTS.operator);
+  await openFromQueue(operator, description);
+  await operator.getByLabel("Summary").fill(summary);
+  await choose(operator, "Category", "Plumbing");
+  await operator.getByRole("button", { name: "Confirm triage" }).click();
+  await expect(
+    operator.getByRole("heading", { name: "Assign the work" }),
+  ).toBeVisible();
+  await choose(operator, "Technician", "Budi Technician");
+  await choose(operator, "Team (optional)", "Electrical");
+  await operator.getByLabel("Due by, WIB (optional)").fill("2099-01-15T10:30");
+  await operator.getByRole("button", { name: "Assign technician" }).click();
+  await expect(
+    operator.getByRole("heading", { name: "Assign the work" }),
+  ).toBeHidden();
+
+  await expect(visibleText(operator, "Electrical")).toBeVisible();
+  await expect(visibleText(operator, "15 Jan 2099, 10:30 WIB")).toBeVisible();
+
+  await operator.getByLabel("Add a note").fill("Vendor key is at reception.");
+  await operator.getByRole("button", { name: "Save note" }).click();
+  await expect(
+    visibleText(operator, "Vendor key is at reception."),
+  ).toBeVisible();
+
+  await operator.goto("/app/queue");
+  await expect(
+    visibleText(operator.getByRole("row", { name: summary }), "Electrical"),
+  ).toBeVisible();
+
+  await reporter.reload();
+  await expect(visibleText(reporter, description)).toBeVisible();
+  await expect(visibleText(reporter, "Vendor key")).toBeHidden();
 });
 
 test("a linked duplicate leaves the queue and can be restored", async ({
