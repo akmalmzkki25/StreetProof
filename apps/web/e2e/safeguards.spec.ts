@@ -1,15 +1,23 @@
-import { createDb, recordDraftFailure, schema } from "@streetproof/db";
-import { expect, test } from "@playwright/test";
+import {
+  createDb,
+  markDraftRunning,
+  recordDraftFailure,
+  recordDraftSuccess,
+  schema,
+  submitReport,
+} from "@streetproof/db";
+import { expect, test, type Browser } from "@playwright/test";
 import { and, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
 import {
   ACCOUNTS,
+  choose,
   openFromQueue,
   PHOTOS,
   signIn,
   startWork,
   submitProof,
-  submitReport,
   triageAndAssign,
   unique,
   visibleText,
@@ -21,18 +29,40 @@ test.skip(
   "Needs direct access to the test database",
 );
 
-const { memberships, reports, user } = schema;
+const { memberships, reports, sites, user } = schema;
 const { db, pool } = createDb(process.env.E2E_DATABASE_URL ?? "");
 
 test.afterAll(async () => {
   await pool.end();
 });
 
+// Straight to the database. What's tested here starts after the report form, and
+// the whole suite shares that form's rate limit.
+async function fileReport(description: string) {
+  const [site] = await db
+    .select({ id: sites.id, tenantId: sites.tenantId })
+    .from(sites)
+    .where(eq(sites.intakeCode, "graha-tower-a"));
+  if (!site) throw new Error("Site not found.");
+  const outcome = await submitReport(db, {
+    tenantId: site.tenantId,
+    siteId: site.id,
+    reportId: randomUUID(),
+    locationId: null,
+    locationText: "Lobby",
+    description,
+    photos: [],
+    idempotencyKey: randomUUID(),
+    requestDigest: "e2e",
+  });
+  if (!outcome.ok) throw new Error(outcome.code);
+}
+
 test("an operator retries a failed suggestion and can still triage meanwhile", async ({
   browser,
 }) => {
   const description = unique("Lamp keeps blinking in the lobby");
-  await submitReport(browser, description);
+  await fileReport(description);
   const [report] = await db
     .select()
     .from(reports)
@@ -67,6 +97,129 @@ test("an operator retries a failed suggestion and can still triage meanwhile", a
   ).toBeVisible();
 });
 
+// What the worker writes when a suggestion is ready. The open page picks it up
+// on its next refresh, a few seconds later.
+async function deliverDraft(description: string, duplicateOfTicketId: string) {
+  const [report] = await db
+    .select()
+    .from(reports)
+    .where(eq(reports.description, description));
+  if (!report) throw new Error("Report not found.");
+  const key = {
+    tenantId: report.tenantId,
+    reportId: report.id,
+    inputRevision: report.revision,
+    promptVersion: "e2e",
+  };
+  await markDraftRunning(db, {
+    ...key,
+    model: "e2e-model",
+    attempts: 1,
+    inputDigest: "e2e",
+  });
+  await recordDraftSuccess(db, {
+    ...key,
+    ticketId: report.canonicalTicketId,
+    draft: {
+      summary: "Summary written by AI",
+      visibleFacts: [],
+      userContext: [],
+      inferences: [],
+      missing_fields: [],
+      categoryCandidate: "electrical",
+      priorityCandidate: "high",
+      priorityRationale: "It affects the lobby.",
+      duplicateCandidates: [
+        { ticketId: duplicateOfTicketId, reason: "Reason written by AI" },
+      ],
+      limitations: [],
+    },
+    latencyMs: 1,
+    usage: {},
+  });
+}
+
+async function ticketIdOf(description: string) {
+  const [report] = await db
+    .select({ ticketId: reports.canonicalTicketId })
+    .from(reports)
+    .where(eq(reports.description, description));
+  if (!report) throw new Error("Report not found.");
+  return report.ticketId;
+}
+
+test.describe("when a suggestion arrives on an open ticket", () => {
+  async function openTicketAwaitingDraft(browser: Browser) {
+    const other = unique("Another report for the duplicate picker");
+    await fileReport(other);
+    const description = unique("Lobby lamp report");
+    await fileReport(description);
+    const operator = await signIn(browser, ACCOUNTS.operator);
+    await openFromQueue(operator, description);
+    await expect(
+      visibleText(operator, "Preparing a suggestion."),
+    ).toBeVisible();
+    return {
+      operator,
+      description,
+      deliver: async () => {
+        await deliverDraft(description, await ticketIdOf(other));
+        await expect(
+          visibleText(operator, "AI suggestion from e2e-model."),
+        ).toBeVisible({ timeout: 15_000 });
+      },
+    };
+  }
+
+  test("an untouched form starts from it", async ({ browser }) => {
+    const { operator, deliver } = await openTicketAwaitingDraft(browser);
+
+    await deliver();
+
+    await expect(operator.getByLabel("Summary")).toHaveValue(
+      "Summary written by AI",
+    );
+    await expect(
+      operator.getByRole("combobox", { name: "Category" }),
+    ).toHaveText(/Electrical/);
+    await expect(operator.getByLabel("Why they match")).toHaveValue(
+      "Reason written by AI",
+    );
+  });
+
+  test("what the operator typed stays", async ({ browser }) => {
+    const { operator, deliver } = await openTicketAwaitingDraft(browser);
+    await operator.getByLabel("Summary").fill("Summary typed by the operator");
+    await operator.getByLabel("Why they match").fill("Typed by the operator");
+
+    await deliver();
+
+    await expect(operator.getByLabel("Summary")).toHaveValue(
+      "Summary typed by the operator",
+    );
+    await expect(operator.getByLabel("Why they match")).toHaveValue(
+      "Typed by the operator",
+    );
+    // Fields they left alone in that form don't change under them either.
+    await expect(
+      operator.getByRole("combobox", { name: "Priority" }),
+    ).toHaveText(/Normal/);
+  });
+
+  test("a choice in a picker stays", async ({ browser }) => {
+    const { operator, description, deliver } =
+      await openTicketAwaitingDraft(browser);
+    await choose(operator, "Category", "Plumbing");
+
+    await deliver();
+
+    await expect(
+      operator.getByRole("combobox", { name: "Category" }),
+    ).toHaveText(/Plumbing/);
+    await expect(operator.getByLabel("Summary")).toHaveValue(description);
+  });
+});
+
 test("someone with both roles can't review the work they submitted", async ({
   browser,
 }) => {
@@ -93,7 +246,7 @@ test("someone with both roles can't review the work they submitted", async ({
 
   try {
     const description = unique("Loose tile by the stairs");
-    await submitReport(browser, description);
+    await fileReport(description);
     const operator = await signIn(browser, ACCOUNTS.operator);
     const ticketUrl = await triageAndAssign(
       operator,

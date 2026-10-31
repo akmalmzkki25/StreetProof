@@ -16,6 +16,7 @@ import {
   type TicketActionState,
 } from "../actions";
 import { FormError, SelectField, TicketRefFields } from "./ticket-forms";
+import { useSuggestedDefaults } from "./use-suggested-defaults";
 
 const initialState: TicketActionState = { error: null };
 
@@ -24,10 +25,12 @@ type TicketRef = { ticketId: string; revision: number };
 export function LinkDuplicateForm({
   ticketId,
   revision,
+  suggestionKey,
   candidates,
   defaultTargetId,
   defaultReason,
 }: TicketRef & {
+  suggestionKey: string;
   candidates: { value: string; label: string }[];
   defaultTargetId: string | null;
   defaultReason: string;
@@ -36,9 +39,18 @@ export function LinkDuplicateForm({
     linkDuplicateAction,
     initialState,
   );
+  const { formKey, defaults, markEdited } = useSuggestedDefaults(
+    suggestionKey,
+    { targetId: defaultTargetId, reason: defaultReason },
+  );
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      key={formKey}
+      action={formAction}
+      onChange={markEdited}
+      className="flex flex-col gap-5"
+    >
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <FieldGroup>
         <SelectField
@@ -46,7 +58,8 @@ export function LinkDuplicateForm({
           label="Ticket for the same problem"
           placeholder="Choose a ticket"
           options={candidates}
-          defaultValue={defaultTargetId}
+          defaultValue={defaults.targetId}
+          onChange={markEdited}
         />
         <Field>
           <FieldLabel htmlFor="link-reason">Why they match</FieldLabel>
@@ -55,7 +68,7 @@ export function LinkDuplicateForm({
             name="reason"
             rows={2}
             maxLength={500}
-            defaultValue={defaultReason}
+            defaultValue={defaults.reason}
             required
           />
           <FieldDescription>

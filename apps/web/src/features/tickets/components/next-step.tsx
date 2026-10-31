@@ -65,7 +65,7 @@ export async function LinkAsDuplicate({
   return (
     <Panel id="link-duplicate" title="Same problem as another ticket?">
       <LinkDuplicateForm
-        key={suggestion ? "with-suggestion" : "manual"}
+        suggestionKey={suggestion ? "with-suggestion" : "manual"}
         ticketId={ticket.id}
         revision={ticket.revision}
         candidates={candidates.map((item) => ({
@@ -148,8 +148,7 @@ export async function NextStep({
       {canTriage ? (
         <Panel id="triage" title="Confirm triage">
           <TriageForm
-            // Remounts once a draft arrives, so the operator starts from it.
-            key={draft ? "with-draft" : "manual"}
+            suggestionKey={draft ? "with-draft" : "manual"}
             {...ref}
             defaultSummary={(
               draft?.summary ??

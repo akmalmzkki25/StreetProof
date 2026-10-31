@@ -42,6 +42,7 @@ import {
   type TicketActionState,
 } from "../actions";
 import { CATEGORY_LABELS, PRIORITY_LABELS } from "../labels";
+import { useSuggestedDefaults } from "./use-suggested-defaults";
 
 const initialState: TicketActionState = { error: null };
 
@@ -72,17 +73,24 @@ export function SelectField({
   placeholder,
   options,
   defaultValue,
+  onChange,
 }: {
   id: string;
   label: string;
   placeholder: string;
   options: Option[];
   defaultValue?: string | null;
+  onChange?: () => void;
 }) {
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Select name={id} items={options} defaultValue={defaultValue ?? null}>
+      <Select
+        name={id}
+        items={options}
+        defaultValue={defaultValue ?? null}
+        onValueChange={() => onChange?.()}
+      >
         <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -112,12 +120,14 @@ const priorityOptions = TICKET_PRIORITIES.map((value) => ({
 export function TriageForm({
   ticketId,
   revision,
+  suggestionKey,
   defaultSummary,
   defaultCategory,
   defaultPriority,
   locations,
   defaultLocationId,
 }: TicketRef & {
+  suggestionKey: string;
   defaultSummary: string;
   defaultCategory: string | null;
   defaultPriority: string;
@@ -128,9 +138,22 @@ export function TriageForm({
     triageAction,
     initialState,
   );
+  const { formKey, defaults, markEdited } = useSuggestedDefaults(
+    suggestionKey,
+    {
+      summary: defaultSummary,
+      category: defaultCategory,
+      priority: defaultPriority,
+    },
+  );
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      key={formKey}
+      action={formAction}
+      onChange={markEdited}
+      className="flex flex-col gap-5"
+    >
       <TicketRefFields ticketId={ticketId} revision={revision} />
       <FieldGroup>
         <Field>
@@ -139,7 +162,7 @@ export function TriageForm({
             id="summary"
             name="summary"
             maxLength={200}
-            defaultValue={defaultSummary}
+            defaultValue={defaults.summary}
             required
           />
         </Field>
@@ -148,14 +171,16 @@ export function TriageForm({
           label="Category"
           placeholder="Choose a category"
           options={categoryOptions}
-          defaultValue={defaultCategory}
+          defaultValue={defaults.category}
+          onChange={markEdited}
         />
         <SelectField
           id="priority"
           label="Priority"
           placeholder="Choose a priority"
           options={priorityOptions}
-          defaultValue={defaultPriority}
+          defaultValue={defaults.priority}
+          onChange={markEdited}
         />
         <SelectField
           id="locationId"
@@ -166,6 +191,7 @@ export function TriageForm({
             label: location.name,
           }))}
           defaultValue={defaultLocationId}
+          onChange={markEdited}
         />
       </FieldGroup>
       <FormError error={state.error} />
