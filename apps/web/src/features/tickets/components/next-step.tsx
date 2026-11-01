@@ -74,7 +74,7 @@ export async function LinkAsDuplicate({
           value: item.id,
           // Location first, so a narrow picker clips the title, not the place.
           label: item.location
-            ? `${item.location} · ${item.title.slice(0, 70)}`
+            ? `${item.location}: ${item.title.slice(0, 70)}`
             : item.title.slice(0, 70),
         }))}
         defaultTargetId={suggestion?.ticketId ?? null}

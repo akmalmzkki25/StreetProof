@@ -57,7 +57,7 @@ export async function FactList({
           <li key={item.key}>
             {item.text}
             {item.detail ? (
-              <span className="text-muted-foreground"> · {item.detail}</span>
+              <span className="block text-muted-foreground">{item.detail}</span>
             ) : null}
           </li>
         ))}
@@ -195,9 +195,8 @@ export async function AiDraftPanel({ ticket }: { ticket: TicketDetail }) {
                 >
                   {t("Open ticket")}
                 </Link>
-                <span className="text-muted-foreground">
-                  {" "}
-                  · {candidate.reason}
+                <span className="block text-muted-foreground">
+                  {candidate.reason}
                 </span>
               </li>
             ))}

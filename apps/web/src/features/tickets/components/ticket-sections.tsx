@@ -130,9 +130,9 @@ export async function Attempts({
             ) : null}
           </div>
           <p className="whitespace-pre-wrap">{attempt.note}</p>
-          <p className="type-caption text-muted-foreground">
-            {attempt.submitterName} ·{" "}
-            {formatDateTime(attempt.submittedAt, locale)}
+          <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+            <span className="text-foreground">{attempt.submitterName}</span>
+            <span>{formatDateTime(attempt.submittedAt, locale)}</span>
           </p>
           {attempt.exceptionReason ? (
             <p className="whitespace-pre-wrap">
@@ -202,9 +202,11 @@ export async function Reports({
           className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
         >
           <p className="whitespace-pre-wrap">{report.description}</p>
-          <p className="type-caption text-muted-foreground">
-            {report.locationName ?? report.locationText} ·{" "}
-            {formatDateTime(report.createdAt, locale)}
+          <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+            <span className="text-foreground">
+              {report.locationName ?? report.locationText}
+            </span>
+            <span>{formatDateTime(report.createdAt, locale)}</span>
           </p>
           <PhotoGrid photos={report.photos} label="Report photo" />
           {canReissueLink ? (
@@ -239,9 +241,11 @@ export async function LinkedReports({
             className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
           >
             <p className="whitespace-pre-wrap">{report.description}</p>
-            <p className="type-caption text-muted-foreground">
-              {report.locationName ?? report.locationText} ·{" "}
-              {formatDateTime(report.createdAt, locale)}
+            <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+              <span className="text-foreground">
+                {report.locationName ?? report.locationText}
+              </span>
+              <span>{formatDateTime(report.createdAt, locale)}</span>
             </p>
             <PhotoGrid photos={report.photos} label="Linked report photo" />
             <p>
@@ -316,8 +320,9 @@ export async function InternalNotes({ ticket }: { ticket: TicketDetail }) {
           {ticket.notes.map((note) => (
             <li key={note.id}>
               <p className="whitespace-pre-wrap">{note.body}</p>
-              <p className="type-caption text-muted-foreground">
-                {note.authorName} · {formatDateTime(note.createdAt, locale)}
+              <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+                <span className="text-foreground">{note.authorName}</span>
+                <span>{formatDateTime(note.createdAt, locale)}</span>
               </p>
             </li>
           ))}
@@ -403,15 +408,15 @@ export async function Timeline({ ticket }: { ticket: TicketDetail }) {
       <ol className="flex flex-col gap-3">
         {ticket.events.map((event) => (
           <li key={event.id}>
-            <span>{t(eventLabel(event))}</span>
-            <span className="type-caption text-muted-foreground">
-              {" "}
-              ·{" "}
-              {WORKER_EVENT_TYPES.includes(event.type)
-                ? t("Worker")
-                : (event.actorName ?? t("Reporter"))}{" "}
-              · {formatDateTime(event.createdAt, locale)}
-            </span>
+            <p>{t(eventLabel(event))}</p>
+            <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+              <span>
+                {WORKER_EVENT_TYPES.includes(event.type)
+                  ? t("Worker")
+                  : (event.actorName ?? t("Reporter"))}
+              </span>
+              <span>{formatDateTime(event.createdAt, locale)}</span>
+            </p>
             {typeof event.payload.reason === "string" ? (
               <p className="mt-0.5 type-caption text-muted-foreground">
                 {event.payload.reason}

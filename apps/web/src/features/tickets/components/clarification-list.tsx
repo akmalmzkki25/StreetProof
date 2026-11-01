@@ -19,16 +19,19 @@ export async function ClarificationList({ ticket }: { ticket: TicketDetail }) {
         >
           <div className="flex flex-col gap-1">
             <p className="whitespace-pre-wrap">{item.question}</p>
-            <p className="type-caption text-muted-foreground">
-              {item.askerName} · {formatDateTime(item.askedAt, locale)}
+            <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+              <span className="text-foreground">{item.askerName}</span>
+              <span>{formatDateTime(item.askedAt, locale)}</span>
             </p>
           </div>
           {item.answer ? (
             <div className="flex flex-col gap-1">
               <p className="whitespace-pre-wrap">{item.answer}</p>
-              <p className="type-caption text-muted-foreground">
-                {t("Reporter")} ·{" "}
-                {item.answeredAt && formatDateTime(item.answeredAt, locale)}
+              <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+                <span className="text-foreground">{t("Reporter")}</span>
+                <span>
+                  {item.answeredAt && formatDateTime(item.answeredAt, locale)}
+                </span>
               </p>
             </div>
           ) : (
