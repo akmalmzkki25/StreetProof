@@ -246,6 +246,32 @@ describe("elapsed times", () => {
   });
 });
 
+describe("daily series", () => {
+  it("counts new work and verified closes per WIB day, with every day present", () => {
+    const result = compute(
+      [
+        // 23:30 and 00:30 WIB, either side of midnight on 29-30 October.
+        ticket("late", { createdAt: new Date("2026-10-29T16:30:00Z") }),
+        ticket("early", { createdAt: new Date("2026-10-29T17:30:00Z") }),
+        ticket("dup", { isDuplicate: true, createdAt: daysAgo(1) }),
+        ticket("old", { createdAt: daysAgo(40) }),
+        ticket("closed", { status: "verified_closed", createdAt: daysAgo(3) }),
+      ],
+      [event("closed", "verified_closed", daysAgo(2))],
+    );
+
+    expect(result.daily).toHaveLength(30);
+    expect(result.daily.at(-1)?.day).toBe("2026-10-30");
+    expect(result.daily.at(0)?.day).toBe("2026-10-01");
+    const byDay = new Map(result.daily.map((point) => [point.day, point]));
+    expect(byDay.get("2026-10-29")?.opened).toBe(1);
+    expect(byDay.get("2026-10-30")?.opened).toBe(1);
+    expect(byDay.get("2026-10-28")?.verified).toBe(1);
+    // The duplicate and the ticket from before the window stay out.
+    expect(result.daily.reduce((sum, point) => sum + point.opened, 0)).toBe(3);
+  });
+});
+
 describe("period figures", () => {
   it("leaves tickets older than the window out of volume", () => {
     const result = compute([

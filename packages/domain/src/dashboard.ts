@@ -112,6 +112,13 @@ function summarize(durations: readonly number[]): Duration {
   };
 }
 
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+// The calendar day in WIB, the timezone every date in the app is shown in.
+function wibDay(date: Date) {
+  return new Date(date.getTime() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
+
 function countBy<T>(items: readonly T[], keyOf: (item: T) => string) {
   const counts = new Map<string, number>();
   for (const item of items) {
@@ -328,6 +335,7 @@ export function computeDashboard(input: {
         (attempt) => attempt.hasException && inWindow(attempt.submittedAt),
       ).length,
     },
+    daily: dailySeries(work, events, nowMs, inWindow),
     drafts: {
       ready: drafts.filter((draft) => draft === "ready").length,
       pending: drafts.filter((draft) => draft === "pending").length,
@@ -335,6 +343,40 @@ export function computeDashboard(input: {
       notNeeded: drafts.filter((draft) => draft === "not_needed").length,
     },
   };
+}
+
+// New work and verified closes for each day of the window, today last. Days
+// with nothing stay in as zeros so the chart's axis is even.
+function dailySeries(
+  work: readonly DashboardTicket[],
+  events: readonly DashboardEvent[],
+  nowMs: number,
+  inWindow: (date: Date) => boolean,
+) {
+  const opened = new Map(
+    countBy(
+      work.filter((ticket) => inWindow(ticket.createdAt)),
+      (ticket) => wibDay(ticket.createdAt),
+    ).map((row) => [row.key, row.count]),
+  );
+  const verified = new Map(
+    countBy(
+      events.filter(
+        (event) =>
+          event.toStatus === "verified_closed" && inWindow(event.createdAt),
+      ),
+      (event) => wibDay(event.createdAt),
+    ).map((row) => [row.key, row.count]),
+  );
+  return Array.from({ length: DASHBOARD_WINDOW_DAYS }, (_, index) => {
+    const daysBack = DASHBOARD_WINDOW_DAYS - 1 - index;
+    const day = wibDay(new Date(nowMs - daysBack * DAY_MS));
+    return {
+      day,
+      opened: opened.get(day) ?? 0,
+      verified: verified.get(day) ?? 0,
+    };
+  });
 }
 
 export type Dashboard = ReturnType<typeof computeDashboard>;
