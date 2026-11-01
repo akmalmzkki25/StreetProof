@@ -88,8 +88,8 @@
   --ring: var(--brand);
   --sidebar: var(--card);
   --sidebar-foreground: var(--muted-foreground);
-  --sidebar-primary: var(--brand);
-  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--accent-foreground);
   --sidebar-accent: var(--accent);
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
