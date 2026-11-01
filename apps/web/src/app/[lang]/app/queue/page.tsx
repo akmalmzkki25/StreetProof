@@ -8,7 +8,7 @@ import {
 } from "@streetproof/domain";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { PageHeader } from "@/components/page-header";
@@ -35,7 +35,7 @@ function readFilters(params: SearchParams) {
   };
 }
 
-export default function QueuePage({ searchParams }: PageProps<"/app/queue">) {
+export default function QueuePage({ searchParams }: PageProps<"/[lang]/app/queue">) {
   return (
     <>
       <PageHeader title="Operator queue" />

@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
 import { FilterSelect } from "@/components/filter-select";
+import { useLocalePath } from "@/components/locale-link";
 import { useI18n } from "@/lib/i18n/client";
 
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
@@ -74,6 +75,7 @@ export function QueueFilters({
   priority: string | null;
 }) {
   const { t } = useI18n();
+  const toLocalePath = useLocalePath();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [filters, setFilters] = useState<Filters>({
@@ -88,7 +90,7 @@ export function QueueFilters({
     setFilters(next);
     clearTimeout(searchTimer.current);
     startTransition(() => {
-      router.replace(queueUrl(next), { scroll: false });
+      router.replace(toLocalePath(queueUrl(next)), { scroll: false });
     });
   }
 

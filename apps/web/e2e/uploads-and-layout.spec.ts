@@ -105,7 +105,7 @@ test.describe("on a phone", () => {
     await page.getByLabel("Email").fill(ACCOUNTS.operator);
     await page.getByLabel("Password").fill("streetproof-demo");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await page.waitForURL("**/app");
+    await page.waitForURL("**/app/*");
     await expectNoSidewaysScroll(page);
 
     await page.getByRole("button", { name: "Open the menu" }).click();

@@ -44,7 +44,7 @@ export async function signIn(browser: Browser, email: string) {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL((url) => url.pathname.startsWith("/app/"));
+  await page.waitForURL((url) => /^\/(en|id)\/app\//.test(url.pathname));
   return page;
 }
 

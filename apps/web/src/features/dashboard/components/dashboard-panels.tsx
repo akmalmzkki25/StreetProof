@@ -5,7 +5,7 @@ import {
   type Dashboard,
 } from "@streetproof/domain";
 import { cn } from "@streetproof/ui/lib/utils";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 
 import { categoryLabel } from "@/features/tickets/labels";
 import { formatDuration } from "@/lib/format";

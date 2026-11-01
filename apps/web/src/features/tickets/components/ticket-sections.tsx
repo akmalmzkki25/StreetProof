@@ -1,7 +1,7 @@
 import type { TicketDetail } from "@streetproof/db";
 import { canManageDuplicates, isOverdue } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 
 import { Panel } from "@/components/panel";
 import { formatDateTime } from "@/lib/format";

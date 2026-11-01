@@ -13,7 +13,7 @@ import {
   EmptyTitle,
 } from "@streetproof/ui/components/empty";
 import { createColumnHelper, useTable } from "@tanstack/react-table";
-import Link from "next/link";
+import { Link, useLocalePath } from "@/components/locale-link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
@@ -51,6 +51,7 @@ export function TicketTable({
   emptyMessage: string;
 }) {
   const { t, locale } = useI18n();
+  const toLocalePath = useLocalePath();
   const router = useRouter();
 
   const columns = useMemo(
@@ -105,7 +106,7 @@ export function TicketTable({
     <DataTable
       table={table}
       columnClasses={COLUMN_CLASSES}
-      onRowClick={(item) => router.push(ticketHref(item))}
+      onRowClick={(item) => router.push(toLocalePath(ticketHref(item)))}
       empty={
         <Empty className="flex-none py-16">
           <EmptyHeader>

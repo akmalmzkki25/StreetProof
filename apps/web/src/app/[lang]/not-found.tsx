@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { getI18n } from "@/lib/i18n/server";

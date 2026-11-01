@@ -24,24 +24,30 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 
 - Better Auth with email and password, Drizzle adapter, `nextCookies` plugin. Config in `src/lib/auth.ts`; the instance is created on first request, so `next build` needs no database. Self sign-up is off; accounts come from the seed or a tenant admin.
 - `src/lib/member.ts` is the data access layer. Pages and actions call `requireMember()` or `requireRole(role)`; never read the session or memberships anywhere else. `requireRole` answers 404 for the wrong role so pages don't reveal what exists.
-- With Cache Components, anything that reads the session sits inside `<Suspense>`. Keep the page shell static and push the session read into a child component (see `src/app/app/dashboard/page.tsx`).
+- With Cache Components, anything that reads the session sits inside `<Suspense>`. Keep the page shell static and push the session read into a child component (see `src/app/[lang]/app/dashboard/page.tsx`).
 - Ticket state changes go through `transitionTicket` from `@streetproof/db` or a command built on it, never a direct `update tickets`. Actions also confirm the ticket is in the member's site scope, because the command only checks the tenant.
 
 ## Language
 
-The interface is English and Indonesian. English is the default. The only thing that changes it is the `streetproof_locale` cookie, set by the language switch; the browser's language is ignored.
+The interface is English and Indonesian. The language is the first part of every address: `/en/login`, `/id/app/queue`. Everything lives under `src/app/[lang]/`, whose layout is the root layout and builds both languages ahead of time (`generateStaticParams`), so pages with no request data, like `/[lang]/login`, are fully static.
+
+- `src/proxy.ts` sends an address without a language to one: the language last used on this browser (the `streetproof_locale` cookie, which the proxy saves whenever it sees `/en` or `/id`), otherwise English. The browser's own language is ignored. That covers `/`, links in emails, and `redirect("/login")` in actions and `requireMember`, which can't know the language.
+- Server Components read the language with `getLocale()` / `getI18n()` (they use `next/root-params`, which Server Actions and route handlers can't). Client components use `useI18n()`.
+- Write paths as `/app/queue`, never `/en/app/queue`. `Link` and `useLocalePath()` from `components/locale-link.tsx` add the language, and so does `localePath()` for server code. Use that `Link`, not `next/link`, for in-app links. `revalidatePath` takes the route pattern, such as `revalidatePath("/[lang]/app/queue", "page")`.
+- The language switch is a link to the same page with the other prefix. Nothing else changes the language.
+- The reporter's receipt cookie is set once per language, each scoped to `/en/status` or `/id/status`.
 
 - Wrap every sentence in `t()`, from `getI18n()` on the server or `useI18n()` in a client component. The English sentence is the key. Action errors stay English in the action and are translated where they're displayed.
 - Add the Indonesian to `src/lib/i18n/messages-id.ts`, or `messages-id-errors.ts` for an action error. `messages.test.ts` scans the source and fails on a sentence without one.
 - Page `<title>`s, the home illustration and `/design-system` stay English.
-- The root layout never reads the request, so the shell is static. It passes `getLocale()` to `LocaleProvider` as an unawaited promise, and `useI18n()` reads it with `use()`. Any client component that calls `useI18n()`, and any server component that awaits `getI18n()`, must sit inside a `<Suspense>` with a locale-neutral fallback. Pages stay synchronous and put their translated body in a `Suspense`'d async component, as `login/page.tsx` does.
-- `PageHeader` takes the page name as its English sentence (`title="Operator queue"`) and translates it itself. Don't call `t()` in a page body.
-- A script in the root layout's `<head>` sets `<html lang>` before first paint, reading the `streetproof_locale` cookie (not `HttpOnly` for that reason). Keep it in step with `chooseLocale`.
+- `PageHeader` takes the page name as its English sentence (`title="Operator queue"`) and translates it itself.
 
 ## Routes
 
-- `/`: no home page. `next.config.ts` redirects it to `/app`, which sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Signed out, it ends at `/login`. Report forms are reached from the queue's "Report forms" links or a shared `/report/[code]` link.
-- `/app/*`: shares the sidebar in `app/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
+Written without the language prefix; each is reached at `/en/...` and `/id/...`. `/api/*` has no prefix.
+
+- `/`: no home page. The proxy sends it to `/en/app` or `/id/app`, which sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Signed out, it ends at the sign-in page. Report forms are reached from the queue's "Report forms" links or a shared `/report/[code]` link.
+- `/app/*`: shares the sidebar in `app/[lang]/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
 - `/status/recover`: a reporter who left an email asks for new status links. The answer is the same whether or not a report matches.

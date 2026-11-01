@@ -43,7 +43,7 @@ test("an admin adds a member, who signs in with the role they were given", async
   await newcomer.getByLabel("Email").fill(email);
   await newcomer.getByLabel("Password").fill("first-password-1");
   await newcomer.getByRole("button", { name: "Sign in" }).click();
-  await newcomer.waitForURL("**/app");
+  await newcomer.waitForURL("**/app/*");
   await newcomer.goto("/app/work");
   await expect(newcomer.getByRole("heading", { level: 1 })).toBeVisible();
   await newcomer.goto("/app/members");
@@ -124,7 +124,7 @@ test("a password can be reset from the emailed link, and only once", async ({
   await page.getByLabel("Email").fill("technician2@streetproof.test");
   await page.getByLabel("Password").fill("a-new-password-1");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL("**/app");
+  await page.waitForURL("**/app/*");
 
   // Later tests sign in with the shared demo password.
   const admin = await signIn(browser, ADMIN);

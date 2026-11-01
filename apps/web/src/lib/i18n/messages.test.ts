@@ -13,12 +13,17 @@ import {
 } from "@/features/tickets/labels";
 
 import { ID_MESSAGES } from "./messages-id";
-import { chooseLocale, translate } from "./translate";
+import { chooseLocale, localePath, splitLocale, translate } from "./translate";
 
 const SOURCE_ROOT = join(import.meta.dirname, "..", "..");
 // The design system page and the home illustration stay in English, and the
 // root layout only holds the description search engines read.
-const UNTRANSLATED = ["design-system", "lib/i18n", "case-stack", "app/layout"];
+const UNTRANSLATED = [
+  "design-system",
+  "lib/i18n",
+  "case-stack",
+  "[lang]/layout",
+];
 
 function sourceFiles() {
   return readdirSync(SOURCE_ROOT, { recursive: true, encoding: "utf8" })
@@ -170,5 +175,25 @@ describe("chooseLocale", () => {
   it("uses English when nothing, or something unknown, is saved", () => {
     expect(chooseLocale(undefined)).toBe("en");
     expect(chooseLocale("fr")).toBe("en");
+  });
+});
+
+describe("locale paths", () => {
+  it("puts the language in front of a path", () => {
+    expect(localePath("id", "/app/queue")).toBe("/id/app/queue");
+    expect(localePath("en", "/")).toBe("/en");
+  });
+
+  it("splits the language off an address", () => {
+    expect(splitLocale("/id/app/queue")).toEqual({
+      locale: "id",
+      path: "/app/queue",
+    });
+    expect(splitLocale("/en")).toEqual({ locale: "en", path: "/" });
+    expect(splitLocale("/login")).toEqual({ locale: null, path: "/login" });
+    expect(splitLocale("/english/login")).toEqual({
+      locale: null,
+      path: "/english/login",
+    });
   });
 });

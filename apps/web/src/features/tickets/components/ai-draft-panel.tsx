@@ -1,7 +1,7 @@
 import type { TicketDetail } from "@streetproof/db";
 import { Badge } from "@streetproof/ui/components/badge";
 import { parseIntakeDraft, type IntakeDraft } from "@streetproof/contracts";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 
 import { getI18n } from "@/lib/i18n/server";
 

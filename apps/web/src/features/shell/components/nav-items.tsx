@@ -17,10 +17,11 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@streetproof/ui/components/sidebar";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { usePathname } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n/client";
+import { splitLocale } from "@/lib/i18n/translate";
 
 import type { NavLink } from "../nav-links";
 
@@ -38,7 +39,7 @@ function isActive(pathname: string, href: string) {
 }
 
 export function SidebarNavLinks({ links }: { links: NavLink[] }) {
-  const pathname = usePathname();
+  const { path: pathname } = splitLocale(usePathname());
   const { t } = useI18n();
   const { setOpenMobile } = useSidebar();
 

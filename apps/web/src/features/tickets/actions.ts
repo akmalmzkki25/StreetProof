@@ -30,6 +30,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { parseWibInput } from "@/lib/format";
+import { localePath, LOCALES } from "@/lib/i18n/translate";
 import { requireMember, requireRole, type Member } from "@/lib/member";
 import { readPhotos, storePhotos } from "@/lib/photo-upload";
 
@@ -184,6 +185,12 @@ const LINK_PROBLEM_MESSAGES: Record<DuplicateLinkProblem, string> = {
   target_closed: "That ticket is closed. Choose one that's still open.",
 };
 
+function revalidateTicket(ticketId: string) {
+  for (const locale of LOCALES) {
+    revalidatePath(localePath(locale, `/app/tickets/${ticketId}`));
+  }
+}
+
 function finishDuplicate(
   outcome: DuplicateOutcome,
   ticketIds: readonly string[],
@@ -206,10 +213,8 @@ function finishDuplicate(
         return { error: "This ticket isn't available." };
     }
   }
-  for (const ticketId of ticketIds) {
-    revalidatePath(`/app/tickets/${ticketId}`);
-  }
-  revalidatePath("/app/queue");
+  for (const ticketId of ticketIds) revalidateTicket(ticketId);
+  revalidatePath("/[lang]/app/queue", "page");
   return { error: null };
 }
 
@@ -218,10 +223,10 @@ function finish(
   ticketId: string,
 ): TicketActionState {
   if (!outcome.ok) return { error: rejectionMessage(outcome) };
-  revalidatePath(`/app/tickets/${ticketId}`);
-  revalidatePath("/app/queue");
-  revalidatePath("/app/work");
-  revalidatePath("/app/reviews");
+  revalidateTicket(ticketId);
+  revalidatePath("/[lang]/app/queue", "page");
+  revalidatePath("/[lang]/app/work", "page");
+  revalidatePath("/[lang]/app/reviews", "page");
   return { error: null };
 }
 
@@ -330,7 +335,7 @@ export async function addNoteAction(
     body: fields.data.body,
   });
   if (!outcome.ok) return unavailable;
-  revalidatePath(`/app/tickets/${fields.data.ticketId}`);
+  revalidateTicket(fields.data.ticketId);
   return { error: null };
 }
 
@@ -662,7 +667,7 @@ export async function retryDraftAction(
       ? unavailable
       : { error: "This report doesn't need a new suggestion now." };
   }
-  revalidatePath(`/app/tickets/${ticketId.data}`);
+  revalidateTicket(ticketId.data);
   return { error: null };
 }
 

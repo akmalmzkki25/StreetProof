@@ -1,6 +1,6 @@
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { NewPasswordForm } from "@/features/auth/components/password-forms";
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage({
   searchParams,
-}: PageProps<"/reset-password">) {
+}: PageProps<"/[lang]/reset-password">) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-4 py-16">
       <Suspense fallback={<ResetPasswordSkeleton />}>

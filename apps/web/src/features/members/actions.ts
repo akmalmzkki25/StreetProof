@@ -63,7 +63,7 @@ function finish(outcome: MemberOutcome): MemberActionState {
   if (!outcome.ok) {
     return { error: OUTCOME_MESSAGES[outcome.code], isDone: false };
   }
-  revalidatePath("/app/members");
+  revalidatePath("/[lang]/app/members", "page");
   return { error: null, isDone: true };
 }
 
@@ -183,7 +183,7 @@ export async function addTeamAction(
     actorId: member.userId,
     name: fields.data.name,
   });
-  revalidatePath("/app/members");
+  revalidatePath("/[lang]/app/members", "page");
   return { error: null, isDone: true };
 }
 
@@ -197,5 +197,5 @@ export async function retireTeamAction(formData: FormData) {
     actorId: member.userId,
     teamId: teamId.data,
   });
-  revalidatePath("/app/members");
+  revalidatePath("/[lang]/app/members", "page");
 }

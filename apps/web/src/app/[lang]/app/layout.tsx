@@ -7,7 +7,7 @@ import {
 } from "@/features/shell/components/app-sidebar";
 import { getI18n } from "@/lib/i18n/server";
 
-export default function AppLayout({ children, drawer }: LayoutProps<"/app">) {
+export default function AppLayout({ children, drawer }: LayoutProps<"/[lang]/app">) {
   return (
     <SidebarProvider>
       <Suspense fallback={null}>

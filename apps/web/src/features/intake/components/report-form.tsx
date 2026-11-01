@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@streetproof/ui/components/select";
 import { Textarea } from "@streetproof/ui/components/textarea";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";

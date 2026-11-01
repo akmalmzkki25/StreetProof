@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@streetproof/ui/components/table";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { PageHeader } from "@/components/page-header";

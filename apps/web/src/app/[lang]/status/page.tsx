@@ -12,13 +12,13 @@ import {
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { ClarificationAnswerForm } from "@/features/reporter-status/components/clarification-answer-form";
 import { ReceiptExchange } from "@/features/reporter-status/components/receipt-exchange";
-import { REPORTER_COOKIE } from "@/features/reporter-status/cookie";
+import { readReceipt } from "@/features/reporter-status/cookie";
 import { formatDateTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -77,7 +77,7 @@ async function ReportStatus() {
   await connection();
   const { t, locale } = await getI18n();
   const cookieStore = await cookies();
-  const token = cookieStore.get(REPORTER_COOKIE)?.value;
+  const token = readReceipt(cookieStore);
   const status = token ? await getReporterStatus(getDb(), token) : null;
 
   if (!status) {

@@ -10,7 +10,7 @@ import { getI18n } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Report damage" };
 
-export default function ReportPage({ params }: PageProps<"/report/[code]">) {
+export default function ReportPage({ params }: PageProps<"/[lang]/report/[code]">) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
       <Suspense fallback={<ReportSkeleton />}>

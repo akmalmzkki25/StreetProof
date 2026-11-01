@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { navLinksFor } from "@/features/shell/nav-links";
+import { getLocale } from "@/lib/i18n/server";
+import { localePath } from "@/lib/i18n/translate";
 import { requireMember } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Workspace" };
@@ -20,5 +22,5 @@ async function Landing(): Promise<never> {
   const member = await requireMember();
   const first = navLinksFor(member.roles)[0];
   if (!first) notFound();
-  redirect(first.href);
+  redirect(localePath(await getLocale(), first.href));
 }

@@ -18,7 +18,23 @@ export function translate(locale: Locale, text: string, params?: Params) {
   });
 }
 
-// English unless someone picked Indonesian. The browser's language is ignored.
+export function hasLocale(value: string): value is Locale {
+  return LOCALES.some((locale) => locale === value);
+}
+
+// Where an unprefixed address goes: the last language someone used, otherwise
+// English. The browser's own language is ignored.
 export function chooseLocale(saved: string | undefined): Locale {
-  return saved === "id" ? "id" : "en";
+  return saved !== undefined && hasLocale(saved) ? saved : "en";
+}
+
+export function localePath(locale: Locale, path: string) {
+  return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}
+
+// "/id/app/queue" is Indonesian and "/app/queue"; "/login" has no language yet.
+export function splitLocale(pathname: string) {
+  const [, first = "", ...rest] = pathname.split("/");
+  if (!hasLocale(first)) return { locale: null, path: pathname };
+  return { locale: first, path: `/${rest.join("/")}` };
 }

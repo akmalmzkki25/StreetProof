@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { ModeToggle } from "@/components/mode-toggle";

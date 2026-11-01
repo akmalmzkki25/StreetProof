@@ -8,7 +8,7 @@ import {
   FieldLabel,
 } from "@streetproof/ui/components/field";
 import { Input } from "@streetproof/ui/components/input";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { useActionState, useRef } from "react";
 
 import { useI18n } from "@/lib/i18n/client";

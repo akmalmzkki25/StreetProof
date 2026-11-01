@@ -31,11 +31,16 @@ import {
   useSidebar,
 } from "@streetproof/ui/components/sidebar";
 import { useTheme } from "next-themes";
+import { usePathname, useRouter } from "next/navigation";
 
 import { signOut } from "@/features/auth/actions";
-import { setLocaleAction } from "@/lib/i18n/actions";
 import { useI18n } from "@/lib/i18n/client";
-import { LOCALES, type Locale } from "@/lib/i18n/translate";
+import {
+  localePath,
+  LOCALES,
+  splitLocale,
+  type Locale,
+} from "@/lib/i18n/translate";
 
 const LANGUAGE_NAMES: Record<Locale, string> = {
   en: "English",
@@ -63,11 +68,11 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
   const { locale, t } = useI18n();
+  const router = useRouter();
+  const { path } = splitLocale(usePathname());
 
   function changeLocale(next: Locale) {
-    const formData = new FormData();
-    formData.set("locale", next);
-    void setLocaleAction(formData);
+    router.push(`${localePath(next, path)}${window.location.search}`);
   }
 
   const identity = (
@@ -89,7 +94,9 @@ export function NavUser({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<SidebarMenuButton size="lg" className="data-open:bg-accent" />}
+            render={
+              <SidebarMenuButton size="lg" className="data-open:bg-accent" />
+            }
           >
             {identity}
             <HugeiconsIcon icon={UnfoldMoreIcon} className="ml-auto" />

@@ -5,9 +5,9 @@ import { LocaleFooter } from "@/components/locale-footer";
 import Providers from "@/components/providers";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { getLocale } from "@/lib/i18n/server";
-import { LOCALE_COOKIE } from "@/lib/i18n/translate";
+import { LOCALES } from "@/lib/i18n/translate";
 
-import "./globals.css";
+import "../globals.css";
 
 export const metadata: Metadata = {
   applicationName: "StreetProof",
@@ -19,19 +19,18 @@ export const metadata: Metadata = {
     "Facility damage reports become assigned repair work with completion evidence and supervisor-controlled closure.",
 };
 
-// The layout can't read the request without making every page wait for it, so
-// this sets Indonesian from the cookie in the browser, before first paint.
-const LANG_SCRIPT = `if(/(?:^|; )${LOCALE_COOKIE}=id/.test(document.cookie))document.documentElement.lang="id"`;
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: LANG_SCRIPT }} />
-      </head>
+    <html lang={locale} className="h-full" suppressHydrationWarning>
       <body className="min-h-full bg-background text-foreground antialiased">
         <Providers>
-          <LocaleProvider localePromise={getLocale()}>
+          <LocaleProvider locale={locale}>
             {children}
             <Suspense fallback={null}>
               <LocaleFooter />

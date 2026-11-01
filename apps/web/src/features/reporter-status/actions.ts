@@ -14,9 +14,10 @@ import { cookies, headers } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
 
+import { localePath, LOCALES } from "@/lib/i18n/translate";
 import { createRateLimiter } from "@/lib/rate-limit";
 
-import { REPORTER_COOKIE } from "./cookie";
+import { readReceipt, receiptCookieName } from "./cookie";
 
 const RECEIPT_COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
@@ -102,7 +103,7 @@ export async function answerClarificationAction(
   }
 
   const cookieStore = await cookies();
-  const token = cookieStore.get(REPORTER_COOKIE)?.value;
+  const token = readReceipt(cookieStore);
   const outcome = token
     ? await answerClarification(getDb(), { token, ...fields.data })
     : ({ ok: false } as const);
@@ -113,9 +114,9 @@ export async function answerClarificationAction(
     };
   }
 
-  revalidatePath("/status");
-  revalidatePath("/app/queue");
-  revalidatePath(`/app/tickets/${outcome.ticketId}`);
+  revalidatePath("/[lang]/status", "page");
+  revalidatePath("/[lang]/app/queue", "page");
+  revalidatePath("/[lang]/app/tickets/[id]", "page");
   return { error: null };
 }
 
@@ -127,11 +128,13 @@ export async function exchangeReceipt(token: string) {
   if (!status) return;
 
   const cookieStore = await cookies();
-  cookieStore.set(REPORTER_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/status",
-    maxAge: RECEIPT_COOKIE_MAX_AGE_SECONDS,
-  });
+  for (const locale of LOCALES) {
+    cookieStore.set(receiptCookieName(locale), token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: localePath(locale, "/status"),
+      maxAge: RECEIPT_COOKIE_MAX_AGE_SECONDS,
+    });
+  }
 }

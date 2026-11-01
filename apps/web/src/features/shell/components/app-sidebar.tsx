@@ -4,7 +4,7 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@streetproof/ui/components/sidebar";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 
 import { StreetProofMark } from "@/components/street-proof-mark";
 import { getCurrentMember } from "@/lib/member";

@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Ticket" };
 
 export default function TicketPage({
   params,
-}: PageProps<"/app/tickets/[id]">) {
+}: PageProps<"/[lang]/app/tickets/[id]">) {
   return (
     <>
       <PageHeader title="Ticket" />

@@ -1,7 +1,7 @@
 import { DEMO_PASSWORD, DEMO_TENANTS } from "@streetproof/db/demo";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
 import { StreetProofMark } from "@/components/street-proof-mark";

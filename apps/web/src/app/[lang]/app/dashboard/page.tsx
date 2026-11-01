@@ -13,7 +13,7 @@ import {
 } from "@streetproof/ui/components/empty";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/locale-link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
