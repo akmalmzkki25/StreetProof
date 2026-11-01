@@ -10,16 +10,14 @@ import { Suspense } from "react";
 
 import { PageHeader } from "@/components/page-header";
 import { MembersView } from "@/features/members/components/members-view";
-import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Members" };
 
-export default async function MembersPage() {
-  const { t } = await getI18n();
+export default function MembersPage() {
   return (
     <>
-      <PageHeader title={t("Members")} />
+      <PageHeader title="Members" />
       <main className="flex w-full flex-1 flex-col">
         <Suspense fallback={<Skeleton className="m-4 h-96 sm:m-6" />}>
           <Members />

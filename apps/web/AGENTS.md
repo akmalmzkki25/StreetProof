@@ -34,6 +34,9 @@ The interface is English and Indonesian. English is the default. The only thing 
 - Wrap every sentence in `t()`, from `getI18n()` on the server or `useI18n()` in a client component. The English sentence is the key. Action errors stay English in the action and are translated where they're displayed.
 - Add the Indonesian to `src/lib/i18n/messages-id.ts`, or `messages-id-errors.ts` for an action error. `messages.test.ts` scans the source and fails on a sentence without one.
 - Page `<title>`s, the home illustration and `/design-system` stay English.
+- The root layout never reads the request, so the shell is static. It passes `getLocale()` to `LocaleProvider` as an unawaited promise, and `useI18n()` reads it with `use()`. Any client component that calls `useI18n()`, and any server component that awaits `getI18n()`, must sit inside a `<Suspense>` with a locale-neutral fallback. Pages stay synchronous and put their translated body in a `Suspense`'d async component, as `login/page.tsx` does.
+- `PageHeader` takes the page name as its English sentence (`title="Operator queue"`) and translates it itself. Don't call `t()` in a page body.
+- A script in the root layout's `<head>` sets `<html lang>` before first paint, reading the `streetproof_locale` cookie (not `HttpOnly` for that reason). Keep it in step with `chooseLocale`.
 
 ## Routes
 

@@ -38,12 +38,11 @@ import { requireMember, type Member } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Work overview" };
 
-export default async function DashboardPage() {
-  const { t } = await getI18n();
+export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={t("Work overview")}
+        title="Work overview"
         badge={
           <Suspense fallback={null}>
             <SyntheticBadge />

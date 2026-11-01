@@ -1,30 +1,49 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo } from "react";
+import {
+  createContext,
+  Suspense,
+  use,
+  useContext,
+  useEffect,
+  useMemo,
+} from "react";
 
 import { translate, type Locale, type Params } from "./translate";
 
-const LocaleContext = createContext<Locale>("en");
+const LocaleContext = createContext<Promise<Locale>>(Promise.resolve("en"));
 
+// The root layout hands over the locale as a promise it never awaits, so the
+// layout stays static. A component that reads it must sit inside a <Suspense>.
 export function LocaleProvider({
-  locale,
+  localePromise,
   children,
 }: {
-  locale: Locale;
+  localePromise: Promise<Locale>;
   children: React.ReactNode;
 }) {
-  // The root layout renders before the request is known, so <html> starts as "en".
-  useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
-
   return (
-    <LocaleContext.Provider value={locale}>{children}</LocaleContext.Provider>
+    <LocaleContext.Provider value={localePromise}>
+      {children}
+      <Suspense fallback={null}>
+        <HtmlLang />
+      </Suspense>
+    </LocaleContext.Provider>
   );
 }
 
+// The inline script in the root layout sets <html lang> for the first paint;
+// this keeps it right after someone switches language without a reload.
+function HtmlLang() {
+  const locale = use(useContext(LocaleContext));
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+  return null;
+}
+
 export function useI18n() {
-  const locale = useContext(LocaleContext);
+  const locale = use(useContext(LocaleContext));
   return useMemo(
     () => ({
       locale,

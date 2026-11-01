@@ -1,5 +1,7 @@
+import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { NewPasswordForm } from "@/features/auth/components/password-forms";
 import { getI18n } from "@/lib/i18n/server";
@@ -10,17 +12,31 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ResetPasswordPage({
+export default function ResetPasswordPage({
   searchParams,
 }: PageProps<"/reset-password">) {
-  const { t } = await getI18n();
-  const { token } = await searchParams;
-
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-4 py-16">
+      <Suspense fallback={<ResetPasswordSkeleton />}>
+        <ResetPasswordContent
+          token={searchParams.then(({ token }) =>
+            typeof token === "string" ? token : "",
+          )}
+        />
+      </Suspense>
+    </main>
+  );
+}
+
+async function ResetPasswordContent({ token }: { token: Promise<string> }) {
+  const { t } = await getI18n();
+  const resetToken = await token;
+
+  return (
+    <>
       <h1 className="type-headline">{t("Set a new password")}</h1>
-      {typeof token === "string" && token ? (
-        <NewPasswordForm token={token} />
+      {resetToken ? (
+        <NewPasswordForm token={resetToken} />
       ) : (
         <div className="flex flex-col gap-4">
           <p role="alert">{t("This link has expired or was already used.")}</p>
@@ -32,6 +48,15 @@ export default async function ResetPasswordPage({
           </Link>
         </div>
       )}
-    </main>
+    </>
+  );
+}
+
+function ResetPasswordSkeleton() {
+  return (
+    <div className="flex flex-col gap-8" aria-busy="true">
+      <Skeleton className="h-10 w-64" />
+      <Skeleton className="h-40 w-full" />
+    </div>
   );
 }

@@ -51,18 +51,26 @@ const STAGE_COPY: Record<ReporterStage, { title: string; detail: string }> = {
   },
 };
 
-export default async function StatusPage() {
-  const { t } = await getI18n();
+export default function StatusPage() {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
-      <h1 className="type-headline">{t("Report status")}</h1>
-      <ReceiptExchange>
-        <Suspense fallback={<Skeleton className="h-48" />}>
-          <ReportStatus />
-        </Suspense>
-      </ReceiptExchange>
+      <Suspense fallback={<Skeleton className="h-10 w-64" />}>
+        <StatusHeading />
+      </Suspense>
+      <Suspense fallback={<Skeleton className="h-48" />}>
+        <ReceiptExchange>
+          <Suspense fallback={<Skeleton className="h-48" />}>
+            <ReportStatus />
+          </Suspense>
+        </ReceiptExchange>
+      </Suspense>
     </main>
   );
+}
+
+async function StatusHeading() {
+  const { t } = await getI18n();
+  return <h1 className="type-headline">{t("Report status")}</h1>;
 }
 
 async function ReportStatus() {

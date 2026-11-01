@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { ControlsSection } from "@/features/design-system/components/controls-section";
@@ -41,7 +42,9 @@ export default function DesignSystemPage() {
               </a>
             ))}
           </div>
-          <ModeToggle />
+          <Suspense fallback={null}>
+            <ModeToggle />
+          </Suspense>
         </nav>
       </header>
 

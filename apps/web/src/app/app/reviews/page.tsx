@@ -16,11 +16,10 @@ import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Reviews" };
 
-export default async function ReviewsPage() {
-  const { t } = await getI18n();
+export default function ReviewsPage() {
   return (
     <>
-      <PageHeader title={t("Reviews")} />
+      <PageHeader title="Reviews" />
       <main className="flex w-full flex-1 flex-col">
         <Suspense fallback={<Skeleton className="m-4 h-64 sm:m-6" />}>
           <Reviews />

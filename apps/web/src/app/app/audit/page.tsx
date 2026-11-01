@@ -20,17 +20,11 @@ import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Audit log" };
 
-export default async function AuditPage() {
-  const { t } = await getI18n();
+export default function AuditPage() {
   return (
     <>
-      <PageHeader title={t("Audit log")} />
+      <PageHeader title="Audit log" />
       <main className="flex w-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
-        <p className="type-caption text-muted-foreground">
-          {t(
-            "The latest 200 sign-ins, account changes and ticket views. Changes to a ticket itself are in that ticket's history.",
-          )}
-        </p>
         <Suspense fallback={<Skeleton className="h-96" />}>
           <AuditEntries />
         </Suspense>
@@ -44,48 +38,64 @@ async function AuditEntries() {
   const { t, locale } = await getI18n();
   const entries = await listAuditLog(getDb(), member.tenantId);
 
+  const caption = (
+    <p className="type-caption text-muted-foreground">
+      {t(
+        "The latest 200 sign-ins, account changes and ticket views. Changes to a ticket itself are in that ticket's history.",
+      )}
+    </p>
+  );
+
   if (entries.length === 0) {
     return (
-      <p className="text-muted-foreground">{t("Nothing recorded yet.")}</p>
+      <>
+        {caption}
+        <p className="text-muted-foreground">{t("Nothing recorded yet.")}</p>
+      </>
     );
   }
 
   return (
-    <div className="rounded-4xl bg-card p-2 shadow-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("Who")}</TableHead>
-            <TableHead>{t("What")}</TableHead>
-            <TableHead className="hidden sm:table-cell">{t("When")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {entries.map((entry) => (
-            <TableRow key={entry.id}>
-              <TableCell>{entry.actorName ?? t("Removed account")}</TableCell>
-              <TableCell className="whitespace-normal">
-                {entry.targetType === "ticket" && entry.targetId ? (
-                  <Link
-                    href={`/app/tickets/${entry.targetId}`}
-                    className="text-brand-text underline underline-offset-4"
-                  >
-                    {t(auditLabel(entry.action))}
-                  </Link>
-                ) : (
-                  t(auditLabel(entry.action))
-                )}
-                <p className="font-mono text-xs text-muted-foreground sm:hidden">
-                  {formatDateTime(entry.createdAt, locale)}
-                </p>
-              </TableCell>
-              <TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
-                {formatDateTime(entry.createdAt, locale)}
-              </TableCell>
+    <>
+      {caption}
+      <div className="rounded-4xl bg-card p-2 shadow-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("Who")}</TableHead>
+              <TableHead>{t("What")}</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                {t("When")}
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {entries.map((entry) => (
+              <TableRow key={entry.id}>
+                <TableCell>{entry.actorName ?? t("Removed account")}</TableCell>
+                <TableCell className="whitespace-normal">
+                  {entry.targetType === "ticket" && entry.targetId ? (
+                    <Link
+                      href={`/app/tickets/${entry.targetId}`}
+                      className="text-brand-text underline underline-offset-4"
+                    >
+                      {t(auditLabel(entry.action))}
+                    </Link>
+                  ) : (
+                    t(auditLabel(entry.action))
+                  )}
+                  <p className="font-mono text-xs text-muted-foreground sm:hidden">
+                    {formatDateTime(entry.createdAt, locale)}
+                  </p>
+                </TableCell>
+                <TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
+                  {formatDateTime(entry.createdAt, locale)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

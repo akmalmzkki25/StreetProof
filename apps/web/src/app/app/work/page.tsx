@@ -5,16 +5,14 @@ import { Suspense } from "react";
 
 import { PageHeader } from "@/components/page-header";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
-import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
 export const metadata: Metadata = { title: "My work" };
 
-export default async function WorkPage() {
-  const { t } = await getI18n();
+export default function WorkPage() {
   return (
     <>
-      <PageHeader title={t("My work")} />
+      <PageHeader title="My work" />
       <main className="flex w-full flex-1 flex-col">
         <Suspense fallback={<Skeleton className="m-4 h-64 sm:m-6" />}>
           <AssignedWork />

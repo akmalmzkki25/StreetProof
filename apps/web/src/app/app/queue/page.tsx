@@ -26,16 +26,22 @@ function oneOf<T extends string>(value: unknown, allowed: readonly T[]) {
   return allowed.find((item) => item === value) ?? null;
 }
 
-export default async function QueuePage({
-  searchParams,
-}: PageProps<"/app/queue">) {
-  const { t } = await getI18n();
+function readFilters(params: SearchParams) {
+  return {
+    search: typeof params.q === "string" ? params.q.trim().slice(0, 100) : "",
+    status: oneOf<TicketStatus>(params.status, TICKET_STATUSES),
+    category: oneOf<string>(params.category, TICKET_CATEGORIES),
+    priority: oneOf<TicketPriority>(params.priority, TICKET_PRIORITIES),
+  };
+}
+
+export default function QueuePage({ searchParams }: PageProps<"/app/queue">) {
   return (
     <>
-      <PageHeader title={t("Operator queue")} />
+      <PageHeader title="Operator queue" />
       <main className="flex w-full flex-1 flex-col">
         <Suspense fallback={<Skeleton className="m-4 h-64 sm:m-6" />}>
-          <Queue searchParams={searchParams} />
+          <Queue filters={searchParams.then(readFilters)} />
         </Suspense>
       </main>
     </>
@@ -43,18 +49,13 @@ export default async function QueuePage({
 }
 
 async function Queue({
-  searchParams,
+  filters,
 }: {
-  searchParams: Promise<SearchParams>;
+  filters: Promise<ReturnType<typeof readFilters>>;
 }) {
   const member = await requireRole("operator");
   const { t } = await getI18n();
-  const params = await searchParams;
-  const search =
-    typeof params.q === "string" ? params.q.trim().slice(0, 100) : "";
-  const status = oneOf<TicketStatus>(params.status, TICKET_STATUSES);
-  const category = oneOf<string>(params.category, TICKET_CATEGORIES);
-  const priority = oneOf<TicketPriority>(params.priority, TICKET_PRIORITIES);
+  const { search, status, category, priority } = await filters;
   const isFiltered = Boolean(search || status || category || priority);
 
   const db = getDb();
