@@ -19,7 +19,7 @@ This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s
 
 | Token                | Light                       | Dark                        | Use                        |
 | -------------------- | --------------------------- | --------------------------- | -------------------------- |
-| `--background`       | `#f2f1ed`                   | `#08090a`                   | Page                       |
+| `--background`       | `#fefefe`                   | `#08090a`                   | Page                       |
 | `--card`             | `#f7f7f4`                   | `#0f1011`                   | Panel, popover, muted fill |
 | `--foreground`       | `#26251e`                   | `#f7f8f8`                   | Ink                        |
 | `--muted-foreground` | `#6b675d`                   | `#8a8f98`                   | Meta and help text         |

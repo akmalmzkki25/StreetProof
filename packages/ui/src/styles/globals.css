@@ -22,7 +22,7 @@
 
 /* Dark is the source scheme. Light is a warm cream paper (Paddy). */
 :root {
-  --background: #f2f1ed;
+  --background: #fefefe;
   --card: #f7f7f4;
   --foreground: #26251e;
   --muted-foreground: #6b675d;
