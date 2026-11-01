@@ -18,13 +18,6 @@ const nextConfig: NextConfig = {
       }
     : {}),
   poweredByHeader: false,
-  // No public home page: /en and /id open the signed-in member's first page.
-  // The proxy sends "/" and other unprefixed addresses to a language first.
-  async redirects() {
-    return [
-      { source: "/:lang(en|id)", destination: "/:lang/app", permanent: false },
-    ];
-  },
   transpilePackages: [
     "@streetproof/ui",
     "@streetproof/contracts",

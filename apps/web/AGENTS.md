@@ -46,7 +46,8 @@ The interface is English and Indonesian. The language is the first part of every
 
 Written without the language prefix; each is reached at `/en/...` and `/id/...`. `/api/*` has no prefix.
 
-- `/`: no home page. The proxy sends it to `/en/app` or `/id/app`, which sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Signed out, it ends at the sign-in page. Report forms are reached from the queue's "Report forms" links or a shared `/report/[code]` link.
+- `/`: public home with the isometric `CaseStack`. The proxy sends it to `/en` or `/id`. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
+- `/app`: no page of its own. It sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Sign-in lands here. Signed out, it ends at the sign-in page.
 - `/app/*`: shares the sidebar in `app/[lang]/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.

@@ -35,10 +35,7 @@ export function proxy(request: NextRequest) {
   if (!locale) {
     const saved = request.cookies.get(LOCALE_COOKIE)?.value;
     const url = request.nextUrl.clone();
-    url.pathname = localePath(
-      chooseLocale(saved),
-      pathname === "/" ? "/app" : path,
-    );
+    url.pathname = localePath(chooseLocale(saved), path);
     return withSecurityHeaders(NextResponse.redirect(url));
   }
 

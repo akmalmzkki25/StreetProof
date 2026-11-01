@@ -12,7 +12,7 @@ import {
 } from "./helpers";
 
 test("the app sends signed-out visitors to sign in", async ({ page }) => {
-  for (const path of ["/", "/app", "/app/queue", "/app/dashboard"]) {
+  for (const path of ["/app", "/app/queue", "/app/dashboard"]) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/login$/);
   }
@@ -23,11 +23,24 @@ test("everyone lands on the first page of their own menu", async ({
 }) => {
   const operator = await signIn(browser, ACCOUNTS.operator);
   await expect(operator).toHaveURL(/\/app\/dashboard$/);
-  await operator.goto("/");
+  await operator.goto("/app");
   await expect(operator).toHaveURL(/\/app\/dashboard$/);
 
   const technician = await signIn(browser, ACCOUNTS.technician);
   await expect(technician).toHaveURL(/\/app\/work$/);
+});
+
+test("the home page is public and leads to sign-in and the report form", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(
+    page.getByRole("heading", { name: /Reports become/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/en\/login$/);
 });
 
 test("the health check answers without saying anything else", async ({
