@@ -1,81 +1,74 @@
 "use client";
 
-import { Menu01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@streetproof/ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@streetproof/ui/components/dropdown-menu";
-import { cn } from "@streetproof/ui/lib/utils";
+  CheckmarkBadge01Icon,
+  DashboardSquare01Icon,
+  FileSearchIcon,
+  ListViewIcon,
+  UserGroupIcon,
+  Wrench01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
+} from "@streetproof/ui/components/sidebar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { signOut } from "@/features/auth/actions";
 import { useI18n } from "@/lib/i18n/client";
 
 import type { NavLink } from "../nav-links";
+
+const LINK_ICONS: Record<string, IconSvgElement> = {
+  "/app/queue": ListViewIcon,
+  "/app/work": Wrench01Icon,
+  "/app/reviews": CheckmarkBadge01Icon,
+  "/app/dashboard": DashboardSquare01Icon,
+  "/app/members": UserGroupIcon,
+  "/app/audit": FileSearchIcon,
+};
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function DesktopNavLinks({ links }: { links: NavLink[] }) {
+export function SidebarNavLinks({ links }: { links: NavLink[] }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { setOpenMobile } = useSidebar();
 
   return (
-    <ul className="hidden items-center gap-1 md:flex">
+    <SidebarMenu>
       {links.map((link) => {
         const active = isActive(pathname, link.href);
+        const icon = LINK_ICONS[link.href];
         return (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "inline-flex h-8 items-center rounded-full px-3 text-[13px] font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none",
-                active
-                  ? "bg-brand font-semibold text-brand-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
+          <SidebarMenuItem key={link.href}>
+            <SidebarMenuButton
+              isActive={active}
+              render={
+                <Link
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => setOpenMobile(false)}
+                />
+              }
             >
-              {t(link.label)}
-            </Link>
-          </li>
+              {icon ? <HugeiconsIcon icon={icon} /> : null}
+              <span>{t(link.label)}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         );
       })}
-    </ul>
+    </SidebarMenu>
   );
 }
 
-export function MobileNavMenu({ links }: { links: NavLink[] }) {
+export function AppSidebarTrigger() {
   const { t } = useI18n();
-  return (
-    <div className="md:hidden">
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
-          <HugeiconsIcon icon={Menu01Icon} />
-          <span className="sr-only">{t("Open the menu")}</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {links.map((link) => (
-            <DropdownMenuItem
-              key={link.href}
-              render={<Link href={link.href} />}
-            >
-              {t(link.label)}
-            </DropdownMenuItem>
-          ))}
-          {links.length > 0 ? <DropdownMenuSeparator /> : null}
-          <DropdownMenuItem onClick={() => void signOut()}>
-            {t("Sign out")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
+  return <SidebarTrigger aria-label={t("Open the menu")} />;
 }

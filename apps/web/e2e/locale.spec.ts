@@ -54,7 +54,13 @@ test("staff pages and status names follow the switch", async ({ browser }) => {
   const operator = await signIn(browser, "operator@streetproof.test");
   await operator.goto("/app/queue");
 
-  await operator.getByRole("button", { name: "Bahasa Indonesia" }).click();
+  await operator
+    .getByRole("button", { name: "operator@streetproof.test" })
+    .click();
+  await operator.getByRole("menuitem", { name: "Language" }).click();
+  await operator
+    .getByRole("menuitemradio", { name: "Bahasa Indonesia" })
+    .click();
 
   await expect(
     operator.getByRole("heading", { name: "Antrean operator" }),

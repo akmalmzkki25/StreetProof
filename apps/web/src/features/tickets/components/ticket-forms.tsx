@@ -76,6 +76,7 @@ export function SelectField({
   placeholder,
   options,
   defaultValue,
+  value,
   onChange,
 }: {
   id: string;
@@ -84,7 +85,8 @@ export function SelectField({
   placeholder: string;
   options: Option[];
   defaultValue?: string | null;
-  onChange?: () => void;
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
   const { t } = useI18n();
   // Names from the database have no translation, so they come through unchanged.
@@ -99,7 +101,8 @@ export function SelectField({
         name={name}
         items={items}
         defaultValue={defaultValue ?? null}
-        onValueChange={() => onChange?.()}
+        value={value}
+        onValueChange={(next) => onChange?.(String(next ?? ""))}
       >
         <SelectTrigger id={id} className="w-full">
           <SelectValue placeholder={t(placeholder)} />

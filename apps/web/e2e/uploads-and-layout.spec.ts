@@ -90,7 +90,7 @@ test.describe("on a phone", () => {
     await expectNoSidewaysScroll(page);
   });
 
-  test("the signed-in pages fit, and the menu replaces the navbar links", async ({
+  test("the signed-in pages fit, and the sidebar becomes a menu sheet", async ({
     browser,
   }) => {
     const description = unique("Phone layout check");
@@ -109,7 +109,7 @@ test.describe("on a phone", () => {
     await expectNoSidewaysScroll(page);
 
     await page.getByRole("button", { name: "Open the menu" }).click();
-    await page.getByRole("menuitem", { name: "Queue" }).click();
+    await page.getByRole("link", { name: "Queue" }).click();
     await page.waitForURL("**/app/queue");
     await expect(page.getByRole("link", { name: description })).toBeVisible();
     await expectNoSidewaysScroll(page);
@@ -121,12 +121,13 @@ test.describe("on a phone", () => {
     await expectNoSidewaysScroll(page);
 
     await page.getByRole("button", { name: "Open the menu" }).click();
+    await page.getByRole("button", { name: ACCOUNTS.operator }).click();
     await page.getByRole("menuitem", { name: "Sign out" }).click();
     await page.waitForURL("**/login");
   });
 });
 
-test("a keyboard user can skip the navbar and sign out", async ({
+test("a keyboard user can skip the sidebar and sign out", async ({
   browser,
 }) => {
   const page = await signIn(browser, ACCOUNTS.operator);
@@ -140,7 +141,8 @@ test("a keyboard user can skip the navbar and sign out", async ({
   await expect(skip).toBeFocused();
   await expect(skip).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign out" }).focus();
+  await page.getByRole("button", { name: ACCOUNTS.operator }).focus();
   await page.keyboard.press("Enter");
+  await page.getByRole("menuitem", { name: "Sign out" }).click();
   await page.waitForURL("**/login");
 });

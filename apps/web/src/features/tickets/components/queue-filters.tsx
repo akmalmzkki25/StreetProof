@@ -1,22 +1,43 @@
 "use client";
 
+import { Search01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+
 import {
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
   TICKET_STATUSES,
 } from "@streetproof/domain";
 import { Button } from "@streetproof/ui/components/button";
-import { Field, FieldLabel } from "@streetproof/ui/components/field";
-import { Input } from "@streetproof/ui/components/input";
-import Form from "next/form";
-import Link from "next/link";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@streetproof/ui/components/input-group";
+import { Spinner } from "@streetproof/ui/components/spinner";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
 
+import { FilterSelect } from "@/components/filter-select";
 import { useI18n } from "@/lib/i18n/client";
 
 import { CATEGORY_LABELS, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
-import { SelectField } from "./ticket-forms";
 
 export const ANY = "any";
+
+type Filters = {
+  q: string;
+  status: string;
+  category: string;
+  priority: string;
+};
+
+const NO_FILTERS: Filters = {
+  q: "",
+  status: ANY,
+  category: ANY,
+  priority: ANY,
+};
 
 function withAny(
   anyLabel: string,
@@ -29,7 +50,18 @@ function withAny(
   ];
 }
 
-// A plain GET form, so a filtered queue is a link someone can share or reload.
+function queueUrl(filters: Filters) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    const trimmed = value.trim();
+    if (trimmed && trimmed !== ANY) params.set(key, trimmed);
+  }
+  const query = params.toString();
+  return query ? `/app/queue?${query}` : "/app/queue";
+}
+
+// Filters apply as they change and live in the URL, so a filtered queue is a
+// link someone can share or reload.
 export function QueueFilters({
   search,
   status,
@@ -42,55 +74,87 @@ export function QueueFilters({
   priority: string | null;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [filters, setFilters] = useState<Filters>({
+    q: search,
+    status: status ?? ANY,
+    category: category ?? ANY,
+    priority: priority ?? ANY,
+  });
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  function apply(next: Filters) {
+    setFilters(next);
+    clearTimeout(searchTimer.current);
+    startTransition(() => {
+      router.replace(queueUrl(next), { scroll: false });
+    });
+  }
+
+  function changeSearch(q: string) {
+    const next = { ...filters, q };
+    setFilters(next);
+    clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => apply(next), 300);
+  }
+
+  const isFiltered =
+    filters.q.trim() !== "" ||
+    filters.status !== ANY ||
+    filters.category !== ANY ||
+    filters.priority !== ANY;
+
   return (
-    <Form
-      action="/app/queue"
-      role="search"
-      className="grid grid-cols-1 items-end gap-4 rounded-4xl bg-card p-6 shadow-card sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]"
-    >
-      <Field>
-        <FieldLabel htmlFor="q">{t("Search")}</FieldLabel>
-        <Input
-          id="q"
-          name="q"
+    <search className="flex flex-wrap items-center gap-2">
+      <InputGroup className="h-8 w-full rounded-full sm:w-72">
+        <InputGroupAddon>
+          <HugeiconsIcon icon={Search01Icon} />
+        </InputGroupAddon>
+        <InputGroupInput
           type="search"
+          aria-label={t("Search")}
           maxLength={100}
-          defaultValue={search}
-          placeholder={t("Words from the report, summary or location")}
+          value={filters.q}
+          onChange={(event) => changeSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") apply(filters);
+          }}
+          placeholder={t("Search reports")}
         />
-      </Field>
-      <SelectField
-        id="status"
+      </InputGroup>
+      <FilterSelect
+        id="queue-status"
         label="Status"
-        placeholder="Any status"
         options={withAny("Any status", TICKET_STATUSES, STATUS_LABELS)}
-        defaultValue={status ?? ANY}
+        value={filters.status}
+        onChange={(value) => apply({ ...filters, status: value })}
       />
-      <SelectField
-        id="category"
+      <FilterSelect
+        id="queue-category"
         label="Category"
-        placeholder="Any category"
         options={withAny("Any category", TICKET_CATEGORIES, CATEGORY_LABELS)}
-        defaultValue={category ?? ANY}
+        value={filters.category}
+        onChange={(value) => apply({ ...filters, category: value })}
       />
-      <SelectField
-        id="priority"
+      <FilterSelect
+        id="queue-priority"
         label="Priority"
-        placeholder="Any priority"
         options={withAny("Any priority", TICKET_PRIORITIES, PRIORITY_LABELS)}
-        defaultValue={priority ?? ANY}
+        value={filters.priority}
+        onChange={(value) => apply({ ...filters, priority: value })}
       />
-      <div className="flex items-center gap-4 sm:col-span-2 lg:col-span-4">
-        <Button type="submit" variant="outline">
-          {t("Apply filters")}
-        </Button>
-        <Link
-          href="/app/queue"
-          className="type-caption text-brand-text underline underline-offset-4"
+      {isFiltered ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => apply(NO_FILTERS)}
         >
           {t("Clear")}
-        </Link>
-      </div>
-    </Form>
+        </Button>
+      ) : null}
+      {isPending ? <Spinner aria-label={t("Loading")} /> : null}
+    </search>
   );
 }

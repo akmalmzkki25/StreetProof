@@ -73,8 +73,12 @@ test("an assignment carries a team and deadline, and notes stay internal", async
     operator.getByRole("heading", { name: "Assign the work" }),
   ).toBeHidden();
 
-  await expect(visibleText(operator, "Electrical")).toBeVisible();
-  await expect(visibleText(operator, "15 Jan 2099, 10:30 WIB")).toBeVisible();
+  await expect(
+    visibleText(operator.getByRole("dialog"), "Electrical"),
+  ).toBeVisible();
+  await expect(
+    visibleText(operator.getByRole("dialog"), "15 Jan 2099, 10:30 WIB"),
+  ).toBeVisible();
 
   await operator.getByLabel("Add a note").fill("Vendor key is at reception.");
   await operator.getByRole("button", { name: "Save note" }).click();

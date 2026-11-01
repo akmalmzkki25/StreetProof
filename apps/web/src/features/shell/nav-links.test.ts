@@ -9,14 +9,14 @@ describe("navLinksFor", () => {
     ]);
   });
 
-  it("gives each other role its queue and the overview", () => {
+  it("puts the overview first for every other role", () => {
     expect(navLinksFor(["operator"]).map((link) => link.label)).toEqual([
-      "Queue",
       "Overview",
+      "Queue",
     ]);
     expect(navLinksFor(["supervisor"]).map((link) => link.label)).toEqual([
-      "Reviews",
       "Overview",
+      "Reviews",
     ]);
     expect(navLinksFor(["tenant_admin"]).map((link) => link.label)).toEqual([
       "Overview",
@@ -30,6 +30,6 @@ describe("navLinksFor", () => {
       navLinksFor(["supervisor", "operator", "tenant_admin"]).map(
         (link) => link.label,
       ),
-    ).toEqual(["Queue", "Reviews", "Overview", "Members", "Audit log"]);
+    ).toEqual(["Overview", "Queue", "Reviews", "Members", "Audit log"]);
   });
 });

@@ -3,6 +3,7 @@ import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
 import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
@@ -12,12 +13,14 @@ export const metadata: Metadata = { title: "My work" };
 export default async function WorkPage() {
   const { t } = await getI18n();
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">{t("My work")}</h1>
-      <Suspense fallback={<Skeleton className="h-64" />}>
-        <AssignedWork />
-      </Suspense>
-    </main>
+    <>
+      <PageHeader title={t("My work")} />
+      <main className="flex w-full flex-1 flex-col">
+        <Suspense fallback={<Skeleton className="m-4 h-64 sm:m-6" />}>
+          <AssignedWork />
+        </Suspense>
+      </main>
+    </>
   );
 }
 

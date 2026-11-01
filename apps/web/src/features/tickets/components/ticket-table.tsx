@@ -1,7 +1,9 @@
+"use client";
+
 import { TaskDaily01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { QueueItem } from "@streetproof/db";
-import { isOverdue } from "@streetproof/domain";
+import { isOverdue, TICKET_STATUSES } from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import {
   Empty,
@@ -10,41 +12,36 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@streetproof/ui/components/empty";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@streetproof/ui/components/table";
+import { createColumnHelper, useTable } from "@tanstack/react-table";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
+import {
+  DataTable,
+  dataTableFeatures,
+  type DataTableFeatures,
+} from "@/components/data-table";
 import { formatDateTime } from "@/lib/format";
-
-import { getI18n } from "@/lib/i18n/server";
+import { useI18n } from "@/lib/i18n/client";
 
 import { categoryLabel, STATUS_LABELS, statusBadgeVariant } from "../labels";
 
-async function DueDate({ item }: { item: QueueItem & { dueAt: Date | null } }) {
-  if (!item.dueAt) return null;
-  const { t, locale } = await getI18n();
-  const date = formatDateTime(item.dueAt, locale);
-  if (!isOverdue(item, new Date())) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        {t("Due {date}", { date })}
-      </p>
-    );
-  }
-  return (
-    <p className="text-xs text-destructive">
-      {t("Overdue since {date}", { date })}
-    </p>
-  );
+const column = createColumnHelper<DataTableFeatures, QueueItem>();
+
+// Narrow screens keep the report and its status; the rest folds into the report cell.
+const COLUMN_CLASSES: Record<string, string> = {
+  report: "min-w-48 whitespace-normal",
+  location: "hidden sm:table-cell",
+  category: "hidden md:table-cell",
+  createdAt: "hidden md:table-cell",
+};
+
+function ticketHref(item: QueueItem) {
+  return `/app/tickets/${item.id}`;
 }
 
-export async function TicketTable({
+export function TicketTable({
   items,
   emptyTitle,
   emptyMessage,
@@ -53,89 +50,121 @@ export async function TicketTable({
   emptyTitle: string;
   emptyMessage: string;
 }) {
-  const { t, locale } = await getI18n();
-  if (items.length === 0) {
-    return (
-      <Empty className="flex-none rounded-4xl bg-card shadow-card">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <HugeiconsIcon icon={TaskDaily01Icon} />
-          </EmptyMedia>
-          <EmptyTitle>{t(emptyTitle)}</EmptyTitle>
-          <EmptyDescription>{t(emptyMessage)}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    );
-  }
+  const { t, locale } = useI18n();
+  const router = useRouter();
+
+  const columns = useMemo(
+    () =>
+      column.columns([
+        column.accessor("title", {
+          id: "report",
+          header: t("Report"),
+          sortFn: "alphanumeric",
+          cell: ({ row }) => <ReportCell item={row.original} />,
+        }),
+        column.accessor((item) => item.location ?? "", {
+          id: "location",
+          header: t("Location"),
+          sortFn: "alphanumeric",
+          cell: ({ row }) => row.original.location ?? t("Not set"),
+        }),
+        column.accessor((item) => TICKET_STATUSES.indexOf(item.status), {
+          id: "status",
+          sortFn: "basic",
+          header: t("Status"),
+          cell: ({ row }) => (
+            <Badge variant={statusBadgeVariant(row.original.status)}>
+              {t(STATUS_LABELS[row.original.status])}
+            </Badge>
+          ),
+        }),
+        column.accessor(
+          (item) => t(categoryLabel(item.category) ?? "Not set"),
+          { id: "category", header: t("Category"), sortFn: "alphanumeric" },
+        ),
+        column.accessor("createdAt", {
+          header: t("Sent"),
+          sortFn: "datetime",
+          cell: ({ row }) => (
+            <span className="font-mono text-xs text-muted-foreground">
+              {formatDateTime(row.original.createdAt, locale)}
+            </span>
+          ),
+        }),
+      ]),
+    [t, locale],
+  );
+
+  const table = useTable({
+    features: dataTableFeatures,
+    columns,
+    data: items,
+  });
 
   return (
-    <div className="rounded-4xl bg-card p-2 shadow-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("Report")}</TableHead>
-            <TableHead className="hidden sm:table-cell">
-              {t("Location")}
-            </TableHead>
-            <TableHead>{t("Status")}</TableHead>
-            <TableHead className="hidden md:table-cell">
-              {t("Category")}
-            </TableHead>
-            <TableHead className="hidden md:table-cell">{t("Sent")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="min-w-32 whitespace-normal">
-                <Link
-                  href={`/app/tickets/${item.id}`}
-                  className="line-clamp-2 font-medium transition-colors hover:text-brand-text focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
-                >
-                  {item.title}
-                </Link>
-                <p className="text-xs text-muted-foreground sm:hidden">
-                  {item.location ?? t("Location not set")}
-                </p>
-                {item.linkedCount > 0 ? (
-                  <p className="text-xs text-muted-foreground">
-                    {item.linkedCount === 1
-                      ? t("1 linked report")
-                      : t("{count} linked reports", {
-                          count: item.linkedCount,
-                        })}
-                  </p>
-                ) : null}
-                {item.hasUnreviewedAnswer ? (
-                  <p className="text-xs text-brand-text">
-                    {t("Reporter answered")}
-                  </p>
-                ) : null}
-                {item.teamName ? (
-                  <p className="text-xs text-muted-foreground">
-                    {item.teamName}
-                  </p>
-                ) : null}
-                {item.dueAt ? <DueDate item={item} /> : null}
-              </TableCell>
-              <TableCell className="hidden sm:table-cell">
-                {item.location ?? t("Not set")}
-              </TableCell>
-              <TableCell>
-                <Badge variant={statusBadgeVariant(item.status)}>
-                  {t(STATUS_LABELS[item.status])}
-                </Badge>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {t(categoryLabel(item.category) ?? "Not set")}
-              </TableCell>
-              <TableCell className="hidden font-mono text-xs text-muted-foreground md:table-cell">
-                {formatDateTime(item.createdAt, locale)}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTable
+      table={table}
+      columnClasses={COLUMN_CLASSES}
+      onRowClick={(item) => router.push(ticketHref(item))}
+      empty={
+        <Empty className="flex-none py-16">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon icon={TaskDaily01Icon} />
+            </EmptyMedia>
+            <EmptyTitle>{t(emptyTitle)}</EmptyTitle>
+            <EmptyDescription>{t(emptyMessage)}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      }
+      footer={
+        items.length === 1
+          ? t("1 ticket in view")
+          : t("{count} tickets in view", { count: items.length })
+      }
+    />
+  );
+}
+
+function ReportCell({ item }: { item: QueueItem }) {
+  const { t, locale } = useI18n();
+  return (
+    <>
+      <Link
+        href={ticketHref(item)}
+        className="line-clamp-2 font-medium transition-colors hover:text-brand-text focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
+      >
+        {item.title}
+      </Link>
+      <p className="text-xs text-muted-foreground sm:hidden">
+        {item.location ?? t("Location not set")}
+      </p>
+      {item.linkedCount > 0 ? (
+        <p className="text-xs text-muted-foreground">
+          {item.linkedCount === 1
+            ? t("1 linked report")
+            : t("{count} linked reports", { count: item.linkedCount })}
+        </p>
+      ) : null}
+      {item.hasUnreviewedAnswer ? (
+        <p className="text-xs text-brand-text">{t("Reporter answered")}</p>
+      ) : null}
+      {item.teamName ? (
+        <p className="text-xs text-muted-foreground">{item.teamName}</p>
+      ) : null}
+      {item.dueAt ? (
+        isOverdue(item, new Date()) ? (
+          <p className="text-xs text-destructive">
+            {t("Overdue since {date}", {
+              date: formatDateTime(item.dueAt, locale),
+            })}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            {t("Due {date}", { date: formatDateTime(item.dueAt, locale) })}
+          </p>
+        )
+      ) : null}
+    </>
   );
 }

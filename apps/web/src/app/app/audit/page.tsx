@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { auditLabel } from "@/features/members/labels";
 import { formatDateTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
@@ -22,19 +23,19 @@ export const metadata: Metadata = { title: "Audit log" };
 export default async function AuditPage() {
   const { t } = await getI18n();
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="type-headline">{t("Audit log")}</h1>
+    <>
+      <PageHeader title={t("Audit log")} />
+      <main className="flex w-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
         <p className="type-caption text-muted-foreground">
           {t(
             "The latest 200 sign-ins, account changes and ticket views. Changes to a ticket itself are in that ticket's history.",
           )}
         </p>
-      </div>
-      <Suspense fallback={<Skeleton className="h-96" />}>
-        <AuditEntries />
-      </Suspense>
-    </main>
+        <Suspense fallback={<Skeleton className="h-96" />}>
+          <AuditEntries />
+        </Suspense>
+      </main>
+    </>
   );
 }
 

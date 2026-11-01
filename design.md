@@ -251,6 +251,7 @@ Rules:
 Build these from tokens and components only.
 
 - **Floating navbar.** `rounded-full border glass`. Ghost links. The active link is a rose pill (`bg-brand text-brand-foreground`). One light CTA on the end.
+- **App sidebar.** `/app/*` uses the shadcn sidebar: `bg-sidebar` (card) with a hairline, compact 6px menu rows (as in Paddy), the active row rose. Below `md` it becomes a sheet behind a menu button.
 - **Pricing card.** `Card`, a `type-headline` price, a destructive badge for a short offer, a feature list with rose check icons, a full-width primary button, and a full-width secondary button.
 - **Testimonials.** A two-tone `type-headline` (ink line, then `text-muted-foreground`). One `bg-card` card and one `bg-primary` card. Five rose stars, the quote, then an avatar and a name.
 - **Sunken panel with media cards.** `rounded-4xl bg-surface-raised shadow-inset`, then the media card pattern from section 4. Horizontal scroll on small screens.

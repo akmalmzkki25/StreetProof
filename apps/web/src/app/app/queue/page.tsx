@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { QueueFilters } from "@/features/tickets/components/queue-filters";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
 import { getI18n } from "@/lib/i18n/server";
@@ -30,12 +31,14 @@ export default async function QueuePage({
 }: PageProps<"/app/queue">) {
   const { t } = await getI18n();
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <h1 className="type-headline">{t("Operator queue")}</h1>
-      <Suspense fallback={<Skeleton className="h-64" />}>
-        <Queue searchParams={searchParams} />
-      </Suspense>
-    </main>
+    <>
+      <PageHeader title={t("Operator queue")} />
+      <main className="flex w-full flex-1 flex-col">
+        <Suspense fallback={<Skeleton className="m-4 h-64 sm:m-6" />}>
+          <Queue searchParams={searchParams} />
+        </Suspense>
+      </main>
+    </>
   );
 }
 
@@ -67,29 +70,29 @@ async function Queue({
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
-      {intakeSites.length > 0 ? (
-        <p className="type-caption text-muted-foreground">
-          {t("Report forms:")}{" "}
-          {intakeSites.map((site) => (
-            <Link
-              key={site.id}
-              href={`/report/${site.intakeCode}`}
-              className="text-brand-text underline underline-offset-4"
-            >
-              {site.name}
-            </Link>
-          ))}
-        </p>
-      ) : null}
-      <QueueFilters
-        // Remounts on navigation, so the fields match the URL after Clear.
-        key={`${search}|${status}|${category}|${priority}`}
-        search={search}
-        status={status}
-        category={category}
-        priority={priority}
-      />
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
+        <QueueFilters
+          search={search}
+          status={status}
+          category={category}
+          priority={priority}
+        />
+        {intakeSites.length > 0 ? (
+          <p className="type-caption text-muted-foreground">
+            {t("Report forms:")}{" "}
+            {intakeSites.map((site) => (
+              <Link
+                key={site.id}
+                href={`/report/${site.intakeCode}`}
+                className="text-brand-text underline underline-offset-4"
+              >
+                {site.name}
+              </Link>
+            ))}
+          </p>
+        ) : null}
+      </div>
       <TicketTable
         items={items}
         emptyTitle={isFiltered ? "No matching tickets" : "No reports yet"}
@@ -99,6 +102,6 @@ async function Queue({
             : "New reports appear here as soon as they're sent."
         }
       />
-    </div>
+    </>
   );
 }

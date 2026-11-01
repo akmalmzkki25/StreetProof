@@ -25,11 +25,15 @@ test("an admin adds a member, who signs in with the role they were given", async
 
   const name = unique("New Technician");
   const email = `${crypto.randomUUID()}@example.test`;
+  await admin.getByRole("button", { name: "Add member" }).click();
   await admin.getByLabel("Name").fill(name);
   await admin.getByLabel("Email").fill(email);
   await admin.getByLabel("First password").fill("first-password-1");
   await admin.getByRole("checkbox", { name: "Technician" }).first().check();
-  await admin.getByRole("button", { name: "Add member" }).click();
+  await admin
+    .getByRole("dialog")
+    .getByRole("button", { name: "Add member" })
+    .click();
   await expect(visibleText(admin, "Member added.")).toBeVisible();
   await expect(visibleText(admin, name)).toBeVisible();
 
@@ -51,11 +55,11 @@ test("an admin adds a member, who signs in with the role they were given", async
   await admin.reload();
   await visibleText(admin, name).click();
   await admin
-    .locator("details", { hasText: name })
+    .getByRole("dialog")
     .getByRole("button", { name: "Deactivate" })
     .click();
   await expect(
-    admin.locator("details", { hasText: name }).getByText("Deactivated"),
+    admin.getByRole("dialog").getByText("Deactivated", { exact: true }),
   ).toBeVisible();
   await newcomer.goto("/app/work");
   await expect(newcomer).toHaveURL(/\/login$/);
@@ -125,8 +129,8 @@ test("a password can be reset from the emailed link, and only once", async ({
   // Later tests sign in with the shared demo password.
   const admin = await signIn(browser, ADMIN);
   await admin.goto("/app/members");
-  const row2 = admin.locator("details", { hasText: "Rina Technician" });
   await visibleText(admin, "Rina Technician").click();
+  const row2 = admin.getByRole("dialog");
   await row2.getByLabel("New password").fill(DEMO_PASSWORD);
   await row2.getByRole("button", { name: "Set password" }).click();
   await expect(

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { PageHeader } from "@/components/page-header";
 import { getI18n } from "@/lib/i18n/server";
 import { requireMember } from "@/lib/member";
 
@@ -41,11 +42,14 @@ const ROLE_LINKS: Record<Role, { href: string; label: string }> = {
 
 export default function WorkspacePage() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-10 sm:px-8">
-      <Suspense fallback={<WorkspaceSkeleton />}>
-        <Workspace />
-      </Suspense>
-    </main>
+    <>
+      <PageHeader />
+      <main className="flex w-full flex-1 flex-col gap-10 px-4 py-10 sm:px-6">
+        <Suspense fallback={<WorkspaceSkeleton />}>
+          <Workspace />
+        </Suspense>
+      </main>
+    </>
   );
 }
 

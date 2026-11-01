@@ -61,7 +61,7 @@ async function fileReport(description: string) {
   if (!outcome.ok) throw new Error(outcome.code);
 }
 
-test("the queue can be searched and filtered, and the link keeps the filter", async ({
+test("the queue filters as you type or pick, and the link keeps the filter", async ({
   browser,
 }) => {
   const word = unique("Kebocoran");
@@ -72,7 +72,6 @@ test("the queue can be searched and filtered, and the link keeps the filter", as
   const operator = await signIn(browser, ACCOUNTS.operator);
   await operator.goto("/app/queue");
   await operator.getByLabel("Search").fill(word.toLowerCase());
-  await operator.getByRole("button", { name: "Apply filters" }).click();
 
   await expect(operator).toHaveURL(/q=/);
   await expect(operator.getByRole("link", { name: word })).toBeVisible();
@@ -83,10 +82,9 @@ test("the queue can be searched and filtered, and the link keeps the filter", as
   await expect(operator.getByLabel("Search")).toHaveValue(word.toLowerCase());
 
   await choose(operator, "Status", "Verified closed");
-  await operator.getByRole("button", { name: "Apply filters" }).click();
   await expect(visibleText(operator, "No matching tickets")).toBeVisible();
 
-  await operator.getByRole("link", { name: "Clear" }).click();
+  await operator.getByRole("button", { name: "Clear" }).click();
   await expect(operator.getByRole("link", { name: other })).toBeVisible();
 });
 

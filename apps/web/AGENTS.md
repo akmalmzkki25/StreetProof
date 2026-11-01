@@ -38,18 +38,18 @@ The interface is English and Indonesian. The locale comes from the `streetproof_
 ## Routes
 
 - `/`: public home. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
-- `/app/*`: shares the floating navbar in `app/app/layout.tsx`. `navLinksFor` decides its links from the member's roles. Panels use `components/panel.tsx`.
+- `/app/*`: shares the sidebar in `app/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
 - `/status/recover`: a reporter who left an email asks for new status links. The answer is the same whether or not a report matches.
 - `/forgot-password`, `/reset-password`: password reset by email.
-- `/app/members`, `/app/audit`: member and team management and the audit log, tenant admins only.
+- `/app/members`, `/app/audit`: member and team management and the audit log, tenant admins only. Members are a filterable table; adding a member, managing one, and teams each open in a drawer.
 - `/api/monitoring`: health details for an uptime checker, behind `MONITORING_TOKEN`.
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.
 - `/app/reviews`: a supervisor's pending verifications and closed work.
-- `/app/dashboard`: backlog, age, owners and outcomes, for everyone except technicians. Figures come from `computeDashboard` in `@streetproof/domain`, so definitions live in one tested place. A rate shows numerator, denominator and pending, never a bare percentage, and a missing value is a dash, not a zero.
-- `/app/tickets/[id]`: one page for every role. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`). Operators and supervisors link or unlink duplicates here. An AI duplicate candidate only prefills the form; a person submits the link. Operators ask the reporter a question here too; the reporter answers on `/status`, and the queue marks the ticket until an operator reviews the answer.
+- `/app/dashboard`: backlog, age, owners and outcomes, for everyone except technicians. Figures come from `computeDashboard` in `@streetproof/domain`, so definitions live in one tested place. A rate shows numerator, denominator and pending, never a bare percentage, and a missing value is a dash, not a zero. The daily chart uses the shadcn `Chart` (Recharts) from `@streetproof/ui`.
+- `/app/tickets/[id]`: one page for every role. A link to a ticket from inside `/app` opens it in a drawer instead (`@drawer/(.)tickets/[id]`, same `TicketDetail`); a refresh or shared link loads the full page. Forms come from `availableTransitions`, so each person sees only what they may do. Technicians can open only work currently assigned to them (`canViewTicket`). Operators and supervisors link or unlink duplicates here. An AI duplicate candidate only prefills the form; a person submits the link. Operators ask the reporter a question here too; the reporter answers on `/status`, and the queue marks the ticket until an operator reviews the answer.
 
 End-to-end tests live in `e2e/` and run with `pnpm test:e2e` from the repo root. Each run makes a production build on port 3100 and resets its own `streetproof_e2e` database, so it can't touch demo data, a dev server or a worker. The first run on a machine needs `pnpm --filter @streetproof/web exec playwright install chromium`. It needs Postgres and MinIO running, and it never calls the model. Use `visibleText` from `e2e/helpers.ts` for text lookups: while a page streams, React briefly holds a hidden copy of its content.
 
