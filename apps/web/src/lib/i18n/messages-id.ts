@@ -361,6 +361,9 @@ export const ID_MESSAGES: Record<string, string> = {
   "The suggestion couldn't be prepared. You can try again, or triage this report by hand.":
     "Saran gagal disiapkan. Anda bisa mencoba lagi, atau triase laporan ini manual.",
   "Try again": "Coba lagi",
+  "Something went wrong": "Terjadi kesalahan",
+  "This page didn't load. Try again, or come back in a moment.":
+    "Halaman ini gagal dimuat. Coba lagi, atau kembali sebentar lagi.",
   "As the reporter described": "Seperti yang dijelaskan pelapor",
   "Said by the reporter": "Dikatakan pelapor",
   "Visible in the photos": "Terlihat di foto",
