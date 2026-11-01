@@ -29,7 +29,7 @@ Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web 
 
 ## Language
 
-The interface is English and Indonesian. The locale comes from the `streetproof_locale` cookie, then a browser whose first language is Indonesian, then English.
+The interface is English and Indonesian. English is the default. The only thing that changes it is the `streetproof_locale` cookie, set by the language switch; the browser's language is ignored.
 
 - Wrap every sentence in `t()`, from `getI18n()` on the server or `useI18n()` in a client component. The English sentence is the key. Action errors stay English in the action and are translated where they're displayed.
 - Add the Indonesian to `src/lib/i18n/messages-id.ts`, or `messages-id-errors.ts` for an action error. `messages.test.ts` scans the source and fails on a sentence without one.

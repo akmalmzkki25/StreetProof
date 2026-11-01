@@ -162,18 +162,13 @@ describe("translate", () => {
 });
 
 describe("chooseLocale", () => {
-  it("prefers the saved choice over the browser's language", () => {
-    expect(chooseLocale("en", "id-ID,id;q=0.9")).toBe("en");
-    expect(chooseLocale("id", "en-US")).toBe("id");
+  it("uses the saved choice", () => {
+    expect(chooseLocale("id")).toBe("id");
+    expect(chooseLocale("en")).toBe("en");
   });
 
-  it("uses Indonesian when the browser asks for it first", () => {
-    expect(chooseLocale(undefined, "id-ID,id;q=0.9,en;q=0.8")).toBe("id");
-  });
-
-  it("uses English otherwise", () => {
-    expect(chooseLocale(undefined, "en-US,id;q=0.5")).toBe("en");
-    expect(chooseLocale(undefined, null)).toBe("en");
-    expect(chooseLocale("fr", null)).toBe("en");
+  it("uses English when nothing, or something unknown, is saved", () => {
+    expect(chooseLocale(undefined)).toBe("en");
+    expect(chooseLocale("fr")).toBe("en");
   });
 });

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { cache } from "react";
 
 import {
@@ -11,14 +11,8 @@ import {
 } from "./translate";
 
 export const getLocale = cache(async function getLocale() {
-  const [cookieStore, requestHeaders] = await Promise.all([
-    cookies(),
-    headers(),
-  ]);
-  return chooseLocale(
-    cookieStore.get(LOCALE_COOKIE)?.value,
-    requestHeaders.get("accept-language"),
-  );
+  const cookieStore = await cookies();
+  return chooseLocale(cookieStore.get(LOCALE_COOKIE)?.value);
 });
 
 export async function getI18n() {

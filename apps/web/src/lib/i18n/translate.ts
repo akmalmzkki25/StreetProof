@@ -18,13 +18,7 @@ export function translate(locale: Locale, text: string, params?: Params) {
   });
 }
 
-// A saved choice wins. Otherwise the browser's first language decides, so someone
-// in Indonesia opening a report link gets Indonesian without being asked.
-export function chooseLocale(
-  saved: string | undefined,
-  acceptLanguage: string | null,
-): Locale {
-  if (saved === "en" || saved === "id") return saved;
-  const first = acceptLanguage?.split(",")[0]?.trim().toLowerCase() ?? "";
-  return first.startsWith("id") ? "id" : "en";
+// English unless someone picked Indonesian. The browser's language is ignored.
+export function chooseLocale(saved: string | undefined): Locale {
+  return saved === "id" ? "id" : "en";
 }
