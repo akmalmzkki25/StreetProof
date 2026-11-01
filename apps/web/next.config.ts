@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
       }
     : {}),
   poweredByHeader: false,
+  // No public home page: the app opens on the signed-in member's first page.
+  async redirects() {
+    return [{ source: "/", destination: "/app", permanent: false }];
+  },
   transpilePackages: [
     "@streetproof/ui",
     "@streetproof/contracts",

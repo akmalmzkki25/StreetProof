@@ -1,112 +1,24 @@
-import type { Role } from "@streetproof/domain";
-import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { PageHeader } from "@/components/page-header";
-import { getI18n } from "@/lib/i18n/server";
+import { navLinksFor } from "@/features/shell/nav-links";
 import { requireMember } from "@/lib/member";
 
 export const metadata: Metadata = { title: "Workspace" };
 
-const ROLE_WORK: Record<Role, { title: string; description: string }> = {
-  operator: {
-    title: "Operator",
-    description:
-      "Review incoming reports, triage them into tickets and assign technicians.",
-  },
-  technician: {
-    title: "Technician",
-    description:
-      "Accept assigned work, record progress and submit completion proof.",
-  },
-  supervisor: {
-    title: "Supervisor",
-    description:
-      "Verify completion proof, reject it with a reason, or reopen closed work.",
-  },
-  tenant_admin: {
-    title: "Tenant admin",
-    description:
-      "Manage members and teams, and check who did what in the audit log.",
-  },
-};
-
-const ROLE_LINKS: Record<Role, { href: string; label: string }> = {
-  operator: { href: "/app/queue", label: "Open the queue" },
-  technician: { href: "/app/work", label: "Open my work" },
-  supervisor: { href: "/app/reviews", label: "Open reviews" },
-  tenant_admin: { href: "/app/members", label: "Manage members" },
-};
-
 export default function WorkspacePage() {
   return (
-    <>
-      <PageHeader />
-      <main className="flex w-full flex-1 flex-col gap-10 px-4 py-10 sm:px-6">
-        <Suspense fallback={<WorkspaceSkeleton />}>
-          <Workspace />
-        </Suspense>
-      </main>
-    </>
+    <Suspense fallback={null}>
+      <Landing />
+    </Suspense>
   );
 }
 
-async function Workspace() {
+// The first item of the member's menu: the Overview, or My work for technicians.
+async function Landing(): Promise<never> {
   const member = await requireMember();
-  const { t } = await getI18n();
-
-  return (
-    <>
-      <header className="flex flex-col gap-2">
-        <p className="type-caption text-muted-foreground">
-          {member.tenantName}
-        </p>
-        <h1 className="type-headline">
-          {t("Hello, {name}", { name: member.name })}
-        </h1>
-      </header>
-
-      <section aria-labelledby="your-roles" className="flex flex-col gap-4">
-        <h2 id="your-roles" className="type-caption text-muted-foreground">
-          {t("Your roles")}
-        </h2>
-        <ul className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {member.roles.map((role) => (
-            <li
-              key={role}
-              className="flex flex-col gap-2 rounded-4xl bg-card p-6 shadow-card"
-            >
-              <p className="type-title">{t(ROLE_WORK[role].title)}</p>
-              <p className="text-muted-foreground">
-                {t(ROLE_WORK[role].description)}
-              </p>
-              <Link
-                href={ROLE_LINKS[role].href}
-                className="self-start text-brand-text underline underline-offset-4"
-              >
-                {t(ROLE_LINKS[role].label)}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </>
-  );
-}
-
-function WorkspaceSkeleton() {
-  return (
-    <div className="flex flex-col gap-10" aria-busy="true">
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-12 w-80 max-w-full" />
-      </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Skeleton className="h-36" />
-        <Skeleton className="h-36" />
-      </div>
-    </div>
-  );
+  const first = navLinksFor(member.roles)[0];
+  if (!first) notFound();
+  redirect(first.href);
 }
