@@ -39,9 +39,20 @@ test("an address without a language follows the one last used", async ({
 });
 
 test("an unknown language in the address is not found", async ({ page }) => {
-  const response = await page.goto("/fr/login");
+  let documents = 0;
+  page.on("request", (request) => {
+    if (request.resourceType() === "document") documents += 1;
+  });
 
-  expect(response?.status()).toBe(404);
+  await page.goto("/fr/login");
+
+  await expect(page).toHaveURL(/\/en\/fr\/login$/);
+  await expect(
+    page.getByRole("heading", { name: "This page could not be found." }),
+  ).toBeVisible();
+  // A hard 404 here used to reload the document in a loop.
+  await page.waitForTimeout(1500);
+  expect(documents).toBeLessThan(4);
 });
 
 test.describe("with a browser set to Indonesian", () => {

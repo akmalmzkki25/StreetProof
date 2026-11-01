@@ -44,7 +44,7 @@ The interface is English and Indonesian. The language is the first part of every
 
 ## Routes
 
-Written without the language prefix; each is reached at `/en/...` and `/id/...`. `/api/*` has no prefix.
+Written without the language prefix; each is reached at `/en/...` and `/id/...`. `/api/*` has no prefix. An address with no page shows the not-found screen in that language.
 
 - `/`: public home with the isometric `CaseStack`. The proxy sends it to `/en` or `/id`. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
 - `/app`: no page of its own. It sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Sign-in lands here. Signed out, it ends at the sign-in page.
