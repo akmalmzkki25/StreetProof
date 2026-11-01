@@ -48,12 +48,12 @@ Written without the language prefix; each is reached at `/en/...` and `/id/...`.
 
 - `/`: public home with the isometric `CaseStack`. The proxy sends it to `/en` or `/id`. Its "Try the report form" button points at the seeded synthetic site, so replace `DEMO_INTAKE_CODE` before real data.
 - `/app`: no page of its own. It sends a signed-in member to the first item of their menu (`navLinksFor`): the Overview, or My work for technicians. Sign-in lands here. Signed out, it ends at the sign-in page.
-- `/app/*`: shares the sidebar in `app/[lang]/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
+- `/app/*`: shares the sidebar in `app/[lang]/app/layout.tsx` (a sheet behind a menu button on phones). `navLinksFor` decides its links from the member's roles. Each page starts with `components/page-header.tsx` (menu, page name, actions). Lists use `components/data-table.tsx` (TanStack Table, full width, client-side sorting and 20-row pages, count below) under a toolbar of `components/filter-select.tsx` filters; editing beside a list happens in `components/side-drawer.tsx`. Panels use `components/panel.tsx`.
 - `/report/[code]`: public report form for one site, no account. Photos are checked by their bytes, re-encoded by `sanitizePhoto` so no metadata or hidden data survives, then stored before the database transaction. Completion proof takes the same path.
 - `/status`: reporter status. The receipt arrives in the URL fragment (`#t=`), then moves into an HttpOnly cookie scoped to `/status`, and the fragment is removed. Every failure shows the same generic message.
 - `/status/recover`: a reporter who left an email asks for new status links. The answer is the same whether or not a report matches.
 - `/forgot-password`, `/reset-password`: password reset by email.
-- `/app/members`, `/app/audit`: member and team management and the audit log, tenant admins only. Members are a filterable table; adding a member, managing one, and teams each open in a drawer.
+- `/app/members`, `/app/audit`: member and team management and the audit log, tenant admins only. The audit log is a sortable table filtered by person and event. Members are a filterable table; adding a member, managing one, and teams each open in a drawer.
 - `/api/monitoring`: health details for an uptime checker, behind `MONITORING_TOKEN`.
 - `/app/queue`: operator queue, operators only.
 - `/app/work`: a technician's assigned work.

@@ -1,5 +1,6 @@
 import { getDb, listIntakeSites, listQueue } from "@streetproof/db";
 import {
+  isOverdue,
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
   TICKET_STATUSES,
@@ -11,6 +12,7 @@ import type { Metadata } from "next";
 import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
+import { KpiCards } from "@/components/kpi-cards";
 import { PageHeader } from "@/components/page-header";
 import { QueueFilters } from "@/features/tickets/components/queue-filters";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
@@ -70,8 +72,27 @@ async function Queue({
     listIntakeSites(db, scope),
   ]);
 
+  const now = new Date();
+
   return (
     <>
+      <KpiCards
+        items={[
+          { label: "Tickets in view", value: items.length },
+          {
+            label: "Awaiting triage",
+            value: items.filter((item) => item.status === "submitted").length,
+          },
+          {
+            label: "Overdue",
+            value: items.filter((item) => isOverdue(item, now)).length,
+          },
+          {
+            label: "Urgent",
+            value: items.filter((item) => item.priority === "urgent").length,
+          },
+        ]}
+      />
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
         <QueueFilters
           search={search}

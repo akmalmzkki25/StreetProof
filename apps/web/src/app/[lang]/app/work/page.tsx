@@ -1,8 +1,10 @@
 import { getDb, listQueue } from "@streetproof/db";
+import { isOverdue } from "@streetproof/domain";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { KpiCards } from "@/components/kpi-cards";
 import { PageHeader } from "@/components/page-header";
 import { TicketTable } from "@/features/tickets/components/ticket-table";
 import { requireRole } from "@/lib/member";
@@ -42,11 +44,36 @@ async function AssignedWork() {
     },
   );
 
+  const now = new Date();
+
   return (
-    <TicketTable
-      items={items}
-      emptyTitle="Nothing assigned to you"
-      emptyMessage="Work appears here when an operator assigns it to you."
-    />
+    <>
+      <KpiCards
+        items={[
+          { label: "Assigned to you", value: items.length },
+          {
+            label: "In progress",
+            value: items.filter((item) => item.status === "in_progress").length,
+          },
+          {
+            label: "Waiting",
+            value: items.filter(
+              (item) =>
+                item.status === "waiting_for_parts" ||
+                item.status === "waiting_for_access",
+            ).length,
+          },
+          {
+            label: "Overdue",
+            value: items.filter((item) => isOverdue(item, now)).length,
+          },
+        ]}
+      />
+      <TicketTable
+        items={items}
+        emptyTitle="Nothing assigned to you"
+        emptyMessage="Work appears here when an operator assigns it to you."
+      />
+    </>
   );
 }

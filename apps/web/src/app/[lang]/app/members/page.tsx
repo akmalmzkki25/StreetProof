@@ -8,6 +8,7 @@ import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { KpiCards } from "@/components/kpi-cards";
 import { PageHeader } from "@/components/page-header";
 import { MembersView } from "@/features/members/components/members-view";
 import { requireRole } from "@/lib/member";
@@ -35,5 +36,19 @@ async function Members() {
     listTenantSites(db, member.tenantId),
     listTeams(db, member.tenantId),
   ]);
-  return <MembersView members={members} sites={sites} teams={teams} />;
+  const activeCount = members.filter((person) => person.isActive).length;
+
+  return (
+    <>
+      <KpiCards
+        items={[
+          { label: "Members", value: members.length },
+          { label: "Active", value: activeCount },
+          { label: "Deactivated", value: members.length - activeCount },
+          { label: "Teams", value: teams.length },
+        ]}
+      />
+      <MembersView members={members} sites={sites} teams={teams} />
+    </>
+  );
 }

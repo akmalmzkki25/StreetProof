@@ -22,6 +22,7 @@ import { useMemo, useState } from "react";
 import {
   DataTable,
   dataTableFeatures,
+  initialPagination,
   type DataTableFeatures,
 } from "@/components/data-table";
 import { FilterSelect } from "@/components/filter-select";
@@ -151,6 +152,7 @@ export function MembersView({
     features: dataTableFeatures,
     columns,
     data: visible,
+    initialState: { pagination: initialPagination },
   });
 
   const selected =

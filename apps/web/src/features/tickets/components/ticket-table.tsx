@@ -20,6 +20,7 @@ import { useMemo } from "react";
 import {
   DataTable,
   dataTableFeatures,
+  initialPagination,
   type DataTableFeatures,
 } from "@/components/data-table";
 import { formatDateTime } from "@/lib/format";
@@ -100,6 +101,7 @@ export function TicketTable({
     features: dataTableFeatures,
     columns,
     data: items,
+    initialState: { pagination: initialPagination },
   });
 
   return (

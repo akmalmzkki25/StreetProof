@@ -1,20 +1,11 @@
 import { getDb, listAuditLog } from "@streetproof/db";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@streetproof/ui/components/table";
 import type { Metadata } from "next";
-import { Link } from "@/components/locale-link";
 import { Suspense } from "react";
 
+import { KpiCards } from "@/components/kpi-cards";
 import { PageHeader } from "@/components/page-header";
-import { auditLabel } from "@/features/members/labels";
-import { formatDateTime } from "@/lib/format";
+import { AuditView } from "@/features/members/components/audit-view";
 import { getI18n } from "@/lib/i18n/server";
 import { requireRole } from "@/lib/member";
 
@@ -24,8 +15,8 @@ export default function AuditPage() {
   return (
     <>
       <PageHeader title="Audit log" />
-      <main className="flex w-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
-        <Suspense fallback={<Skeleton className="h-96" />}>
+      <main className="flex w-full flex-1 flex-col">
+        <Suspense fallback={<Skeleton className="m-4 h-96 sm:m-6" />}>
           <AuditEntries />
         </Suspense>
       </main>
@@ -35,67 +26,31 @@ export default function AuditPage() {
 
 async function AuditEntries() {
   const member = await requireRole("tenant_admin");
-  const { t, locale } = await getI18n();
+  const { t } = await getI18n();
   const entries = await listAuditLog(getDb(), member.tenantId);
-
-  const caption = (
-    <p className="type-caption text-muted-foreground">
-      {t(
-        "The latest 200 sign-ins, account changes and ticket views. Changes to a ticket itself are in that ticket's history.",
-      )}
-    </p>
-  );
 
   if (entries.length === 0) {
     return (
-      <>
-        {caption}
-        <p className="text-muted-foreground">{t("Nothing recorded yet.")}</p>
-      </>
+      <p className="px-4 py-6 text-muted-foreground sm:px-6">
+        {t("Nothing recorded yet.")}
+      </p>
     );
   }
 
+  const countOf = (action: string) =>
+    entries.filter((entry) => entry.action === action).length;
+
   return (
     <>
-      {caption}
-      <div className="rounded-4xl bg-card p-2 shadow-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("Who")}</TableHead>
-              <TableHead>{t("What")}</TableHead>
-              <TableHead className="hidden sm:table-cell">
-                {t("When")}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {entries.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell>{entry.actorName ?? t("Removed account")}</TableCell>
-                <TableCell className="whitespace-normal">
-                  {entry.targetType === "ticket" && entry.targetId ? (
-                    <Link
-                      href={`/app/tickets/${entry.targetId}`}
-                      className="text-brand-text underline underline-offset-4"
-                    >
-                      {t(auditLabel(entry.action))}
-                    </Link>
-                  ) : (
-                    t(auditLabel(entry.action))
-                  )}
-                  <p className="font-mono text-xs text-muted-foreground sm:hidden">
-                    {formatDateTime(entry.createdAt, locale)}
-                  </p>
-                </TableCell>
-                <TableCell className="hidden font-mono text-xs text-muted-foreground sm:table-cell">
-                  {formatDateTime(entry.createdAt, locale)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <KpiCards
+        items={[
+          { label: "Entries", value: entries.length },
+          { label: "Sign-ins", value: countOf("auth.signed_in") },
+          { label: "Failed sign-ins", value: countOf("auth.sign_in_failed") },
+          { label: "Tickets opened", value: countOf("ticket.viewed") },
+        ]}
+      />
+      <AuditView entries={entries} />
     </>
   );
 }

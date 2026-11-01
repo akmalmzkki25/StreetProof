@@ -6,6 +6,7 @@ import {
   ArrowUpDownIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@streetproof/ui/components/button";
 import {
   Table,
   TableBody,
@@ -16,8 +17,10 @@ import {
 } from "@streetproof/ui/components/table";
 import { cn } from "@streetproof/ui/lib/utils";
 import {
+  createPaginatedRowModel,
   createSortedRowModel,
   FlexRender,
+  rowPaginationFeature,
   rowSortingFeature,
   sortFn_alphanumeric,
   sortFn_basic,
@@ -27,11 +30,15 @@ import {
   type RowData,
 } from "@tanstack/react-table";
 
-// Every list in the app sorts on the client and nothing more, so they share
-// one feature set.
+import { useI18n } from "@/lib/i18n/client";
+
+// Every list in the app sorts and pages on the client and nothing more, so
+// they share one feature set.
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
+  rowPaginationFeature,
   sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
   sortFns: {
     alphanumeric: sortFn_alphanumeric,
     basic: sortFn_basic,
@@ -40,7 +47,10 @@ export const dataTableFeatures = tableFeatures({
 });
 export type DataTableFeatures = typeof dataTableFeatures;
 
-// The table runs edge to edge under the page's toolbar, with a count below it.
+export const initialPagination = { pageIndex: 0, pageSize: 20 };
+
+// The table runs edge to edge under the page's toolbar, with a count and the
+// pager below it.
 export function DataTable<TData extends RowData>({
   table,
   columnClasses = {},
@@ -54,7 +64,9 @@ export function DataTable<TData extends RowData>({
   empty: React.ReactNode;
   footer: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const rows = table.getRowModel().rows;
+  const pageCount = table.getPageCount();
 
   return (
     <div className="flex flex-col">
@@ -136,9 +148,33 @@ export function DataTable<TData extends RowData>({
         </TableBody>
       </Table>
       {rows.length === 0 ? empty : null}
-      <p className="type-caption border-t px-4 py-2.5 text-muted-foreground tabular-nums sm:px-6">
-        {footer}
-      </p>
+      <div className="type-caption sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-2 border-t glass px-4 py-2.5 text-muted-foreground tabular-nums sm:px-6">
+        <span>{footer}</span>
+        {pageCount > 1 ? (
+          <span className="flex items-center gap-1">
+            {t("Page {page} of {pages}", {
+              page: table.state.pagination.pageIndex + 1,
+              pages: pageCount,
+            })}
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              {t("Previous")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              {t("Next")}
+            </Button>
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }

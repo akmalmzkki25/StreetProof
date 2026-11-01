@@ -178,7 +178,7 @@ function Metric({
   seriesColor?: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-col overflow-hidden rounded-4xl bg-card shadow-card">
+    <div className="flex min-w-0 flex-col overflow-hidden rounded-4xl bg-linear-to-t from-[color-mix(in_oklch,var(--brand)_30%,var(--foreground))]/6 to-card shadow-card">
       <div className="flex flex-1 flex-col gap-1 px-4 pt-3 pb-3">
         <h3 className="text-xs text-muted-foreground">{label}</h3>
         <div className="flex items-baseline justify-start gap-2">
