@@ -341,7 +341,6 @@ export const ID_MESSAGES: Record<string, string> = {
 
   // Ticket: AI suggestion
   "AI suggestion": "Saran AI",
-  "AI suggestions": "Saran AI",
   "AI suggestion ready": "Saran AI siap",
   "AI suggestion requested again": "Saran AI diminta lagi",
   "AI suggestion from {model}. Check it against the report and photos.":
@@ -354,8 +353,6 @@ export const ID_MESSAGES: Record<string, string> = {
     "Foto laporan dengan area saran AI yang ditandai: {label}",
   "Preparing a suggestion. You don't have to wait: you can triage this report by hand now.":
     "Sedang menyiapkan saran. Anda tidak perlu menunggu: laporan ini bisa ditriase manual sekarang.",
-  "Still being prepared": "Masih disiapkan",
-  "Failed, triage by hand": "Gagal, triase manual",
   "No suggestion is available for this report. Please triage it by hand.":
     "Tidak ada saran untuk laporan ini. Silakan triase manual.",
   "The suggestion couldn't be prepared. You can try again, or triage this report by hand.":
@@ -387,7 +384,6 @@ export const ID_MESSAGES: Record<string, string> = {
   "Up to {count} photos showing the finished repair. A supervisor reviews them before the work closes.":
     "Maksimal {count} foto hasil perbaikan. Supervisor memeriksanya sebelum pekerjaan ditutup.",
   "Exception requested": "Pengecualian diminta",
-  "With an exception": "Dengan pengecualian",
   "No photo was added.": "Tidak ada foto yang ditambahkan.",
   "Proof photos": "Foto bukti",
   "Proof photo": "Foto bukti",
@@ -522,27 +518,25 @@ export const ID_MESSAGES: Record<string, string> = {
   "1 linked as a duplicate": "1 ditautkan sebagai duplikat",
   "{count} linked as duplicates": "{count} ditautkan sebagai duplikat",
   "{count} cancelled": "{count} dibatalkan",
-  "Linked duplicates count as reports, not as work.":
-    "Duplikat tertaut dihitung sebagai laporan, bukan pekerjaan.",
-  "Where open work sits": "Posisi pekerjaan terbuka",
+  "Open work by stage": "Pekerjaan terbuka per tahap",
   "Open tickets": "Tiket terbuka",
   "open ticket": "tiket terbuka",
   "open tickets": "tiket terbuka",
   "oldest {age}": "tertua {age}",
-  "Age of open work": "Usia pekerjaan terbuka",
   "Technician workload": "Beban kerja teknisi",
   "No technician holds open work.":
     "Tidak ada teknisi yang memegang pekerjaan terbuka.",
   "Oldest open tickets": "Tiket terbuka tertua",
   "Since the report": "Sejak dilaporkan",
   "Not triaged yet": "Belum ditriase",
-  "Time to triage": "Waktu sampai triase",
-  "Time to verified close": "Waktu sampai ditutup terverifikasi",
-  "Median of {count}{range}. {open} still open.":
-    "Median dari {count}{range}. {open} masih terbuka.",
-  "Median of {count}{range}. {waiting} not triaged.":
-    "Median dari {count}{range}. {waiting} belum ditriase.",
-  ", range {low} to {high}": ", rentang {low} sampai {high}",
+  "Typical time to triage": "Waktu triase yang lazim",
+  "Typical time to verified close": "Waktu ditutup terverifikasi yang lazim",
+  "{count} triaged, slowest {slowest}. {waiting} waiting.":
+    "{count} ditriase, terlama {slowest}. {waiting} menunggu.",
+  "{count} closed, slowest {slowest}. {open} still open.":
+    "{count} ditutup, terlama {slowest}. {open} masih terbuka.",
+  "{reopened} of {closures} closures reopened.":
+    "{reopened} dari {closures} penutupan dibuka kembali.",
   "Nothing closed yet. {count} open.":
     "Belum ada yang ditutup. {count} terbuka.",
   "Nothing triaged yet. {count} waiting.":
@@ -550,21 +544,62 @@ export const ID_MESSAGES: Record<string, string> = {
   "Outcomes, last {days} days": "Hasil, {days} hari terakhir",
   "Last {days} days": "{days} hari terakhir",
   "Verified within {days} days": "Terverifikasi dalam {days} hari",
-  "Reopened within {days} days": "Dibuka kembali dalam {days} hari",
   "{numerator} of {denominator}": "{numerator} dari {denominator}",
   "{count} still within {days} days.": "{count} masih dalam {days} hari.",
-  "1 ticket observed for {days} full days.":
-    "1 tiket diamati selama {days} hari penuh.",
-  "{count} tickets observed for {days} full days.":
-    "{count} tiket diamati selama {days} hari penuh.",
-  "1 closure observed for {days} full days.":
-    "1 penutupan diamati selama {days} hari penuh.",
-  "{count} closures observed for {days} full days.":
-    "{count} penutupan diamati selama {days} hari penuh.",
   "No ticket has had {days} full days yet.":
     "Belum ada tiket yang mencapai {days} hari penuh.",
-  "No closure has had {days} full days yet.":
-    "Belum ada penutupan yang mencapai {days} hari penuh.",
+  "Open tickets by days waited": "Tiket terbuka menurut lama menunggu",
+  Today: "Hari ini",
+  "7 days": "7 hari",
+  "14 days or more": "14 hari atau lebih",
+  "Closed in the last {days} days": "Ditutup dalam {days} hari terakhir",
+  "Nothing has closed in this period yet.":
+    "Belum ada yang ditutup pada periode ini.",
+  "How long open work has waited": "Lama pekerjaan terbuka menunggu",
+  "Where the time goes": "Ke mana waktu terpakai",
+  "Completion checks": "Pemeriksaan penyelesaian",
+  "AI drafts": "Draf AI",
+  "Failed, needs manual triage": "Gagal, perlu triase manual",
+  "Submitted with an exception": "Dikirim dengan pengecualian",
+  Triage: "Triase",
+  Assignment: "Penugasan",
+  Repair: "Perbaikan",
+  Verification: "Verifikasi",
+
+  // Dashboard insights
+  "In the last {days} days, {opened} opened and {verified} were verified. New work is outpacing closes.":
+    "Dalam {days} hari terakhir, {opened} dibuka dan {verified} diverifikasi. Pekerjaan baru masuk lebih cepat daripada yang ditutup.",
+  "In the last {days} days, {opened} opened and {verified} were verified. Closes are outpacing new work.":
+    "Dalam {days} hari terakhir, {opened} dibuka dan {verified} diverifikasi. Penutupan lebih cepat daripada pekerjaan baru.",
+  "In the last {days} days, {opened} opened and {verified} were verified. New work and closes are level.":
+    "Dalam {days} hari terakhir, {opened} dibuka dan {verified} diverifikasi. Pekerjaan baru dan penutupan seimbang.",
+  "New tickets are steady against the {days} days before.":
+    "Tiket baru stabil dibandingkan {days} hari sebelumnya.",
+  "New tickets are up {percent}% on the {days} days before.":
+    "Tiket baru naik {percent}% dari {days} hari sebelumnya.",
+  "New tickets are down {percent}% on the {days} days before.":
+    "Tiket baru turun {percent}% dari {days} hari sebelumnya.",
+  "The biggest stage is {stage}, with {count} of {total} open tickets.":
+    "Tahap terbesar adalah {stage}, dengan {count} dari {total} tiket terbuka.",
+  "Nothing open is older than 7 days.":
+    "Tidak ada yang terbuka lebih dari 7 hari.",
+  "Over 7 days old: {count} of {total} open tickets.":
+    "Lebih dari 7 hari: {count} dari {total} tiket terbuka.",
+  "{phase} takes longest, typically {duration}.":
+    "{phase} paling lama, biasanya {duration}.",
+  "{name} holds {count} of {total} assigned tickets.":
+    "{name} memegang {count} dari {total} tiket yang ditugaskan.",
+  "{category} makes up {percent}% of tickets in this period.":
+    "{category} mencakup {percent}% tiket pada periode ini.",
+  "{count} of {total} reports came from {place}.":
+    "{count} dari {total} laporan berasal dari {place}.",
+  "{rejected} of {decided} completions were sent back.":
+    "{rejected} dari {decided} penyelesaian dikembalikan.",
+  "Waiting for a supervisor decision: {count}.":
+    "Menunggu keputusan supervisor: {count}.",
+  "Failed drafts that need manual triage: {count}.":
+    "Draf gagal yang perlu triase manual: {count}.",
+  "Drafts still in progress: {count}.": "Draf yang masih diproses: {count}.",
   "No tickets in this period.": "Tidak ada tiket pada periode ini.",
   "No reports in this period.": "Tidak ada laporan pada periode ini.",
   "Tickets by category": "Tiket per kategori",

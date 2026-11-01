@@ -73,7 +73,7 @@ test("pages send security headers and nothing they load breaks the policy", asyn
     .toBeGreaterThan(0);
   await operator.goto("/app/dashboard");
   await expect(
-    operator.getByRole("heading", { name: "Where open work sits" }),
+    operator.getByRole("heading", { name: "Open work by stage" }),
   ).toBeVisible();
 
   expect(violations).toEqual([]);
@@ -181,8 +181,10 @@ test("the overview labels synthetic figures and counts the new report", async ({
   const operator = await signIn(browser, ACCOUNTS.operator);
   await operator.goto("/app/dashboard");
   await expect(
-    operator.getByRole("heading", { name: "Where open work sits" }),
+    operator.getByRole("heading", { name: "Open work by stage" }),
   ).toBeVisible();
   await expect(visibleText(operator, "Synthetic data")).toBeVisible();
-  await expect(visibleText(operator, "With an exception")).toBeVisible();
+  await expect(
+    visibleText(operator, "Submitted with an exception"),
+  ).toBeVisible();
 });

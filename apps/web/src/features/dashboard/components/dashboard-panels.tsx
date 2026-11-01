@@ -10,25 +10,32 @@ import { Link } from "@/components/locale-link";
 import { categoryLabel } from "@/features/tickets/labels";
 import { formatDuration } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
-import type { Locale, Translate } from "@/lib/i18n/translate";
+import type { Translate } from "@/lib/i18n/translate";
 
-import { AGE_LABELS, STAGE_LABELS } from "../labels";
+import {
+  ageInsight,
+  categoryInsight,
+  draftInsight,
+  flowInsight,
+  locationInsight,
+  phaseInsight,
+  proofInsight,
+  stageInsight,
+  trendInsight,
+  workloadInsight,
+} from "../insights";
+import { PHASE_LABELS, STAGE_COLORS, STAGE_LABELS } from "../labels";
+import { AgeDots } from "./age-dots";
+import { SegmentedBar } from "./segmented-bar";
 import { Sparkline, TrendChart } from "./trend-chart";
 
-// One color per stage, in the order work flows, shared by the strip's bar and its key.
-const STAGE_COLORS = [
-  "bg-chart-1",
-  "bg-chart-2",
-  "bg-chart-3",
-  "bg-chart-5",
-  "bg-chart-4",
-] as const;
-
-// A dashboard card: a header row with the title, then the body.
+// A dashboard card: a header row with the title, an optional one-line insight,
+// then the body.
 async function Card({
   id,
   title,
   note,
+  insight,
   className,
   bodyClassName,
   children,
@@ -36,6 +43,7 @@ async function Card({
   id: string;
   title: string;
   note?: string;
+  insight?: string | null;
   className?: string;
   bodyClassName?: string;
   children: React.ReactNode;
@@ -44,15 +52,23 @@ async function Card({
   return (
     <section
       aria-labelledby={id}
-      className={cn("flex min-w-0 flex-col rounded-4xl bg-card shadow-card", className)}
+      className={cn(
+        "flex min-w-0 flex-col rounded-4xl bg-card shadow-card",
+        className,
+      )}
     >
       <div className="flex items-baseline justify-between gap-4 border-b px-4 py-3">
         <h2 id={id} className="text-[13px] font-medium">
           {t(title)}
         </h2>
-        {note ? <p className="text-xs text-muted-foreground">{t(note)}</p> : null}
+        {note ? (
+          <p className="text-xs text-muted-foreground">{t(note)}</p>
+        ) : null}
       </div>
-      <div className={cn("flex flex-1 flex-col gap-4 p-4", bodyClassName)}>{children}</div>
+      <div className={cn("flex flex-1 flex-col gap-4 p-4", bodyClassName)}>
+        {insight ? <p className="text-[13px]">{insight}</p> : null}
+        {children}
+      </div>
     </section>
   );
 }
@@ -60,7 +76,10 @@ async function Card({
 // The bar is the true share of the largest row. A zero draws nothing.
 function Bar({ value, max }: { value: number; max: number }) {
   return (
-    <div className="h-1.5 rounded-full bg-muted-foreground/15" aria-hidden="true">
+    <div
+      className="h-1.5 rounded-full bg-muted-foreground/15"
+      aria-hidden="true"
+    >
       {value > 0 ? (
         <div
           className="h-full rounded-full bg-chart-2"
@@ -75,7 +94,7 @@ function CountList({
   rows,
   emptyMessage,
 }: {
-  rows: { key: string; label: string; count: number }[];
+  rows: { key: string; label: string; count: number; detail?: string }[];
   emptyMessage: string;
 }) {
   if (rows.length === 0) {
@@ -89,7 +108,14 @@ function CountList({
           key={row.key}
           className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] items-center gap-4 text-[13px]"
         >
-          <span className="truncate">{row.label}</span>
+          <span className="flex min-w-0 flex-col">
+            <span className="truncate">{row.label}</span>
+            {row.detail ? (
+              <span className="truncate text-xs text-muted-foreground">
+                {row.detail}
+              </span>
+            ) : null}
+          </span>
           <Bar value={row.count} max={max} />
           <span className="w-8 text-right tabular-nums">{row.count}</span>
         </li>
@@ -98,16 +124,35 @@ function CountList({
   );
 }
 
-function FactRows({ rows }: { rows: { label: string; value: number }[] }) {
+// A split bar, then one row per part with its swatch.
+function SplitRows({
+  rows,
+}: {
+  rows: { label: string; value: number; color: string }[];
+}) {
   return (
-    <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[13px]">
-      {rows.map((row) => (
-        <div key={row.label} className="contents">
-          <dt className="text-muted-foreground">{row.label}</dt>
-          <dd className="text-right tabular-nums">{row.value}</dd>
-        </div>
-      ))}
-    </dl>
+    <>
+      <SegmentedBar
+        segments={rows.map((row) => ({
+          value: row.value,
+          className: row.color,
+        }))}
+      />
+      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-[13px]">
+        {rows.map((row) => (
+          <div key={row.label} className="contents">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <span
+                className={cn("size-2 shrink-0 rounded-[2px]", row.color)}
+                aria-hidden="true"
+              />
+              {row.label}
+            </dt>
+            <dd className="text-right tabular-nums">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
   );
 }
 
@@ -115,49 +160,8 @@ function periodNote(t: Translate) {
   return t("Last {days} days", { days: DASHBOARD_WINDOW_DAYS });
 }
 
-function rangeOf(
-  duration: { minMs: number | null; maxMs: number | null },
-  t: Translate,
-  locale: Locale,
-) {
-  if (duration.minMs === null || duration.maxMs === null) return "";
-  return t(", range {low} to {high}", {
-    low: formatDuration(duration.minMs, locale),
-    high: formatDuration(duration.maxMs, locale),
-  });
-}
-
-// A rate with a full window is shown as "x of y", never a bare percentage, and
-// what is still inside the window stays pending rather than joining either side.
-function rateDetail(
-  rate: { denominator: number; pending: number },
-  noun: "ticket" | "closure",
-  t: Translate,
-) {
-  const params = { days: OBSERVATION_DAYS, count: rate.denominator };
-  const isOne = rate.denominator === 1;
-  const observed =
-    noun === "ticket"
-      ? isOne
-        ? "1 ticket observed for {days} full days."
-        : "{count} tickets observed for {days} full days."
-      : isOne
-        ? "1 closure observed for {days} full days."
-        : "{count} closures observed for {days} full days.";
-  const counted =
-    rate.denominator === 0
-      ? t(
-          noun === "ticket"
-            ? "No ticket has had {days} full days yet."
-            : "No closure has had {days} full days yet.",
-          params,
-        )
-      : t(observed, params);
-  const pending = t("{count} still within {days} days.", {
-    count: rate.pending,
-    days: OBSERVATION_DAYS,
-  });
-  return `${counted} ${pending}`;
+function sentences(...parts: (string | null)[]) {
+  return parts.filter(Boolean).join(" ");
 }
 
 function Metric({
@@ -189,27 +193,31 @@ function Metric({
           <p className="text-xs text-muted-foreground">{detail}</p>
         </div>
       </div>
-      {series ? <Sparkline values={series} color={seriesColor ?? "var(--chart-2)"} /> : null}
+      {series ? (
+        <Sparkline values={series} color={seriesColor ?? "var(--chart-2)"} />
+      ) : null}
     </div>
   );
 }
 
 export async function MetricTiles({ dashboard }: { dashboard: Dashboard }) {
   const { t, locale } = await getI18n();
-  const { timeToTriage, timeToClose, verifiedResolution, reopenRate, daily } = dashboard;
+  const { timeToTriage, timeToClose, verifiedResolution, reopenRate, daily } =
+    dashboard;
   const opened = daily.map((point) => point.opened);
   const verified = daily.map((point) => point.verified);
-  const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
-  const ofTotal = (numerator: number, denominator: number) =>
-    t("{numerator} of {denominator}", { numerator, denominator });
+  const sum = (values: number[]) =>
+    values.reduce((total, value) => total + value, 0);
   const oldest = dashboard.oldest[0];
+  const slowest = (maxMs: number | null) =>
+    maxMs === null ? "" : formatDuration(maxMs, locale);
 
   return (
     <section
       aria-label={t("Outcomes, last {days} days", {
         days: DASHBOARD_WINDOW_DAYS,
       })}
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-7"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
     >
       <Metric
         label={t("Open tickets")}
@@ -235,33 +243,39 @@ export async function MetricTiles({ dashboard }: { dashboard: Dashboard }) {
         seriesColor="var(--chart-1)"
       />
       <Metric
-        label={t("Time to triage")}
+        label={t("Typical time to triage")}
         value={
-          timeToTriage.medianMs === null ? null : formatDuration(timeToTriage.medianMs, locale)
+          timeToTriage.medianMs === null
+            ? null
+            : formatDuration(timeToTriage.medianMs, locale)
         }
         detail={
           timeToTriage.count === 0
             ? t("Nothing triaged yet. {count} waiting.", {
                 count: timeToTriage.untriaged,
               })
-            : t("Median of {count}{range}. {waiting} not triaged.", {
+            : t("{count} triaged, slowest {slowest}. {waiting} waiting.", {
                 count: timeToTriage.count,
-                range: rangeOf(timeToTriage, t, locale),
+                slowest: slowest(timeToTriage.maxMs),
                 waiting: timeToTriage.untriaged,
               })
         }
       />
       <Metric
-        label={t("Time to verified close")}
-        value={timeToClose.medianMs === null ? null : formatDuration(timeToClose.medianMs, locale)}
+        label={t("Typical time to verified close")}
+        value={
+          timeToClose.medianMs === null
+            ? null
+            : formatDuration(timeToClose.medianMs, locale)
+        }
         detail={
           timeToClose.count === 0
             ? t("Nothing closed yet. {count} open.", {
                 count: timeToClose.stillOpen,
               })
-            : t("Median of {count}{range}. {open} still open.", {
+            : t("{count} closed, slowest {slowest}. {open} still open.", {
                 count: timeToClose.count,
-                range: rangeOf(timeToClose, t, locale),
+                slowest: slowest(timeToClose.maxMs),
                 open: timeToClose.stillOpen,
               })
         }
@@ -271,18 +285,30 @@ export async function MetricTiles({ dashboard }: { dashboard: Dashboard }) {
         value={
           verifiedResolution.denominator === 0
             ? null
-            : ofTotal(verifiedResolution.numerator, verifiedResolution.denominator)
+            : t("{numerator} of {denominator}", {
+                numerator: verifiedResolution.numerator,
+                denominator: verifiedResolution.denominator,
+              })
         }
-        detail={rateDetail(verifiedResolution, "ticket", t)}
-      />
-      <Metric
-        label={t("Reopened within {days} days", { days: OBSERVATION_DAYS })}
-        value={
-          reopenRate.denominator === 0
-            ? null
-            : ofTotal(reopenRate.numerator, reopenRate.denominator)
-        }
-        detail={rateDetail(reopenRate, "closure", t)}
+        detail={sentences(
+          verifiedResolution.denominator === 0
+            ? t("No ticket has had {days} full days yet.", {
+                days: OBSERVATION_DAYS,
+              })
+            : null,
+          verifiedResolution.pending > 0
+            ? t("{count} still within {days} days.", {
+                count: verifiedResolution.pending,
+                days: OBSERVATION_DAYS,
+              })
+            : null,
+          reopenRate.denominator > 0
+            ? t("{reopened} of {closures} closures reopened.", {
+                reopened: reopenRate.numerator,
+                closures: reopenRate.denominator,
+              })
+            : null,
+        )}
       />
     </section>
   );
@@ -291,58 +317,57 @@ export async function MetricTiles({ dashboard }: { dashboard: Dashboard }) {
 // Open work by stage: one bar split by share, then a column per stage.
 export async function StageStrip({ dashboard }: { dashboard: Dashboard }) {
   const { t, locale } = await getI18n();
-  const total = Math.max(dashboard.open, 1);
   const stageOf = (stage: (typeof WORK_STAGES)[number]) =>
     dashboard.stages.find((row) => row.stage === stage);
 
   return (
     <Card
       id="stages"
-      title="Where open work sits"
+      title="Open work by stage"
       note={
         dashboard.open === 1
           ? t("1 open ticket")
           : t("{count} open tickets", { count: dashboard.open })
       }
+      insight={stageInsight(dashboard, t)}
     >
-      <div
-        className="flex h-2 overflow-hidden rounded-full bg-muted-foreground/15"
-        aria-hidden="true"
-      >
-        {WORK_STAGES.map((stage, index) => {
-          const count = stageOf(stage)?.count ?? 0;
-          return count > 0 ? (
-            <div
-              key={stage}
-              className={STAGE_COLORS[index]}
-              style={{ width: `${(count / total) * 100}%` }}
-            />
-          ) : null;
-        })}
-      </div>
+      <SegmentedBar
+        segments={WORK_STAGES.map((stage) => ({
+          value: stageOf(stage)?.count ?? 0,
+          className: STAGE_COLORS[stage],
+        }))}
+      />
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-3 xl:grid-cols-5">
-        {WORK_STAGES.map((stage, index) => {
+        {WORK_STAGES.map((stage) => {
           const row = stageOf(stage);
           return (
             <div key={stage} className="flex min-w-0 flex-col gap-1">
               <dt className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span
-                  className={cn("size-2 shrink-0 rounded-[2px]", STAGE_COLORS[index])}
+                  className={cn(
+                    "size-2 shrink-0 rounded-[2px]",
+                    STAGE_COLORS[stage],
+                  )}
                   aria-hidden="true"
                 />
-                <span className="truncate">
-                  {t(STAGE_LABELS[stage].title)} · {t(STAGE_LABELS[stage].owner)}
-                </span>
+                <span className="truncate">{t(STAGE_LABELS[stage].title)}</span>
               </dt>
-              <dd className="flex items-baseline gap-2">
-                <span className="text-xl font-medium tabular-nums">{row?.count ?? 0}</span>
-                {row?.oldestAgeMs == null ? null : (
-                  <span className="text-xs text-muted-foreground">
-                    {t("oldest {age}", {
-                      age: formatDuration(row.oldestAgeMs, locale),
-                    })}
+              <dd className="flex flex-col">
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xl font-medium tabular-nums">
+                    {row?.count ?? 0}
                   </span>
-                )}
+                  {row?.oldestAgeMs == null ? null : (
+                    <span className="text-xs text-muted-foreground">
+                      {t("oldest {age}", {
+                        age: formatDuration(row.oldestAgeMs, locale),
+                      })}
+                    </span>
+                  )}
+                </span>
+                <span className="text-xs text-faint-foreground">
+                  {t(STAGE_LABELS[stage].owner)}
+                </span>
               </dd>
             </div>
           );
@@ -355,17 +380,26 @@ export async function StageStrip({ dashboard }: { dashboard: Dashboard }) {
 export async function TrendPanel({ dashboard }: { dashboard: Dashboard }) {
   const { t, locale } = await getI18n();
   const opened = dashboard.daily.reduce((sum, point) => sum + point.opened, 0);
-  const verified = dashboard.daily.reduce((sum, point) => sum + point.verified, 0);
+  const verified = dashboard.daily.reduce(
+    (sum, point) => sum + point.verified,
+    0,
+  );
   return (
     <Card
       id="trend"
       title="New work and verified closes"
       note={periodNote(t)}
+      insight={
+        sentences(flowInsight(dashboard, t), trendInsight(dashboard, t)) || null
+      }
       className="xl:col-span-2"
     >
       <ul className="flex flex-wrap gap-4 text-xs">
         <li className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-muted-foreground" aria-hidden="true" />
+          <span
+            className="size-2 rounded-full bg-muted-foreground"
+            aria-hidden="true"
+          />
           {t("New tickets")}
           <span className="font-medium tabular-nums">{opened}</span>
         </li>
@@ -390,7 +424,9 @@ export async function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
   return (
     <Card id="oldest" title="Oldest open tickets" bodyClassName="p-2">
       {dashboard.oldest.length === 0 ? (
-        <p className="type-caption p-2 text-muted-foreground">{t("No open tickets.")}</p>
+        <p className="type-caption p-2 text-muted-foreground">
+          {t("No open tickets.")}
+        </p>
       ) : (
         <ol className="flex flex-col">
           {dashboard.oldest.map((ticket) => (
@@ -402,13 +438,16 @@ export async function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate">{ticket.title}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {[ticket.location, t(STAGE_LABELS[ticket.stage].title), ticket.assigneeName]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    {ticket.location ?? t("Location not set")}
                   </span>
                 </span>
-                <span className="shrink-0 tabular-nums">
-                  {formatDuration(ticket.ageMs, locale)}
+                <span className="flex shrink-0 flex-col items-end">
+                  <span className="tabular-nums">
+                    {formatDuration(ticket.ageMs, locale)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {t(STAGE_LABELS[ticket.stage].title)}
+                  </span>
                 </span>
               </Link>
             </li>
@@ -421,29 +460,129 @@ export async function OldestPanel({ dashboard }: { dashboard: Dashboard }) {
 
 export async function AgePanel({ dashboard }: { dashboard: Dashboard }) {
   const { t } = await getI18n();
+  const stagesPresent = WORK_STAGES.filter((stage) =>
+    dashboard.openWork.some((ticket) => ticket.stage === stage),
+  );
   return (
-    <Card id="age" title="Age of open work" note="Since the report">
-      <CountList
-        rows={dashboard.ageBuckets.map((row) => ({
-          key: row.bucket,
-          label: t(AGE_LABELS[row.bucket]),
-          count: row.count,
-        }))}
-        emptyMessage={t("No open tickets.")}
-      />
+    <Card
+      id="age"
+      title="How long open work has waited"
+      note="Since the report"
+      insight={ageInsight(dashboard, t)}
+    >
+      {dashboard.open === 0 ? (
+        <p className="type-caption text-muted-foreground">
+          {t("No open tickets.")}
+        </p>
+      ) : (
+        <>
+          <AgeDots
+            tickets={dashboard.openWork}
+            label={t("Open tickets by days waited")}
+            axis={{
+              start: t("Today"),
+              week: t("7 days"),
+              end: t("14 days or more"),
+            }}
+          />
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            {stagesPresent.map((stage) => (
+              <li key={stage} className="flex items-center gap-1.5">
+                <span
+                  className={cn("size-2 rounded-full", STAGE_COLORS[stage])}
+                  aria-hidden="true"
+                />
+                {t(STAGE_LABELS[stage].title)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Card>
+  );
+}
+
+// Where a closed ticket's time went: the median of each phase, side by side.
+export async function PhasePanel({ dashboard }: { dashboard: Dashboard }) {
+  const { t, locale } = await getI18n();
+  const colors = {
+    triage: STAGE_COLORS.triage,
+    assignment: STAGE_COLORS.assignment,
+    repair: STAGE_COLORS.repair,
+    verification: STAGE_COLORS.verification,
+  };
+  const hasData = dashboard.phases.some((row) => row.medianMs !== null);
+  return (
+    <Card
+      id="phases"
+      title="Where the time goes"
+      note={t("Closed in the last {days} days", {
+        days: DASHBOARD_WINDOW_DAYS,
+      })}
+      insight={phaseInsight(dashboard, t, locale)}
+    >
+      {hasData ? (
+        <>
+          <SegmentedBar
+            className="h-3"
+            segments={dashboard.phases.map((row) => ({
+              value: row.medianMs ?? 0,
+              className: colors[row.phase],
+            }))}
+          />
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {dashboard.phases.map((row) => (
+              <div key={row.phase} className="flex min-w-0 flex-col gap-1">
+                <dt className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span
+                    className={cn(
+                      "size-2 shrink-0 rounded-[2px]",
+                      colors[row.phase],
+                    )}
+                    aria-hidden="true"
+                  />
+                  {t(PHASE_LABELS[row.phase])}
+                </dt>
+                <dd
+                  className={cn(
+                    "text-xl font-medium tabular-nums",
+                    row.medianMs === null && "text-muted-foreground",
+                  )}
+                >
+                  {row.medianMs === null
+                    ? "?"
+                    : formatDuration(row.medianMs, locale)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      ) : (
+        <p className="type-caption text-muted-foreground">
+          {t("Nothing has closed in this period yet.")}
+        </p>
+      )}
     </Card>
   );
 }
 
 export async function WorkloadPanel({ dashboard }: { dashboard: Dashboard }) {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   return (
-    <Card id="workload" title="Technician workload" note="Open tickets">
+    <Card
+      id="workload"
+      title="Technician workload"
+      note="Open tickets"
+      insight={workloadInsight(dashboard, t)}
+    >
       <CountList
         rows={dashboard.workload.map((row) => ({
           key: row.name,
           label: row.name,
           count: row.count,
+          detail: t("oldest {age}", {
+            age: formatDuration(row.oldestAgeMs, locale),
+          }),
         }))}
         emptyMessage={t("No technician holds open work.")}
       />
@@ -466,7 +605,12 @@ export async function CategoryPanel({ dashboard }: { dashboard: Dashboard }) {
   ];
 
   return (
-    <Card id="categories" title="Tickets by category" note={periodNote(t)}>
+    <Card
+      id="categories"
+      title="Tickets by category"
+      note={periodNote(t)}
+      insight={categoryInsight(dashboard, t)}
+    >
       <CountList rows={rows} emptyMessage={t("No tickets in this period.")} />
     </Card>
   );
@@ -487,7 +631,12 @@ export async function LocationPanel({ dashboard }: { dashboard: Dashboard }) {
   ];
 
   return (
-    <Card id="locations" title="Reports by location" note={periodNote(t)}>
+    <Card
+      id="locations"
+      title="Reports by location"
+      note={periodNote(t)}
+      insight={locationInsight(dashboard, t)}
+    >
       <CountList rows={rows} emptyMessage={t("No reports in this period.")} />
     </Card>
   );
@@ -496,16 +645,34 @@ export async function LocationPanel({ dashboard }: { dashboard: Dashboard }) {
 export async function ProofPanel({ dashboard }: { dashboard: Dashboard }) {
   const { t } = await getI18n();
   return (
-    <Card id="proof" title="Completion proof" note={periodNote(t)}>
-      <FactRows
+    <Card
+      id="proof"
+      title="Completion checks"
+      note={periodNote(t)}
+      insight={proofInsight(dashboard, t)}
+    >
+      <SplitRows
         rows={[
-          { label: t("Verified"), value: dashboard.proof.accepted },
-          { label: t("Rejected"), value: dashboard.proof.rejected },
+          {
+            label: t("Verified"),
+            value: dashboard.proof.accepted,
+            color: "bg-chart-4",
+          },
+          {
+            label: t("Rejected"),
+            value: dashboard.proof.rejected,
+            color: "bg-destructive",
+          },
           {
             label: t("Waiting for a decision"),
             value: dashboard.proof.waiting,
+            color: "bg-chart-3",
           },
-          { label: t("With an exception"), value: dashboard.proof.exceptions },
+          {
+            label: t("Submitted with an exception"),
+            value: dashboard.proof.exceptions,
+            color: "bg-chart-2",
+          },
         ]}
       />
     </Card>
@@ -515,16 +682,34 @@ export async function ProofPanel({ dashboard }: { dashboard: Dashboard }) {
 export async function DraftPanel({ dashboard }: { dashboard: Dashboard }) {
   const { t } = await getI18n();
   return (
-    <Card id="drafts" title="AI suggestions" note={periodNote(t)}>
-      <FactRows
+    <Card
+      id="drafts"
+      title="AI drafts"
+      note={periodNote(t)}
+      insight={draftInsight(dashboard, t)}
+    >
+      <SplitRows
         rows={[
-          { label: t("Ready"), value: dashboard.drafts.ready },
-          { label: t("Still being prepared"), value: dashboard.drafts.pending },
           {
-            label: t("Failed, triage by hand"),
-            value: dashboard.drafts.failed,
+            label: t("Ready"),
+            value: dashboard.drafts.ready,
+            color: "bg-chart-4",
           },
-          { label: t("Not needed"), value: dashboard.drafts.notNeeded },
+          {
+            label: t("In progress"),
+            value: dashboard.drafts.pending,
+            color: "bg-chart-3",
+          },
+          {
+            label: t("Failed, needs manual triage"),
+            value: dashboard.drafts.failed,
+            color: "bg-destructive",
+          },
+          {
+            label: t("Not needed"),
+            value: dashboard.drafts.notNeeded,
+            color: "bg-muted-foreground/40",
+          },
         ]}
       />
     </Card>

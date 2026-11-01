@@ -246,6 +246,71 @@ describe("elapsed times", () => {
   });
 });
 
+describe("where the time goes", () => {
+  it("splits a closed ticket into triage, assignment, repair and verification", () => {
+    const created = daysAgo(10);
+    const at = (hours: number) => new Date(created.getTime() + hours * HOUR);
+    const result = compute(
+      [ticket("a", { status: "verified_closed", createdAt: created })],
+      [
+        event("a", "triaged", at(2)),
+        event("a", "assigned", at(5)),
+        event("a", "completion_submitted", at(20)),
+        event("a", "rejected_with_reason", at(22), "completion_submitted"),
+        event("a", "completion_submitted", at(30)),
+        event("a", "verified_closed", at(32)),
+      ],
+    );
+
+    expect(result.phases.map((row) => [row.phase, row.medianMs])).toEqual([
+      ["triage", 2 * HOUR],
+      ["assignment", 3 * HOUR],
+      ["repair", 25 * HOUR],
+      ["verification", 2 * HOUR],
+    ]);
+  });
+
+  it("skips a phase whose milestone never happened and ignores open tickets", () => {
+    const created = daysAgo(4);
+    const result = compute(
+      [
+        ticket("a", { status: "verified_closed", createdAt: created }),
+        ticket("b", { status: "in_progress", createdAt: created }),
+      ],
+      [
+        event("a", "completion_submitted", new Date(created.getTime() + HOUR)),
+        event("a", "verified_closed", new Date(created.getTime() + 3 * HOUR)),
+        event("b", "triaged", new Date(created.getTime() + HOUR)),
+      ],
+    );
+
+    const byPhase = Object.fromEntries(
+      result.phases.map((row) => [row.phase, row.count]),
+    );
+    expect(byPhase).toEqual({
+      triage: 0,
+      assignment: 0,
+      repair: 0,
+      verification: 1,
+    });
+  });
+});
+
+describe("open work by age", () => {
+  it("lists every open ticket with its age and stage, oldest first", () => {
+    const result = compute([
+      ticket("a", { createdAt: daysAgo(2) }),
+      ticket("b", { status: "in_progress", createdAt: daysAgo(9) }),
+      ticket("c", { status: "verified_closed" }),
+    ]);
+
+    expect(result.openWork).toEqual([
+      { ageMs: 9 * DAY, stage: "repair" },
+      { ageMs: 2 * DAY, stage: "triage" },
+    ]);
+  });
+});
+
 describe("daily series", () => {
   it("counts new work and verified closes per WIB day, with every day present", () => {
     const result = compute(

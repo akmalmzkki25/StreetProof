@@ -40,6 +40,18 @@ function isOpen(status: TicketStatus): status is OpenStatus {
   return status !== "verified_closed" && status !== "cancelled";
 }
 
+// The stretches a closed ticket's time splits into. "created" is the report.
+const PHASES = [
+  { phase: "triage", from: "created", to: "triaged" },
+  { phase: "assignment", from: "triaged", to: "assigned" },
+  { phase: "repair", from: "assigned", to: "completion_submitted" },
+  {
+    phase: "verification",
+    from: "completion_submitted",
+    to: "verified_closed",
+  },
+] as const;
+
 export const AGE_BUCKETS = [
   { id: "under_1_day", maxDays: 1 },
   { id: "1_to_3_days", maxDays: 3 },
@@ -242,14 +254,52 @@ export function computeDashboard(input: {
       .filter((event) => event.toStatus === "verified_closed")
       .map((event) => ({ ticket, closedAt: event.createdAt.getTime() }));
   });
-  const closedNow = work.flatMap(function latestClosure(ticket) {
+  const closedInWindow = work.flatMap(function latestClosure(ticket) {
     if (ticket.status !== "verified_closed") return [];
     const closedAt = eventsFor(ticket.id)
       .filter((event) => event.toStatus === "verified_closed")
       .at(-1)?.createdAt;
     return closedAt && inWindow(closedAt)
-      ? [closedAt.getTime() - ticket.createdAt.getTime()]
+      ? [{ ticket, closedAt: closedAt.getTime() }]
       : [];
+  });
+  const closedNow = closedInWindow.map(
+    ({ ticket, closedAt }) => closedAt - ticket.createdAt.getTime(),
+  );
+
+  // When each closed ticket reached the milestones that split its journey.
+  // The first triage and assignment count; the last completion before the
+  // close does, so a rejected attempt stays inside the repair phase.
+  const journeys = closedInWindow.map(function journeyOf({ ticket, closedAt }) {
+    const history = eventsFor(ticket.id).filter(
+      (event) => event.createdAt.getTime() <= closedAt,
+    );
+    const timeOf = (status: TicketStatus, which: "first" | "last") => {
+      const matches = history.filter((event) => event.toStatus === status);
+      const match = which === "first" ? matches[0] : matches.at(-1);
+      return match?.createdAt.getTime() ?? null;
+    };
+    return {
+      created: ticket.createdAt.getTime(),
+      triaged: timeOf("triaged", "first"),
+      assigned: timeOf("assigned", "first"),
+      completion_submitted: timeOf("completion_submitted", "last"),
+      verified_closed: closedAt,
+    };
+  });
+  const phases = PHASES.map(function phaseRow(step) {
+    return {
+      phase: step.phase,
+      ...summarize(
+        journeys.flatMap(function phaseTime(journey) {
+          const start = journey[step.from];
+          const end = journey[step.to];
+          return start !== null && end !== null && end >= start
+            ? [end - start]
+            : [];
+        }),
+      ),
+    };
   });
 
   const matured = validCohort.filter((ticket) => ageOf(ticket) >= observed);
@@ -289,6 +339,8 @@ export function computeDashboard(input: {
     stages,
     ageBuckets,
     oldest: open.slice(0, MAX_OLDEST_ROWS),
+    openWork: open.map(({ ageMs, stage }) => ({ ageMs, stage })),
+    phases,
     workload,
     period: {
       reports: reports.length,

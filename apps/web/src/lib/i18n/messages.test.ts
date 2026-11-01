@@ -4,7 +4,11 @@ import { join } from "node:path";
 import { checklistFor, TICKET_CATEGORIES } from "@streetproof/domain";
 import { describe, expect, it } from "vitest";
 
-import { AGE_LABELS, STAGE_LABELS } from "@/features/dashboard/labels";
+import {
+  AGE_LABELS,
+  PHASE_LABELS,
+  STAGE_LABELS,
+} from "@/features/dashboard/labels";
 import { ROLE_LABELS } from "@/features/members/labels";
 import {
   CATEGORY_LABELS,
@@ -103,6 +107,7 @@ const CONSTANT_KEYS = [
   ...Object.values(PRIORITY_LABELS),
   ...Object.values(ROLE_LABELS),
   ...Object.values(AGE_LABELS),
+  ...Object.values(PHASE_LABELS),
   ...Object.values(STAGE_LABELS).flatMap(({ title, owner, state }) => [
     title,
     owner,

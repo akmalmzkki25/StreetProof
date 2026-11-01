@@ -116,7 +116,7 @@ test.describe("on a phone", () => {
 
     await page.goto("/app/dashboard");
     await expect(
-      page.getByRole("heading", { name: "Where open work sits" }),
+      page.getByRole("heading", { name: "Open work by stage" }),
     ).toBeVisible();
     await expectNoSidewaysScroll(page);
 

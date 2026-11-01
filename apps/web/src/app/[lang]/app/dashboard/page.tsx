@@ -1,7 +1,11 @@
 import { TaskDaily01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getDashboard, getDb } from "@streetproof/db";
-import { canViewDashboard, DASHBOARD_WINDOW_DAYS, type Dashboard } from "@streetproof/domain";
+import {
+  canViewDashboard,
+  DASHBOARD_WINDOW_DAYS,
+  type Dashboard,
+} from "@streetproof/domain";
 import { Badge } from "@streetproof/ui/components/badge";
 import { Button } from "@streetproof/ui/components/button";
 import {
@@ -24,6 +28,7 @@ import {
   LocationPanel,
   OldestPanel,
   MetricTiles,
+  PhasePanel,
   ProofPanel,
   StageStrip,
   TrendPanel,
@@ -110,9 +115,14 @@ function periodSummary({ period }: Dashboard, t: Translate) {
         : "{count} reports in the last {days} days",
       { count: period.reports, days: DASHBOARD_WINDOW_DAYS },
     ),
-    t(period.duplicates === 1 ? "1 linked as a duplicate" : "{count} linked as duplicates", {
-      count: period.duplicates,
-    }),
+    t(
+      period.duplicates === 1
+        ? "1 linked as a duplicate"
+        : "{count} linked as duplicates",
+      {
+        count: period.duplicates,
+      },
+    ),
     t("{count} cancelled", { count: period.cancelled }),
   ];
   return `${parts.join(", ")}.`;
@@ -131,7 +141,9 @@ async function Overview() {
 
   return (
     <>
-      <p className="text-[13px] text-muted-foreground">{finding(dashboard, t, locale)}</p>
+      <p className="text-[13px] text-muted-foreground">
+        {finding(dashboard, t, locale)}
+      </p>
 
       {isFirstRun ? (
         <Empty className="flex-none rounded-4xl bg-card shadow-card">
@@ -141,7 +153,9 @@ async function Overview() {
             </EmptyMedia>
             <EmptyTitle>{t("No reports yet")}</EmptyTitle>
             <EmptyDescription>
-              {t("Figures appear here once someone sends a report from a site's report form.")}
+              {t(
+                "Figures appear here once someone sends a report from a site's report form.",
+              )}
             </EmptyDescription>
           </EmptyHeader>
         </Empty>
@@ -153,8 +167,11 @@ async function Overview() {
             <TrendPanel dashboard={dashboard} />
             <OldestPanel dashboard={dashboard} />
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <AgePanel dashboard={dashboard} />
+            <PhasePanel dashboard={dashboard} />
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             <CategoryPanel dashboard={dashboard} />
             <LocationPanel dashboard={dashboard} />
             <WorkloadPanel dashboard={dashboard} />
@@ -164,7 +181,7 @@ async function Overview() {
             <DraftPanel dashboard={dashboard} />
           </div>
           <p className="type-caption text-muted-foreground">
-            {periodSummary(dashboard, t)} {t("Linked duplicates count as reports, not as work.")}
+            {periodSummary(dashboard, t)}
           </p>
         </div>
       )}
