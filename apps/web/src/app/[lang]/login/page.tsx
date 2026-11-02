@@ -1,4 +1,3 @@
-import { DEMO_PASSWORD, DEMO_TENANTS } from "@streetproof/db/demo";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Link } from "@/components/locale-link";
@@ -22,15 +21,6 @@ export default function LoginPage() {
 
 async function LoginContent() {
   const { t } = await getI18n();
-  const showDemoLogins = process.env.NODE_ENV === "development";
-  const demoTenant = DEMO_TENANTS[0];
-  const demoAccounts =
-    showDemoLogins && demoTenant
-      ? demoTenant.users.map((user) => ({
-          label: user.name,
-          email: user.email,
-        }))
-      : [];
 
   return (
     <>
@@ -49,10 +39,7 @@ async function LoginContent() {
           )}
         </p>
       </div>
-      <SignInForm
-        demoAccounts={demoAccounts}
-        demoPassword={showDemoLogins ? DEMO_PASSWORD : null}
-      />
+      <SignInForm />
     </>
   );
 }

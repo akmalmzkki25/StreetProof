@@ -18,7 +18,7 @@ Dev server defaults to http://localhost:3000. Design system live showcase: `/des
 
 ## Env
 
-Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET`, `SMTP_URL` and `MAIL_FROM` (email stays off without them), `MONITORING_TOKEN` (`/api/monitoring` answers 404 without it) and `META_API_KEY` (voice notes only). One-click demo accounts appear on `/login` only under `next dev`, never in a production build. Database and storage access go through `@streetproof/db`.
+Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET`, `SMTP_URL` and `MAIL_FROM` (email stays off without them), `MONITORING_TOKEN` (`/api/monitoring` answers 404 without it) and `META_API_KEY` (voice notes only). Database and storage access go through `@streetproof/db`.
 
 ## Auth
 

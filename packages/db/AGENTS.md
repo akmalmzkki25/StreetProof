@@ -42,7 +42,7 @@ A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicat
 
 ## Demo accounts
 
-`pnpm db:seed` creates two synthetic tenants. Accounts in the first tenant: `operator@`, `technician@`, `technician2@`, `supervisor@` and `admin@streetproof.test`. The second tenant has `operator@kampus.streetproof.test`. Demo tenants, accounts and the shared local password live in `src/demo.ts`, which the seed and the `/login` demo buttons both read.
+`pnpm db:seed` creates two synthetic tenants. Accounts in the first tenant: `operator@`, `technician@`, `technician2@`, `supervisor@` and `admin@streetproof.test`. The second tenant has `operator@kampus.streetproof.test`. Demo tenants, accounts and the shared local password live in `src/demo.ts`, which the seed reads.
 
 ## Rules for this unit
 

@@ -6,8 +6,8 @@
 name: streetproof
 
 x-app-env: &app-env
-  DATABASE_URL: postgresql://streetproof:${POSTGRES_PASSWORD:?}@postgres:5432/streetproof
-  S3_ENDPOINT_URL: http://minio:9000
+  DATABASE_URL: ${DATABASE_URL:?}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:?}
   # Browsers load photos from this address, so it must be reachable from outside.
   S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:?}
   S3_ACCESS_KEY: ${S3_ACCESS_KEY:?}
@@ -22,11 +22,15 @@ services:
   postgres:
     image: postgres:16
     restart: unless-stopped
+    entrypoint:
+      ["sh", "/scripts/with-database-password.sh", "docker-entrypoint.sh"]
+    command: ["postgres"]
     environment:
+      DATABASE_URL: ${DATABASE_URL:?}
       POSTGRES_USER: streetproof
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
       POSTGRES_DB: streetproof
     volumes:
+      - ./scripts/backup:/scripts:ro
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U streetproof -d streetproof"]
@@ -118,9 +122,15 @@ services:
   backup:
     image: postgres:16
     restart: unless-stopped
-    entrypoint: ["sh", "/scripts/backup-loop.sh"]
+    entrypoint:
+      [
+        "sh",
+        "/scripts/with-database-password.sh",
+        "sh",
+        "/scripts/backup-loop.sh",
+      ]
     environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      DATABASE_URL: ${DATABASE_URL:?}
       PGHOST: postgres
       PGUSER: streetproof
       PGDATABASE: streetproof
@@ -137,9 +147,10 @@ services:
   restore:
     profiles: [restore]
     image: postgres:16
-    entrypoint: ["sh", "/scripts/restore.sh"]
+    entrypoint:
+      ["sh", "/scripts/with-database-password.sh", "sh", "/scripts/restore.sh"]
     environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD:?}
+      DATABASE_URL: ${DATABASE_URL:?}
       PGHOST: postgres
       PGUSER: streetproof
       PGDATABASE: streetproof

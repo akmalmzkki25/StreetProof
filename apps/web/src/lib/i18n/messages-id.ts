@@ -164,7 +164,6 @@ export const ID_MESSAGES: Record<string, string> = {
     "Laporan kerusakan fasilitas menjadi tiket yang ditugaskan, lengkap dengan bukti penyelesaian dan penutupan oleh supervisor. AI menyusun draf, manusia yang memutuskan.",
   "Try the report form": "Coba formulir laporan",
   "Report forms:": "Formulir laporan:",
-  "Demo accounts (synthetic data)": "Akun demo (data sintetis)",
   "Synthetic data": "Data sintetis",
 
   // Sign in and passwords

@@ -2,7 +2,7 @@
 
 `pnpm db:seed:demo` wipes the local database, reseeds the synthetic tenants and replays the cases below through the same commands the app uses. Only the timestamps are moved afterward, to give the tickets a history. Every figure is synthetic and the dashboard labels it so.
 
-The command prints four reporter status links once. Sign in with the demo accounts on `/login` (shown under `next dev`, password in `packages/db/src/demo.ts`).
+The command prints four reporter status links once. Sign in on `/login` with the demo accounts in `packages/db/src/demo.ts`, which also holds their password.
 
 ## Cases
 

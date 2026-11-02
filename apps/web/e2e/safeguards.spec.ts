@@ -79,7 +79,10 @@ test("the queue filters as you type or pick, and the link keeps the filter", asy
 
   await operator.reload();
   await expect(operator.getByRole("link", { name: word })).toBeVisible();
-  await expect(operator.getByLabel("Search")).toHaveValue(word.toLowerCase());
+  // By role, because a reload briefly streams a hidden copy of the page.
+  await expect(operator.getByRole("searchbox", { name: "Search" })).toHaveValue(
+    word.toLowerCase(),
+  );
 
   await choose(operator, "Status", "Verified closed");
   await expect(visibleText(operator, "No matching tickets")).toBeVisible();

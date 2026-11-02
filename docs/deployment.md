@@ -4,7 +4,7 @@
 
 ## Run it
 
-1. Copy `.env.production.example` to a file git ignores, such as `.env.production`, and fill it in. Every value comes from this file. Nothing is baked into an image.
+1. Copy `.env.production.example` to a file git ignores, such as `.env.production`, and fill it in. It holds the same variables as `.env.example`; `DATABASE_URL` and `S3_ENDPOINT_URL` point at the `postgres` and `minio` containers instead of `localhost`. Every value comes from this file. Nothing is baked into an image.
 2. Start everything:
 
    ```bash

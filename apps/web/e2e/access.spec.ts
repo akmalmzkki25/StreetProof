@@ -101,13 +101,6 @@ test("a bad password shows a message and no session", async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test("demo sign-in shortcuts don't exist in a production build", async ({
-  page,
-}) => {
-  await page.goto("/login");
-  await expect(visibleText(page, "Demo accounts")).toBeHidden();
-});
-
 test("an invalid status link reveals nothing", async ({ page }) => {
   await page.goto("/status#t=not-a-real-token");
   await expect(
