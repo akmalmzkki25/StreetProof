@@ -13,6 +13,7 @@ export type VoiceNoteResult =
 const MAX_VOICE_NOTE_BYTES = 4 * 1024 * 1024;
 
 const isVoiceNoteAllowed = createRateLimiter({
+  name: "voice-note",
   limit: 10,
   windowMs: 10 * 60 * 1000,
 });
@@ -29,7 +30,7 @@ export async function transcribeVoiceNote(
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isVoiceNoteAllowed(clientAddress)) {
+  if (!(await isVoiceNoteAllowed(clientAddress))) {
     return {
       ok: false,
       error: "Too many voice notes from this device. Please type it instead.",

@@ -14,6 +14,7 @@ export * from "./completion-commands";
 export * from "./duplicate-commands";
 export * as schema from "./schema";
 export * from "./reports";
+export * from "./retention";
 export * from "./setup";
 export * from "./sites";
 export * from "./telegram";

@@ -15,6 +15,7 @@ import { telegramUrl } from "@/lib/telegram";
 export type TelegramLinkResult = { url: string | null };
 
 const isFollowAllowed = createRateLimiter({
+  name: "telegram-follow",
   limit: 10,
   windowMs: 10 * 60 * 1000,
 });
@@ -32,7 +33,7 @@ export async function followOnTelegramAction(): Promise<TelegramLinkResult> {
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isFollowAllowed(clientAddress)) return { url: null };
+  if (!(await isFollowAllowed(clientAddress))) return { url: null };
 
   const token = readReceipt(await cookies());
   if (!token) return { url: null };

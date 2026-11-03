@@ -43,7 +43,7 @@ await db.execute(sql`
     clarifications, duplicate_links, uploads, proof_checks, verifications, completion_submissions, assignments,
     ticket_notes, damage_regions, reporter_notifications, telegram_notices, telegram_report_subscriptions, telegram_link_codes,
     telegram_conversations, telegram_members, deadline_notices, audit_log, reports, tickets, teams, memberships, locations, sites, tenants,
-    verification, account, session, "user"
+    verification, account, session, "user", rate_limits
   cascade
 `);
 

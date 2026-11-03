@@ -30,16 +30,17 @@ export default function MapCanvas({
   const { resolvedTheme } = useTheme();
   const mapRef = useRef<MapRef>(null);
   const focus = center ?? pins[0] ?? null;
+  const focusLatitude = focus?.latitude;
+  const focusLongitude = focus?.longitude;
 
   useEffect(() => {
-    if (focus) {
-      mapRef.current?.flyTo({
-        center: [focus.longitude, focus.latitude],
-        zoom: Math.max(mapRef.current.getZoom(), 16),
-        essential: false,
-      });
-    }
-  }, [focus?.latitude, focus?.longitude]);
+    if (focusLatitude === undefined || focusLongitude === undefined) return;
+    mapRef.current?.flyTo({
+      center: [focusLongitude, focusLatitude],
+      zoom: Math.max(mapRef.current.getZoom(), 16),
+      essential: false,
+    });
+  }, [focusLatitude, focusLongitude]);
 
   return (
     <div

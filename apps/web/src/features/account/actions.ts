@@ -34,6 +34,7 @@ const passwordFields = z
   });
 
 const isPasswordChangeAllowed = createRateLimiter({
+  name: "password-change",
   limit: 10,
   windowMs: 10 * 60 * 1000,
 });
@@ -62,7 +63,7 @@ export async function changePasswordAction(
   formData: FormData,
 ): Promise<AccountState> {
   const member = await requireMember();
-  if (!isPasswordChangeAllowed(member.userId)) {
+  if (!(await isPasswordChangeAllowed(member.userId))) {
     return {
       error: "Too many tries. Try again in a while.",
       isDone: false,

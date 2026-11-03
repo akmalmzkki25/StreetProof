@@ -6,6 +6,7 @@ import {
 } from "@streetproof/domain";
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   doublePrecision,
@@ -21,6 +22,7 @@ import {
   unique,
   uniqueIndex,
   uuid,
+  varchar,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
@@ -798,6 +800,14 @@ export const deadlineNotices = pgTable(
     primaryKey({ columns: [table.ticketId, table.kind, table.dueAt] }),
   ],
 );
+
+// rate-limiter-flexible's own layout, so every web instance shares one count per
+// key. Expired rows are cleared by the library and the retention sweep.
+export const rateLimits = pgTable("rate_limits", {
+  key: varchar({ length: 255 }).primaryKey(),
+  points: integer().notNull().default(0),
+  expire: bigint({ mode: "number" }),
+});
 
 // Who did what outside the ticket workflow: sign-ins, account changes, ticket views.
 export const auditLog = pgTable(

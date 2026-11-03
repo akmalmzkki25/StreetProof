@@ -2,6 +2,7 @@ import { DEMO_PASSWORD } from "@streetproof/db/demo";
 import {
   expect,
   type Browser,
+  type BrowserContextOptions,
   type Locator,
   type Page,
 } from "@playwright/test";
@@ -38,8 +39,12 @@ export function unique(text: string) {
 }
 
 // Each person gets their own browser context, like their own phone or laptop.
-export async function signIn(browser: Browser, email: string) {
-  const context = await browser.newContext();
+export async function signIn(
+  browser: Browser,
+  email: string,
+  options?: BrowserContextOptions,
+) {
+  const context = await browser.newContext(options);
   const page = await context.newPage();
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);

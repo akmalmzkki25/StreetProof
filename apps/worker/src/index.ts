@@ -3,6 +3,7 @@ import {
   errorFields,
   getDb,
   logEvent,
+  purgeExpiredData,
   recordHeartbeat,
   type OutboxJob,
 } from "@streetproof/db";
@@ -39,6 +40,7 @@ import {
 const POLL_INTERVAL_MS = 2000;
 const AUTH_FAILURE_PAUSE_MS = 60_000;
 const HEARTBEAT_INTERVAL_MS = 30_000;
+const RETENTION_SWEEP_MS = 6 * 60 * 60 * 1000;
 
 // The monorepo has one .env at the root. Values already set win.
 const rootEnv = fileURLToPath(new URL("../../../.env", import.meta.url));
@@ -140,6 +142,7 @@ logEvent("info", "Worker started", {
 });
 let lastHeartbeatAt = 0;
 let lastDeadlineSweepAt = 0;
+let lastRetentionSweepAt = 0;
 while (!isStopping) {
   try {
     if (Date.now() - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
@@ -156,6 +159,11 @@ while (!isStopping) {
       });
       if (reminders > 0)
         logEvent("info", "Deadline reminders sent", { reminders });
+    }
+    if (Date.now() - lastRetentionSweepAt >= RETENTION_SWEEP_MS) {
+      lastRetentionSweepAt = Date.now();
+      const purged = await purgeExpiredData(db);
+      logEvent("info", "Retention sweep finished", purged);
     }
     const delay = await runOnce();
     if (delay > 0) await sleep(delay);

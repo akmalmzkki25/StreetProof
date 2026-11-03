@@ -38,8 +38,11 @@ services:
       timeout: 5s
       retries: 20
 
+  # MinIO stopped publishing images: Docker Hub and Quay refuse the pull, and the
+  # last one is from September 2025. Chainguard builds it from source and keeps it
+  # patched. Pinned by digest; update it on purpose.
   minio:
-    image: quay.io/minio/minio
+    image: cgr.dev/chainguard/minio@sha256:090010a3f73f6aa2dff606c61cd0de3640b22748abe19f4e48cce6dc9de7a53f
     restart: unless-stopped
     command: server /data
     environment:
@@ -179,6 +182,22 @@ services:
     depends_on:
       prepare:
         condition: service_completed_successfully
+
+  # Copies finished backups to a bucket on another host once a day. Stops at once
+  # without BACKUP_REMOTE_URL, and restarts only after a crash.
+  backup-offsite:
+    # The same image as minio: it carries the mc client and a shell.
+    image: cgr.dev/chainguard/minio@sha256:090010a3f73f6aa2dff606c61cd0de3640b22748abe19f4e48cce6dc9de7a53f
+    restart: on-failure
+    entrypoint: ["sh", "/scripts/offsite-loop.sh"]
+    environment:
+      BACKUP_REMOTE_URL: ${BACKUP_REMOTE_URL:-}
+      BACKUP_REMOTE_BUCKET: ${BACKUP_REMOTE_BUCKET:-}
+      BACKUP_REMOTE_ACCESS_KEY: ${BACKUP_REMOTE_ACCESS_KEY:-}
+      BACKUP_REMOTE_SECRET_KEY: ${BACKUP_REMOTE_SECRET_KEY:-}
+    volumes:
+      - ./scripts/backup:/scripts:ro
+      - backups:/backups:ro
 
   # Puts one backup back. Only runs when asked for by name, see docs/deployment.md.
   restore:

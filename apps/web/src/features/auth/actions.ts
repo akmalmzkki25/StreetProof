@@ -16,6 +16,7 @@ export type ResetRequestState = { isSent: boolean; error: string | null };
 export type NewPasswordState = { isDone: boolean; error: string | null };
 
 const isResetRequestAllowed = createRateLimiter({
+  name: "password-reset",
   limit: 5,
   windowMs: 10 * 60 * 1000,
 });
@@ -90,7 +91,7 @@ export async function requestPasswordReset(
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isResetRequestAllowed(clientAddress)) {
+  if (!(await isResetRequestAllowed(clientAddress))) {
     return {
       isSent: false,
       error: "Too many tries from this device. Try again in a while.",

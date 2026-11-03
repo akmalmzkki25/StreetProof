@@ -1,6 +1,6 @@
 # @streetproof/worker
 
-Node process that works through the Postgres outbox. It turns submitted reports into AI drafts with Muse Spark, outlines the damage with SAM, compares before and after photos for supervisors, and sends reporter emails and Telegram messages. `src/index.ts` maps each job type to its handler. Read [`docs/meta-model-api.md`](../../docs/meta-model-api.md) before changing a model call.
+Node process that works through the Postgres outbox. It turns submitted reports into AI drafts with Muse Spark, outlines the damage with SAM, compares before and after photos for supervisors, and sends reporter emails and Telegram messages. Besides the outbox it sweeps deadlines every five minutes (`src/deadline-job.ts`: a technician's reminder a day ahead, an escalation to the site's operators and supervisors once a deadline passes) and runs the retention sweep every six hours (`purgeExpiredData` in `@streetproof/db`). `src/index.ts` maps each job type to its handler. Read [`docs/meta-model-api.md`](../../docs/meta-model-api.md) before changing a model call.
 
 ## Run
 

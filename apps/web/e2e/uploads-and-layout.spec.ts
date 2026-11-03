@@ -69,8 +69,10 @@ test("hostile uploads are refused and leave the form usable", async ({
   await expect(visibleText(page, "View status", { exact: true })).toBeVisible();
 });
 
+const PHONE = { viewport: { width: 375, height: 812 }, hasTouch: true };
+
 test.describe("on a phone", () => {
-  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
+  test.use(PHONE);
 
   test("the report form and status page fit the screen", async ({ page }) => {
     await page.goto(INTAKE_PATH);
@@ -96,10 +98,7 @@ test.describe("on a phone", () => {
     const description = unique("Phone layout check");
     await submitReport(browser, description);
 
-    const context = await browser.newContext({
-      viewport: { width: 375, height: 812 },
-      hasTouch: true,
-    });
+    const context = await browser.newContext(PHONE);
     const page = await context.newPage();
     await page.goto("/login");
     await page.getByLabel("Email").fill(ACCOUNTS.operator);
@@ -124,6 +123,31 @@ test.describe("on a phone", () => {
     await page.getByRole("button", { name: ACCOUNTS.operator }).click();
     await page.getByRole("menuitem", { name: "Sign out" }).click();
     await page.waitForURL("**/login");
+  });
+
+  test("the sites page, its add drawer and the account page fit", async ({
+    browser,
+  }) => {
+    const page = await signIn(browser, ACCOUNTS.admin, PHONE);
+
+    await page.goto("/app/sites");
+    const addSite = page.getByRole("button", { name: "Add site" });
+    await expect(addSite).toBeVisible();
+    await expectNoSidewaysScroll(page);
+
+    await addSite.click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByLabel("Building name")).toBeVisible();
+    // A long form must scroll inside the drawer so its button stays reachable.
+    const save = drawer.getByRole("button", { name: "Add site" });
+    await save.scrollIntoViewIfNeeded();
+    await expect(save).toBeInViewport();
+    await expectNoSidewaysScroll(page);
+    await page.keyboard.press("Escape");
+
+    await page.goto("/app/account");
+    await expect(page.getByLabel("Name")).toBeVisible();
+    await expectNoSidewaysScroll(page);
   });
 });
 

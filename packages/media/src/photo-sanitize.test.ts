@@ -105,18 +105,25 @@ describe("sanitizePhoto", () => {
     expect([kept.width, kept.height]).toEqual([200, 100]);
   });
 
-  it("rejects a small file that decodes to too many pixels", async () => {
-    const side = Math.ceil(Math.sqrt(MAX_PHOTO_PIXELS)) + 1;
-    const bomb = await solid(side, side).png().toBuffer();
-    expect(bomb.length).toBeLessThan(10 * 1024 * 1024);
+  // Encoding the oversized PNG takes seconds when every package tests at once.
+  it(
+    "rejects a small file that decodes to too many pixels",
+    {
+      timeout: 30_000,
+    },
+    async () => {
+      const side = Math.ceil(Math.sqrt(MAX_PHOTO_PIXELS)) + 1;
+      const bomb = await solid(side, side).png().toBuffer();
+      expect(bomb.length).toBeLessThan(10 * 1024 * 1024);
 
-    const result = await sanitizePhoto(new Uint8Array(bomb));
+      const result = await sanitizePhoto(new Uint8Array(bomb));
 
-    expect(result).toEqual({
-      ok: false,
-      error: "That photo is too large to process. Try a smaller one.",
-    });
-  });
+      expect(result).toEqual({
+        ok: false,
+        error: "That photo is too large to process. Try a smaller one.",
+      });
+    },
+  );
 
   it("rejects a file that only starts like an image", async () => {
     const fake = Buffer.concat([

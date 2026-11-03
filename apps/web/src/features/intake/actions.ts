@@ -48,6 +48,7 @@ const reportFields = z.object({
 });
 
 const isSubmissionAllowed = createRateLimiter({
+  name: "report",
   limit: 20,
   windowMs: 10 * 60 * 1000,
 });
@@ -82,7 +83,7 @@ export async function submitReportAction(
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isSubmissionAllowed(`${clientAddress}:${intakeCode}`)) {
+  if (!(await isSubmissionAllowed(`${clientAddress}:${intakeCode}`))) {
     return failure("Too many reports from this device. Try again in a while.");
   }
 

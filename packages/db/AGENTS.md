@@ -41,6 +41,10 @@ A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicat
 
 `src/telegram.ts` keeps which chat belongs to which account or report. A one-time code from the web app, stored only as a SHA-256, is what connects them. `findTelegramMember` reads active memberships on every action, so deactivating a member also stops their chat. A subscription grants status updates and nothing else. `src/telegram-send.ts` sends one plain-text message and is null without a token, like `createMailer`.
 
+## Sites, deadlines, retention and rate limits
+
+`src/sites.ts` adds and changes sites and locations; a report code is unique across tenants, and an inactive site or location only leaves the report form. `src/deadlines.ts` finds reminders due and claims each one in `deadline_notices` before it's sent. `src/retention.ts` clears reporter contact 90 days after closure and stale leftovers, never reports, photos, tickets or the audit log. `rate_limits` has rate-limiter-flexible's own layout; `getPool()` hands it the shared pool.
+
 ## Env
 
 `DATABASE_URL`, `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_REGION`, all from the root `.env`. Scripts load it through `scripts/load-root-env.ts`; library code only reads `process.env`.

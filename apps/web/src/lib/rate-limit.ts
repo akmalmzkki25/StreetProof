@@ -1,21 +1,66 @@
-type Window = { startedAt: number; count: number };
+import "server-only";
 
-// In-memory, so limits are per process. Enough for one web instance; a second
-// instance would need shared storage.
-export function createRateLimiter(options: {
+import { getPool } from "@streetproof/db";
+import {
+  RateLimiterMemory,
+  RateLimiterPostgres,
+  RateLimiterRes,
+  type RateLimiterAbstract,
+} from "rate-limiter-flexible";
+
+export type RateLimitOptions = {
+  // Unique per limiter, so two limits on the same key don't share a count.
+  name: string;
   limit: number;
   windowMs: number;
-}) {
-  const windows = new Map<string, Window>();
+};
 
-  return function isAllowed(key: string, now = Date.now()) {
-    const current = windows.get(key);
-    if (!current || now - current.startedAt >= options.windowMs) {
-      windows.set(key, { startedAt: now, count: 1 });
+// Counts live in Postgres, so every web instance shares them. If the database
+// can't answer, the limiter falls back to this instance's memory rather than
+// letting everything through.
+export function createRateLimiter(
+  options: RateLimitOptions,
+  // Tests pass memory only.
+  storeFor: (
+    options: RateLimitOptions,
+    fallback: RateLimiterMemory,
+  ) => RateLimiterAbstract = postgresStore,
+) {
+  const points = options.limit;
+  const duration = Math.max(1, Math.round(options.windowMs / 1000));
+  let limiter: RateLimiterAbstract | undefined;
+
+  return async function isAllowed(key: string) {
+    limiter ??= storeFor(
+      options,
+      new RateLimiterMemory({ keyPrefix: options.name, points, duration }),
+    );
+    try {
+      await limiter.consume(key);
       return true;
+    } catch (rejection) {
+      if (rejection instanceof RateLimiterRes) return false;
+      throw rejection;
     }
-    if (current.count >= options.limit) return false;
-    windows.set(key, { ...current, count: current.count + 1 });
-    return true;
   };
+}
+
+function postgresStore(options: RateLimitOptions, fallback: RateLimiterMemory) {
+  return new RateLimiterPostgres({
+    storeClient: getPool(),
+    storeType: "pool",
+    tableName: "rate_limits",
+    tableCreated: true,
+    keyPrefix: options.name,
+    points: options.limit,
+    duration: Math.max(1, Math.round(options.windowMs / 1000)),
+    insuranceLimiter: fallback,
+  });
+}
+
+export function memoryStore(
+  _options: RateLimitOptions,
+  fallback: RateLimiterMemory,
+) {
+  return fallback;
 }

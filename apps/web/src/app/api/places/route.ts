@@ -13,7 +13,11 @@ const query = z.object({
   lon: z.coerce.number().min(-180).max(180).optional(),
 });
 
-const isSearchAllowed = createRateLimiter({ limit: 60, windowMs: 60 * 1000 });
+const isSearchAllowed = createRateLimiter({
+  name: "place-search",
+  limit: 60,
+  windowMs: 60 * 1000,
+});
 
 type PhotonFeature = {
   geometry?: { coordinates?: [number, number] };
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
   await connection();
   const clientAddress =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isSearchAllowed(clientAddress)) {
+  if (!(await isSearchAllowed(clientAddress))) {
     return Response.json({ places: [] }, { status: 429 });
   }
 

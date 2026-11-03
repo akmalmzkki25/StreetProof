@@ -10,18 +10,27 @@ export function createDb(connectionString: string) {
 export type Db = ReturnType<typeof createDb>["db"];
 export type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-let shared: Db | undefined;
+let shared: ReturnType<typeof createDb> | undefined;
 
-// One pool per process, created on first use so importing the package never
-// opens a connection.
-export function getDb(): Db {
+function sharedClient() {
   if (!shared) {
     const url = process.env.DATABASE_URL;
     if (!url)
       throw new Error(
         "DATABASE_URL is not set. Copy .env.example to .env at the repo root.",
       );
-    shared = createDb(url).db;
+    shared = createDb(url);
   }
   return shared;
+}
+
+// One pool per process, created on first use so importing the package never
+// opens a connection.
+export function getDb(): Db {
+  return sharedClient().db;
+}
+
+// The same pool, for libraries that take a pg client, like the rate limiter.
+export function getPool(): Pool {
+  return sharedClient().pool;
 }

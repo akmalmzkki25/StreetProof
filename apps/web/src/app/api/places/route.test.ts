@@ -5,6 +5,10 @@ vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   connection: async () => undefined,
 }));
+// Limits are counted in Postgres; these tests are about the search itself.
+vi.mock("@/lib/rate-limit", () => ({
+  createRateLimiter: () => async () => true,
+}));
 
 const { GET } = await import("./route");
 

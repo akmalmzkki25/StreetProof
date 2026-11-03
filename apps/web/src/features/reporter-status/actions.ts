@@ -26,6 +26,7 @@ export type AnswerState = { error: string | null };
 export type RecoverState = { isSent: boolean; error: string | null };
 
 const isRecoveryAllowed = createRateLimiter({
+  name: "status-recovery",
   limit: 5,
   windowMs: 10 * 60 * 1000,
 });
@@ -58,7 +59,7 @@ export async function recoverLinksAction(
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isRecoveryAllowed(clientAddress)) {
+  if (!(await isRecoveryAllowed(clientAddress))) {
     return {
       isSent: false,
       error: "Too many tries from this device. Try again in a while.",
@@ -79,6 +80,7 @@ const answerFields = z.object({
 });
 
 const isAnswerAllowed = createRateLimiter({
+  name: "status-answer",
   limit: 10,
   windowMs: 10 * 60 * 1000,
 });
@@ -90,7 +92,7 @@ export async function answerClarificationAction(
   const requestHeaders = await headers();
   const clientAddress =
     requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (!isAnswerAllowed(clientAddress)) {
+  if (!(await isAnswerAllowed(clientAddress))) {
     return { error: "Too many tries from this device. Try again in a while." };
   }
 
