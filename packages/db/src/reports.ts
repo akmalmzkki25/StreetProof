@@ -38,6 +38,8 @@ export type SubmitReportInput = {
   locationText: string | null;
   description: string;
   reporterEmail?: string | null;
+  // An optional pin the reporter dropped on the map.
+  point?: { latitude: number; longitude: number } | null;
   photos: readonly ReportPhoto[];
   idempotencyKey: string;
   requestDigest: string;
@@ -173,6 +175,8 @@ export async function submitReport(
       locationText: input.locationText,
       description: input.description,
       reporterEmail: input.reporterEmail?.toLowerCase() ?? null,
+      latitude: input.point?.latitude ?? null,
+      longitude: input.point?.longitude ?? null,
       canonicalTicketId: ticketId,
     });
 
@@ -299,6 +303,7 @@ export async function reissueStatusLink(
 export type ReporterStatus = {
   reference: string;
   siteName: string;
+  timeZone: string;
   location: string;
   description: string;
   stage: ReporterStage;
@@ -329,6 +334,7 @@ export async function getReporterStatus(
       locationText: reports.locationText,
       locationName: locations.name,
       siteName: sites.name,
+      timeZone: sites.timezone,
       submittedAt: reports.createdAt,
       ticketId: tickets.id,
       status: tickets.status,
@@ -375,6 +381,7 @@ export async function getReporterStatus(
   return {
     reference: reportReference(row.reportId),
     siteName: row.siteName,
+    timeZone: row.timeZone,
     location: row.locationName ?? row.locationText ?? "",
     description: row.description,
     stage: reporterStage(followed?.status ?? row.status),
@@ -400,7 +407,13 @@ export async function getReporterStatus(
 
 export async function findIntakeSite(db: Db, intakeCode: string) {
   const [site] = await db
-    .select({ id: sites.id, tenantId: sites.tenantId, name: sites.name })
+    .select({
+      id: sites.id,
+      tenantId: sites.tenantId,
+      name: sites.name,
+      latitude: sites.latitude,
+      longitude: sites.longitude,
+    })
     .from(sites)
     .where(and(eq(sites.intakeCode, intakeCode), eq(sites.active, true)));
   if (!site) return null;

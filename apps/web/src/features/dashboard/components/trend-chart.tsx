@@ -37,7 +37,8 @@ export function TrendChart({
     opened: { label: openedLabel, color: "var(--muted-foreground)" },
     verified: { label: verifiedLabel, color: "var(--chart-1)" },
   } satisfies ChartConfig;
-  // The day keys are already WIB dates, so format them as UTC to keep the day.
+  // The day keys are already the building's calendar days, so format them as UTC
+  // to keep the day.
   const dayFormat = new Intl.DateTimeFormat(
     locale === "id" ? "id-ID" : "en-GB",
     {

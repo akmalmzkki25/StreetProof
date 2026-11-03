@@ -149,11 +149,11 @@ async function ReportStatus() {
         <dd className="whitespace-pre-wrap">{status.description}</dd>
         <dt className="text-muted-foreground">{t("Sent")}</dt>
         <dd className="font-mono text-xs">
-          {formatDateTime(status.submittedAt, locale)}
+          {formatDateTime(status.submittedAt, locale, status.timeZone)}
         </dd>
         <dt className="text-muted-foreground">{t("Last update")}</dt>
         <dd className="font-mono text-xs">
-          {formatDateTime(status.updatedAt, locale)}
+          {formatDateTime(status.updatedAt, locale, status.timeZone)}
         </dd>
       </dl>
     </section>

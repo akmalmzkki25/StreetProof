@@ -21,7 +21,9 @@ export async function ClarificationList({ ticket }: { ticket: TicketDetail }) {
             <p className="whitespace-pre-wrap">{item.question}</p>
             <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
               <span className="text-foreground">{item.askerName}</span>
-              <span>{formatDateTime(item.askedAt, locale)}</span>
+              <span>
+                {formatDateTime(item.askedAt, locale, ticket.timeZone)}
+              </span>
             </p>
           </div>
           {item.answer ? (
@@ -30,7 +32,8 @@ export async function ClarificationList({ ticket }: { ticket: TicketDetail }) {
               <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
                 <span className="text-foreground">{t("Reporter")}</span>
                 <span>
-                  {item.answeredAt && formatDateTime(item.answeredAt, locale)}
+                  {item.answeredAt &&
+                    formatDateTime(item.answeredAt, locale, ticket.timeZone)}
                 </span>
               </p>
             </div>

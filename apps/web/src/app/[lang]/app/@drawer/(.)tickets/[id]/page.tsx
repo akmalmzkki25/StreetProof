@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import { TicketDetail } from "@/features/tickets/components/ticket-detail";
 import { TicketDrawer } from "@/features/tickets/components/ticket-drawer";
 
-export default function TicketDrawerPage({ params }: PageProps<"/[lang]/app/tickets/[id]">) {
+export default function TicketDrawerPage({
+  params,
+}: PageProps<"/[lang]/app/tickets/[id]">) {
   return (
     <TicketDrawer>
       <Suspense fallback={<Skeleton className="h-96" />}>

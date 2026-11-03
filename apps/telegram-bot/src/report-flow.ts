@@ -94,6 +94,34 @@ export async function chooseLocation(
   await sayKey(ctx, "askDescription");
 }
 
+// Telegram's own location sharing. Before a location is chosen it stands in for
+// one; later it adds a pin to whatever was chosen.
+export async function shareLocation(
+  ctx: Context,
+  deps: BotDeps,
+  state: ReportState,
+) {
+  const shared = ctx.message?.location;
+  if (!shared) return;
+  const point = { latitude: shared.latitude, longitude: shared.longitude };
+  const locale = localeOf(ctx);
+
+  if (state.step === "location" || state.step === "location_text") {
+    await saveState(deps.db, chatIdOf(ctx), {
+      ...state,
+      step: "description",
+      locationChoice: OTHER_LOCATION,
+      locationText: state.locationText ?? t(locale, "sharedLocation"),
+      point,
+    });
+    await sayKey(ctx, "locationPinned");
+    await sayKey(ctx, "askDescription");
+    return;
+  }
+  await saveState(deps.db, chatIdOf(ctx), { ...state, point });
+  await sayKey(ctx, "locationPinned");
+}
+
 async function acceptDescription(
   ctx: Context,
   deps: BotDeps,
@@ -258,11 +286,13 @@ export async function sendReport(
     locationId: isOther ? null : state.locationChoice,
     locationText: isOther ? state.locationText : null,
     description: state.description ?? "",
+    point: state.point ?? null,
     photos: state.photos,
     idempotencyKey: state.submissionKey,
     requestDigest: digestOf({
       locationChoice: state.locationChoice,
       locationText: state.locationText,
+      point: state.point ?? null,
       description: state.description,
       photos: state.photos.map((photo) => photo.sha256),
     }),

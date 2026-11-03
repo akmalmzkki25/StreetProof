@@ -22,6 +22,8 @@ export type ReportState = {
   locations: { id: string; name: string }[];
   locationChoice: string | null;
   locationText: string | null;
+  // A location shared in the chat. Optional, and never sent to a model.
+  point?: { latitude: number; longitude: number } | null;
   description: string | null;
   transcript: string | null;
   photos: ReportPhoto[];

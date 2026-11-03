@@ -139,4 +139,16 @@ export const ID_ERRORS: Record<string, string> = {
   "Write your answer first.": "Tulis jawaban Anda dulu.",
   "You submitted this work, so another supervisor has to review it.":
     "Anda yang mengirim pekerjaan ini, jadi supervisor lain yang harus memeriksanya.",
+  "Enter a name of at least 2 characters.": "Isi nama minimal 2 karakter.",
+  "Keep the name under 100 characters.": "Nama maksimal 100 karakter.",
+  "Use 3 to 40 lowercase letters, numbers or dashes for the report code.":
+    "Kode laporan harus 3 sampai 40 huruf kecil, angka, atau tanda hubung.",
+  "Choose a time zone.": "Pilih zona waktu.",
+  "This site isn't available.": "Gedung ini tidak tersedia.",
+  "Another site already uses that report code.":
+    "Kode laporan itu sudah dipakai gedung lain.",
+  "This site already has a location with that name.":
+    "Gedung ini sudah punya lokasi dengan nama itu.",
+  "Keep each location under 100 characters.":
+    "Setiap lokasi maksimal 100 karakter.",
 };

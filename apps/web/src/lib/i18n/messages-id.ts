@@ -314,7 +314,7 @@ export const ID_MESSAGES: Record<string, string> = {
   "Assigning…": "Menugaskan…",
   "Choose a technician": "Pilih teknisi",
   "Due by": "Tenggat",
-  "Due by, WIB (optional)": "Tenggat, WIB (opsional)",
+  "Due by, {zone} (optional)": "Tenggat, {zone} (opsional)",
   "Due {date}": "Tenggat {date}",
   "Overdue since {date}": "Lewat tenggat sejak {date}",
   "(overdue)": "(lewat tenggat)",
@@ -329,7 +329,7 @@ export const ID_MESSAGES: Record<string, string> = {
   "Access to the area": "Akses ke area",
   "What's needed": "Yang dibutuhkan",
   "What's stopping you?": "Apa yang menghambat Anda?",
-  "Check again on (WIB)": "Periksa lagi pada (WIB)",
+  "Check again on ({zone})": "Periksa lagi pada ({zone})",
   "Cancel this ticket": "Batalkan tiket ini",
   "Cancel ticket": "Batalkan tiket",
   "Cancelling…": "Membatalkan…",
@@ -626,4 +626,75 @@ export const ID_MESSAGES: Record<string, string> = {
   "Tickets by category": "Tiket per kategori",
   "Reports by location": "Laporan per lokasi",
   "Other places": "Tempat lain",
+  Sites: "Gedung",
+  Print: "Cetak",
+  "Building name": "Nama gedung",
+  "Report code": "Kode laporan",
+  "Lowercase letters, numbers and dashes. It's in the report link, the QR poster and the Telegram link.":
+    "Huruf kecil, angka, dan tanda hubung. Kode ini ada di link laporan, poster QR, dan link Telegram.",
+  Locations: "Lokasi",
+  "Lobby, Floor 2 pantry, Basement parking":
+    "Lobi, Pantry lantai 2, Parkir basement",
+  "One per line, or separated by commas. You can add more later.":
+    "Satu per baris, atau pisahkan dengan koma. Bisa ditambah nanti.",
+  "Site added.": "Gedung ditambahkan.",
+  "Add site": "Tambah gedung",
+  "Changing the report code stops the old link, QR poster and Telegram link from working.":
+    "Mengganti kode laporan membuat link lama, poster QR, dan link Telegram tidak berfungsi lagi.",
+  "Site saved.": "Gedung disimpan.",
+  "Save site": "Simpan gedung",
+  "Deactivating stops new reports at this site. Its tickets and history stay.":
+    "Menonaktifkan menghentikan laporan baru di gedung ini. Tiket dan riwayatnya tetap ada.",
+  "This site takes no new reports.": "Gedung ini tidak menerima laporan baru.",
+  "Deactivate site": "Nonaktifkan gedung",
+  "Reactivate site": "Aktifkan lagi gedung",
+  "New location": "Lokasi baru",
+  Add: "Tambah",
+  "Location name": "Nama lokasi",
+  Rename: "Ganti nama",
+  "Bring back": "Pakai lagi",
+  "Organisation name": "Nama organisasi",
+  "Shown to staff in the menu under their name.":
+    "Tampil untuk staf di menu di bawah nama mereka.",
+  "Organisation saved.": "Organisasi disimpan.",
+  Save: "Simpan",
+  "Time zone": "Zona waktu",
+  "Choose a time zone": "Pilih zona waktu",
+  Organisation: "Organisasi",
+  "No sites yet": "Belum ada gedung",
+  "Add a building to start taking reports.":
+    "Tambahkan gedung untuk mulai menerima laporan.",
+  Inactive: "Nonaktif",
+  "No locations yet.": "Belum ada lokasi.",
+  Manage: "Kelola",
+  "QR poster": "Poster QR",
+  "Add a site": "Tambah gedung",
+  "Reporters choose from these. A retired location leaves the form, and its tickets keep it.":
+    "Pelapor memilih dari daftar ini. Lokasi yang dipensiunkan hilang dari form, tapi tiketnya tetap memakainya.",
+  "Taking reports": "Menerima laporan",
+  "Back to sites": "Kembali ke daftar gedung",
+  "QR code for this building's report form":
+    "Kode QR untuk form laporan gedung ini",
+  "QR code for reporting on Telegram": "Kode QR untuk melapor lewat Telegram",
+  "Add a map pin": "Tambah pin di peta",
+  "Pin on the map (optional)": "Pin di peta (opsional)",
+  "Helps the team find damage outdoors or in a large area.":
+    "Membantu tim menemukan kerusakan di luar ruangan atau area yang luas.",
+  Map: "Peta",
+  "Open in OpenStreetMap": "Buka di OpenStreetMap",
+  "Your location isn't available. Search or tap the map instead.":
+    "Lokasi Anda tidak tersedia. Cari atau ketuk peta saja.",
+  "Map. Tap to place the pin, or drag it.":
+    "Peta. Ketuk untuk menaruh pin, atau geser pinnya.",
+  "Chosen spot": "Titik yang dipilih",
+  "Use my location": "Pakai lokasi saya",
+  "Remove pin": "Hapus pin",
+  "Search a street, building or area": "Cari jalan, gedung, atau area",
+  "Address (optional)": "Alamat (opsional)",
+  "Shown to staff on the map in each ticket, and used to centre the reporter's map.":
+    "Tampil untuk staf di peta setiap tiket, dan menjadi titik tengah peta pelapor.",
+  "Reporter's pin": "Pin pelapor",
+  "Red is where the reporter put the pin. Grey is the building.":
+    "Merah adalah pin dari pelapor. Abu-abu adalah gedungnya.",
+  Where: "Lokasi di peta",
 };

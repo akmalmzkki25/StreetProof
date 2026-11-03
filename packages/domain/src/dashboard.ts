@@ -1,4 +1,5 @@
 import type { Role, TicketStatus } from "./ticket-status";
+import { siteDay } from "./time-zones";
 
 export const DASHBOARD_WINDOW_DAYS = 30;
 // A ticket or closure only counts toward a 14-day rate once it has been observed
@@ -124,13 +125,6 @@ function summarize(durations: readonly number[]): Duration {
   };
 }
 
-const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
-
-// The calendar day in WIB, the timezone every date in the app is shown in.
-function wibDay(date: Date) {
-  return new Date(date.getTime() + WIB_OFFSET_MS).toISOString().slice(0, 10);
-}
-
 function countBy<T>(items: readonly T[], keyOf: (item: T) => string) {
   const counts = new Map<string, number>();
   for (const item of items) {
@@ -158,6 +152,8 @@ export function computeDashboard(input: {
   attempts: readonly DashboardAttempt[];
   drafts: readonly DraftOutcome[];
   now: Date;
+  // Days in the chart are calendar days here. WIB when not given.
+  timeZone?: string | null;
 }) {
   const { tickets, events, attempts, drafts, now } = input;
   const nowMs = now.getTime();
@@ -387,7 +383,7 @@ export function computeDashboard(input: {
         (attempt) => attempt.hasException && inWindow(attempt.submittedAt),
       ).length,
     },
-    daily: dailySeries(work, events, nowMs, inWindow),
+    daily: dailySeries(work, events, nowMs, inWindow, input.timeZone),
     drafts: {
       ready: drafts.filter((draft) => draft === "ready").length,
       pending: drafts.filter((draft) => draft === "pending").length,
@@ -404,11 +400,12 @@ function dailySeries(
   events: readonly DashboardEvent[],
   nowMs: number,
   inWindow: (date: Date) => boolean,
+  timeZone: string | null | undefined,
 ) {
   const opened = new Map(
     countBy(
       work.filter((ticket) => inWindow(ticket.createdAt)),
-      (ticket) => wibDay(ticket.createdAt),
+      (ticket) => siteDay(ticket.createdAt, timeZone),
     ).map((row) => [row.key, row.count]),
   );
   const verified = new Map(
@@ -417,12 +414,12 @@ function dailySeries(
         (event) =>
           event.toStatus === "verified_closed" && inWindow(event.createdAt),
       ),
-      (event) => wibDay(event.createdAt),
+      (event) => siteDay(event.createdAt, timeZone),
     ).map((row) => [row.key, row.count]),
   );
   return Array.from({ length: DASHBOARD_WINDOW_DAYS }, (_, index) => {
     const daysBack = DASHBOARD_WINDOW_DAYS - 1 - index;
-    const day = wibDay(new Date(nowMs - daysBack * DAY_MS));
+    const day = siteDay(new Date(nowMs - daysBack * DAY_MS), timeZone);
     return {
       day,
       opened: opened.get(day) ?? 0,

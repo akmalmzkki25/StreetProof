@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Building03Icon,
   CheckmarkBadge01Icon,
   DashboardSquare01Icon,
   FileSearchIcon,
@@ -31,6 +32,7 @@ const LINK_ICONS: Record<string, IconSvgElement> = {
   "/app/reviews": CheckmarkBadge01Icon,
   "/app/dashboard": DashboardSquare01Icon,
   "/app/members": UserGroupIcon,
+  "/app/sites": Building03Icon,
   "/app/audit": FileSearchIcon,
 };
 

@@ -1,4 +1,4 @@
-import { getDb, listAuditLog } from "@streetproof/db";
+import { getDb, getTenantTimeZone, listAuditLog } from "@streetproof/db";
 import { Skeleton } from "@streetproof/ui/components/skeleton";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -27,7 +27,11 @@ export default function AuditPage() {
 async function AuditEntries() {
   const member = await requireRole("tenant_admin");
   const { t } = await getI18n();
-  const entries = await listAuditLog(getDb(), member.tenantId);
+  const db = getDb();
+  const [entries, timeZone] = await Promise.all([
+    listAuditLog(db, member.tenantId),
+    getTenantTimeZone(db, member.tenantId),
+  ]);
 
   if (entries.length === 0) {
     return (
@@ -50,7 +54,7 @@ async function AuditEntries() {
           { label: "Tickets opened", value: countOf("ticket.viewed") },
         ]}
       />
-      <AuditView entries={entries} />
+      <AuditView entries={entries} timeZone={timeZone} />
     </>
   );
 }

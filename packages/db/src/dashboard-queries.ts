@@ -16,6 +16,7 @@ import {
   tickets,
   user,
 } from "./schema";
+import { getTenantTimeZone } from "./sites";
 import { inScope, type MemberScope } from "./ticket-queries";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -113,6 +114,7 @@ export async function getDashboard(
 
   return computeDashboard({
     now,
+    timeZone: await getTenantTimeZone(db, scope.tenantId),
     events,
     attempts: attemptRows.map((attempt) => ({
       ticketId: attempt.ticketId,

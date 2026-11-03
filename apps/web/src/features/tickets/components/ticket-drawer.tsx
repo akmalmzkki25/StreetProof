@@ -27,7 +27,12 @@ export function TicketDrawer({ children }: { children: React.ReactNode }) {
       title={t("Ticket")}
       actions={
         // A plain link, so the full page loads instead of this drawer again.
-        <Button variant="ghost" size="icon-sm" nativeButton={false} render={<a href={pathname} />}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          nativeButton={false}
+          render={<a href={pathname} />}
+        >
           <HugeiconsIcon icon={ArrowExpand01Icon} />
           <span className="sr-only">{t("Open the full page")}</span>
         </Button>

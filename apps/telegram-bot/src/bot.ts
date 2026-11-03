@@ -21,6 +21,7 @@ import {
   handleReportText,
   handleReportVoice,
   sendReport,
+  shareLocation,
   startReport,
   useTranscript,
 } from "./report-flow";
@@ -178,6 +179,15 @@ export function installHandlers(bot: Bot, deps: BotDeps) {
       default:
         await sayKey(ctx, "flowIdle");
     }
+  });
+
+  bot.on("message:location", async function onLocation(ctx) {
+    const state = await loadState(deps.db, chatIdOf(ctx));
+    if (state?.flow === "report") {
+      await shareLocation(ctx, deps, state);
+      return;
+    }
+    await sayKey(ctx, "flowIdle");
   });
 
   bot.on("message:voice", async function onVoice(ctx) {

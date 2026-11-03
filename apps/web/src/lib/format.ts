@@ -1,26 +1,35 @@
+import {
+  asSiteTimeZone,
+  fromSiteTime,
+  timeZoneLabel,
+} from "@streetproof/domain";
+import { enGB, id } from "date-fns/locale";
+import { formatInTimeZone } from "date-fns-tz";
+
 import type { Locale } from "./i18n/translate";
 
-const dateTimeFormats: Record<Locale, Intl.DateTimeFormat> = {
-  en: new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Jakarta",
-  }),
-  id: new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "Asia/Jakarta",
-  }),
+const DATE_FORMATS = {
+  en: { pattern: "d MMM yyyy, HH:mm", locale: enGB },
+  id: { pattern: "d MMM yyyy, HH.mm", locale: id },
 };
 
-export function formatDateTime(date: Date, locale: Locale = "en") {
-  return `${dateTimeFormats[locale].format(date)} WIB`;
+// In the building's own zone, named, so a WITA site never reads as WIB.
+export function formatDateTime(
+  date: Date,
+  locale: Locale = "en",
+  timeZone?: string | null,
+) {
+  const zone = asSiteTimeZone(timeZone);
+  const format = DATE_FORMATS[locale];
+  const text = formatInTimeZone(date, zone, format.pattern, {
+    locale: format.locale,
+  });
+  return `${text} ${timeZoneLabel(zone)}`;
 }
 
-// A datetime-local value means WIB, whatever timezone the server runs in.
-export function parseWibInput(value: string) {
-  const seconds = value.length === 16 ? ":00" : "";
-  return new Date(`${value}${seconds}+07:00`);
+// A datetime-local value means the building's time, whatever zone the server runs in.
+export function parseSiteInput(value: string, timeZone?: string | null) {
+  return fromSiteTime(value, timeZone);
 }
 
 const MINUTE_MS = 60 * 1000;

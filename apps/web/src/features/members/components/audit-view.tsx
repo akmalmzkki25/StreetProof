@@ -37,7 +37,13 @@ const COLUMN_CLASSES: Record<string, string> = {
   when: "whitespace-nowrap",
 };
 
-export function AuditView({ entries }: { entries: AuditRow[] }) {
+export function AuditView({
+  entries,
+  timeZone,
+}: {
+  entries: AuditRow[];
+  timeZone: string | null;
+}) {
   const { t, locale } = useI18n();
   const [search, setSearch] = useState("");
   const [action, setAction] = useState(ANY);
@@ -93,12 +99,12 @@ export function AuditView({ entries }: { entries: AuditRow[] }) {
           sortFn: "basic",
           cell: ({ row }) => (
             <span className="font-mono text-xs text-muted-foreground">
-              {formatDateTime(row.original.createdAt, locale)}
+              {formatDateTime(row.original.createdAt, locale, timeZone)}
             </span>
           ),
         }),
       ]),
-    [t, locale],
+    [t, locale, timeZone],
   );
 
   const table = useTable({

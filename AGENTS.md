@@ -31,9 +31,11 @@ StreetProof is being built for the Meta Global AI Developer Hackathon. The
 event page is the reference for dates, tracks, themes, allowed models and
 submission rules; [`docs/hackathon.md`](docs/hackathon.md) summarizes it and
 lists what it means for this project. Submissions are due **Nov 4, 9:00 PM
-ET (Nov 5, 9:00 AM WIB)**. Scope every task against that deadline: the target
-is one working report-to-`verified_closed` flow built on Meta's models, using
-synthetic data. Before touching AI code, read
+ET (Nov 5, 9:00 AM WIB)**. Build it as a real product, not a demo: a building
+team must be able to start from an empty production database and run it
+without help. The deadline sets the order of work, not what counts as in
+scope, and a missing piece a real team would need is a gap to raise, not a
+"later". The demo itself uses synthetic data only. Before touching AI code, read
 [`docs/meta-model-api.md`](docs/meta-model-api.md): which Meta models to use or
 avoid, the request shape, and how errors map to the plan's AI states.
 

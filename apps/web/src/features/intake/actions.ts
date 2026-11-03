@@ -43,6 +43,8 @@ const reportFields = z.object({
     z.literal(""),
     z.email("Check the email address, or leave it empty."),
   ]),
+  latitude: z.coerce.number().min(-90).max(90).optional(),
+  longitude: z.coerce.number().min(-180).max(180).optional(),
 });
 
 const isSubmissionAllowed = createRateLimiter({
@@ -94,12 +96,18 @@ export async function submitReportAction(
     locationText: formData.get("locationText") ?? "",
     description: formData.get("description") ?? "",
     reporterEmail: String(formData.get("reporterEmail") ?? "").trim(),
+    latitude: formData.get("latitude") ?? undefined,
+    longitude: formData.get("longitude") ?? undefined,
   });
   if (!fields.success) {
     return failure(fields.error.issues[0]?.message ?? "Check the form.");
   }
   const { submissionKey, location, locationText, description, reporterEmail } =
     fields.data;
+  const point =
+    fields.data.latitude !== undefined && fields.data.longitude !== undefined
+      ? { latitude: fields.data.latitude, longitude: fields.data.longitude }
+      : null;
 
   const isOtherLocation = location === OTHER_LOCATION;
   if (isOtherLocation && locationText.length === 0) {
@@ -120,6 +128,7 @@ export async function submitReportAction(
         locationText,
         description,
         reporterEmail,
+        point,
         photos: read.photos.map((photo) => photo.sha256),
       }),
     )
@@ -149,6 +158,7 @@ export async function submitReportAction(
     locationText: isOtherLocation ? locationText : null,
     description,
     reporterEmail: reporterEmail || null,
+    point,
     photos,
     idempotencyKey: submissionKey,
     requestDigest,

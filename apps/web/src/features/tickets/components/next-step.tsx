@@ -10,8 +10,10 @@ import {
   availableTransitions,
   canBeLinkedAsDuplicate,
   canManageDuplicates,
+  asSiteTimeZone,
   canVerifyAttempt,
   checklistFor,
+  timeZoneLabel,
 } from "@streetproof/domain";
 
 import { Panel } from "@/components/panel";
@@ -101,6 +103,7 @@ export async function NextStep({
   ).map((rule) => rule.to);
   const db = getDb();
   const ref = { ticketId: ticket.id, revision: ticket.revision };
+  const zoneLabel = timeZoneLabel(asSiteTimeZone(ticket.timeZone));
 
   const draft = readDraft(ticket);
   const canAsk = allowed.includes("needs_clarification");
@@ -220,6 +223,7 @@ export async function NextStep({
               ticket.siteId,
             )}
             teams={await listTeams(db, member.tenantId)}
+            zoneLabel={zoneLabel}
           />
         </Panel>
       ) : null}
@@ -230,7 +234,7 @@ export async function NextStep({
       ) : null}
       {canWait ? (
         <Panel id="wait" title="Can't continue yet?">
-          <WaitForm {...ref} />
+          <WaitForm {...ref} zoneLabel={zoneLabel} />
         </Panel>
       ) : null}
       {canDecide ? (

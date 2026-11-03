@@ -14,6 +14,7 @@ export * from "./duplicate-commands";
 export * as schema from "./schema";
 export * from "./reports";
 export * from "./setup";
+export * from "./sites";
 export * from "./telegram";
 export * from "./ticket-commands";
 export * from "./ticket-queries";

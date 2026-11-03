@@ -8,6 +8,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -20,10 +21,19 @@ import {
   unique,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 function createdAt() {
   return timestamp({ withTimezone: true }).notNull().defaultNow();
+}
+
+// A point is both coordinates or neither, and inside the world.
+function pointComplete(table: {
+  latitude: AnyPgColumn;
+  longitude: AnyPgColumn;
+}) {
+  return sql`(${table.latitude} is null and ${table.longitude} is null) or (${table.latitude} is not null and ${table.longitude} is not null and ${table.latitude} between -90 and 90 and ${table.longitude} between -180 and 180)`;
 }
 
 function updatedAt() {
@@ -116,10 +126,17 @@ export const sites = pgTable(
     // Public code in the site's report link and QR. Grants intake only.
     intakeCode: text().unique(),
     timezone: text().notNull().default("Asia/Jakarta"),
+    // Where the building is, from an OpenStreetMap search or a pin.
+    address: text(),
+    latitude: doublePrecision(),
+    longitude: doublePrecision(),
     active: boolean().notNull().default(true),
     createdAt: createdAt(),
   },
-  (table) => [unique().on(table.tenantId, table.id)],
+  (table) => [
+    unique().on(table.tenantId, table.id),
+    check("sites_point_complete", pointComplete(table)),
+  ],
 );
 
 export const locations = pgTable(
@@ -236,6 +253,9 @@ export const reports = pgTable(
     reporterName: text(),
     // Optional, for status emails and link recovery. Never sent to a model.
     reporterEmail: text(),
+    // An optional pin the reporter dropped. Never sent to a model.
+    latitude: doublePrecision(),
+    longitude: doublePrecision(),
     canonicalTicketId: uuid().notNull(),
     revision: integer().notNull().default(0),
     createdAt: createdAt(),
@@ -243,6 +263,7 @@ export const reports = pgTable(
   (table) => [
     unique().on(table.tenantId, table.id),
     index().on(table.tenantId, table.canonicalTicketId),
+    check("reports_point_complete", pointComplete(table)),
     foreignKey({
       columns: [table.tenantId, table.siteId],
       foreignColumns: [sites.tenantId, sites.id],

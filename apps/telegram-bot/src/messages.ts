@@ -23,10 +23,15 @@ const MESSAGES = {
     id: "Link laporan ini tidak tersedia.",
   },
   reportIntro: {
-    en: "Report damage at {site}.\n\nFor fire, injury or anything dangerous, leave the area and call building security first. This chat is not monitored for emergencies.\n\nWhere is the damage?",
-    id: "Laporkan kerusakan di {site}.\n\nUntuk kebakaran, cedera, atau hal berbahaya lainnya, tinggalkan area dan hubungi keamanan gedung lebih dulu. Chat ini tidak dipantau untuk keadaan darurat.\n\nDi mana kerusakannya?",
+    en: "Report damage at {site}.\n\nFor fire, injury or anything dangerous, leave the area and call building security first. This chat is not monitored for emergencies.\n\nWhere is the damage? Choose below, or share your location with the paperclip button.",
+    id: "Laporkan kerusakan di {site}.\n\nUntuk kebakaran, cedera, atau hal berbahaya lainnya, tinggalkan area dan hubungi keamanan gedung lebih dulu. Chat ini tidak dipantau untuk keadaan darurat.\n\nDi mana kerusakannya? Pilih di bawah, atau bagikan lokasi lewat tombol klip.",
   },
   somewhereElse: { en: "Somewhere else", id: "Tempat lain" },
+  sharedLocation: { en: "Shared location", id: "Lokasi yang dibagikan" },
+  locationPinned: {
+    en: "Location pinned on the map for the building team.",
+    id: "Lokasi sudah ditandai di peta untuk tim gedung.",
+  },
   askLocationText: {
     en: "Describe the location, for example: Floor 2, west corridor.",
     id: "Jelaskan lokasinya, misalnya: Lantai 2, koridor barat.",

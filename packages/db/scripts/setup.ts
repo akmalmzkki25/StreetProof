@@ -66,6 +66,10 @@ const siteName = await ask("First building (site) name");
 const intakeCode = await ask(
   "Report link code, used in /report/<code> and the Telegram link",
 );
+const timezone = await ask(
+  "Building time zone (Asia/Jakarta for WIB, Asia/Makassar for WITA, Asia/Jayapura for WIT)",
+  "Asia/Jakarta",
+);
 const locationNames = parseLocationNames(
   await ask("Locations in that building, comma separated"),
 );
@@ -96,6 +100,7 @@ const input = {
   tenantName,
   siteName,
   intakeCode,
+  timezone,
   locationNames,
   adminName,
   adminEmail,

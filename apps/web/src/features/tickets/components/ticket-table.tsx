@@ -89,7 +89,11 @@ export function TicketTable({
           sortFn: "datetime",
           cell: ({ row }) => (
             <span className="font-mono text-xs text-muted-foreground">
-              {formatDateTime(row.original.createdAt, locale)}
+              {formatDateTime(
+                row.original.createdAt,
+                locale,
+                row.original.timeZone,
+              )}
             </span>
           ),
         }),
@@ -159,12 +163,14 @@ function ReportCell({ item }: { item: QueueItem }) {
         isOverdue(item, new Date()) ? (
           <p className="text-xs text-destructive">
             {t("Overdue since {date}", {
-              date: formatDateTime(item.dueAt, locale),
+              date: formatDateTime(item.dueAt, locale, item.timeZone),
             })}
           </p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            {t("Due {date}", { date: formatDateTime(item.dueAt, locale) })}
+            {t("Due {date}", {
+              date: formatDateTime(item.dueAt, locale, item.timeZone),
+            })}
           </p>
         )
       ) : null}

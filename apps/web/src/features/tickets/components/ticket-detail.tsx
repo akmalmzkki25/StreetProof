@@ -27,6 +27,7 @@ import {
   Reports,
   Reviewed,
   Timeline,
+  Where,
 } from "./ticket-sections";
 
 // One ticket, for the full page and the drawer. Its two columns collapse to one
@@ -107,6 +108,7 @@ export async function TicketDetail({
             <NextStep ticket={ticket} member={member} />
           )}
           <LinkAsDuplicate ticket={ticket} member={member} />
+          <Where ticket={ticket} />
           <InternalNotes ticket={ticket} />
         </aside>
       </div>

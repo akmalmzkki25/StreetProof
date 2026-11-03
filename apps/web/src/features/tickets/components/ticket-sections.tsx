@@ -4,6 +4,8 @@ import { Badge } from "@streetproof/ui/components/badge";
 import { Link } from "@/components/locale-link";
 
 import { Panel } from "@/components/panel";
+import type { MapPin } from "@/features/places/components/map-canvas";
+import { PlaceMap } from "@/features/places/components/place-map";
 import { formatDateTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
 import type { Member } from "@/lib/member";
@@ -132,7 +134,9 @@ export async function Attempts({
           <p className="whitespace-pre-wrap">{attempt.note}</p>
           <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
             <span className="text-foreground">{attempt.submitterName}</span>
-            <span>{formatDateTime(attempt.submittedAt, locale)}</span>
+            <span>
+              {formatDateTime(attempt.submittedAt, locale, ticket.timeZone)}
+            </span>
           </p>
           {attempt.exceptionReason ? (
             <p className="whitespace-pre-wrap">
@@ -206,7 +210,9 @@ export async function Reports({
             <span className="text-foreground">
               {report.locationName ?? report.locationText}
             </span>
-            <span>{formatDateTime(report.createdAt, locale)}</span>
+            <span>
+              {formatDateTime(report.createdAt, locale, ticket.timeZone)}
+            </span>
           </p>
           <PhotoGrid photos={report.photos} label="Report photo" />
           {canReissueLink ? (
@@ -245,7 +251,9 @@ export async function LinkedReports({
               <span className="text-foreground">
                 {report.locationName ?? report.locationText}
               </span>
-              <span>{formatDateTime(report.createdAt, locale)}</span>
+              <span>
+                {formatDateTime(report.createdAt, locale, ticket.timeZone)}
+              </span>
             </p>
             <PhotoGrid photos={report.photos} label="Linked report photo" />
             <p>
@@ -308,6 +316,46 @@ export async function DuplicateOf({
   );
 }
 
+// The building in grey and any pin a reporter dropped, so staff can find it.
+export async function Where({ ticket }: { ticket: TicketDetail }) {
+  const { t } = await getI18n();
+  const reportPins: MapPin[] = ticket.reports.flatMap((report) =>
+    report.latitude !== null && report.longitude !== null
+      ? [
+          {
+            latitude: report.latitude,
+            longitude: report.longitude,
+            label: t("Reporter's pin"),
+          },
+        ]
+      : [],
+  );
+  const sitePin: MapPin[] =
+    ticket.siteLatitude !== null && ticket.siteLongitude !== null
+      ? [
+          {
+            latitude: ticket.siteLatitude,
+            longitude: ticket.siteLongitude,
+            label: ticket.siteName,
+            tone: "muted",
+          },
+        ]
+      : [];
+  const pins = [...reportPins, ...sitePin];
+  if (pins.length === 0) return null;
+
+  return (
+    <Panel id="where" title="Where">
+      <PlaceMap pins={pins} />
+      <p className="type-caption text-muted-foreground">
+        {reportPins.length > 0
+          ? t("Red is where the reporter put the pin. Grey is the building.")
+          : (ticket.siteAddress ?? ticket.siteName)}
+      </p>
+    </Panel>
+  );
+}
+
 export async function InternalNotes({ ticket }: { ticket: TicketDetail }) {
   const { t, locale } = await getI18n();
   return (
@@ -322,7 +370,9 @@ export async function InternalNotes({ ticket }: { ticket: TicketDetail }) {
               <p className="whitespace-pre-wrap">{note.body}</p>
               <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
                 <span className="text-foreground">{note.authorName}</span>
-                <span>{formatDateTime(note.createdAt, locale)}</span>
+                <span>
+                  {formatDateTime(note.createdAt, locale, ticket.timeZone)}
+                </span>
               </p>
             </li>
           ))}
@@ -367,7 +417,7 @@ export async function Reviewed({ ticket }: { ticket: TicketDetail }) {
                 isOverdue(ticket, new Date()) ? "text-destructive" : undefined
               }
             >
-              {formatDateTime(ticket.dueAt, locale)}
+              {formatDateTime(ticket.dueAt, locale, ticket.timeZone)}
               {isOverdue(ticket, new Date()) ? ` ${t("(overdue)")}` : ""}
             </dd>
           </>
@@ -415,7 +465,9 @@ export async function Timeline({ ticket }: { ticket: TicketDetail }) {
                   ? t("Worker")
                   : (event.actorName ?? t("Reporter"))}
               </span>
-              <span>{formatDateTime(event.createdAt, locale)}</span>
+              <span>
+                {formatDateTime(event.createdAt, locale, ticket.timeZone)}
+              </span>
             </p>
             {typeof event.payload.reason === "string" ? (
               <p className="mt-0.5 type-caption text-muted-foreground">

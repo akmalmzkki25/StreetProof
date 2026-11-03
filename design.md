@@ -2,7 +2,7 @@
 
 Live showcase: `/design-system` in `apps/web`. When the tokens in `packages/ui/src/styles/globals.css` change, update this file in the same change.
 
-This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s warm cream light surfaces. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is cream paper. The app defaults to dark.
+This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s warm cream light surfaces. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is cream paper. The app defaults to dark. The `.light` class pins a light band inside the dark app; it's for paper, like the printable QR poster, and nothing on screen.
 
 ## 1. Character
 

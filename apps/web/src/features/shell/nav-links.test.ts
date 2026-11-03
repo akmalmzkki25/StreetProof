@@ -21,6 +21,7 @@ describe("navLinksFor", () => {
     expect(navLinksFor(["tenant_admin"]).map((link) => link.label)).toEqual([
       "Overview",
       "Members",
+      "Sites",
       "Audit log",
     ]);
   });
@@ -30,6 +31,13 @@ describe("navLinksFor", () => {
       navLinksFor(["supervisor", "operator", "tenant_admin"]).map(
         (link) => link.label,
       ),
-    ).toEqual(["Overview", "Queue", "Reviews", "Members", "Audit log"]);
+    ).toEqual([
+      "Overview",
+      "Queue",
+      "Reviews",
+      "Members",
+      "Sites",
+      "Audit log",
+    ]);
   });
 });

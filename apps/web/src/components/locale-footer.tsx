@@ -12,6 +12,7 @@ export function LocaleFooter() {
   const { locale } = useI18n();
   const { path } = splitLocale(usePathname());
   if (path === "/app" || path.startsWith("/app/")) return null;
+  if (path.startsWith("/print/")) return null;
 
   const other = locale === "id" ? "en" : "id";
 

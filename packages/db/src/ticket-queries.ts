@@ -109,8 +109,10 @@ export async function listQueue(
       dueAt: tickets.dueAt,
       locationName: locations.name,
       teamName: teams.name,
+      timeZone: sites.timezone,
     })
     .from(tickets)
+    .innerJoin(sites, eq(sites.id, tickets.siteId))
     .leftJoin(locations, eq(locations.id, tickets.locationId))
     .leftJoin(teams, eq(teams.id, tickets.teamId))
     .where(
@@ -204,6 +206,8 @@ async function loadReports(db: Db, ticketIds: string[]) {
       description: reports.description,
       locationText: reports.locationText,
       locationName: locations.name,
+      latitude: reports.latitude,
+      longitude: reports.longitude,
       createdAt: reports.createdAt,
     })
     .from(reports)
@@ -256,8 +260,14 @@ export async function getTicketDetail(
       teamName: teams.name,
       dueAt: tickets.dueAt,
       createdAt: tickets.createdAt,
+      timeZone: sites.timezone,
+      siteName: sites.name,
+      siteAddress: sites.address,
+      siteLatitude: sites.latitude,
+      siteLongitude: sites.longitude,
     })
     .from(tickets)
+    .innerJoin(sites, eq(sites.id, tickets.siteId))
     .leftJoin(locations, eq(locations.id, tickets.locationId))
     .leftJoin(assignee, eq(assignee.id, tickets.currentAssigneeId))
     .leftJoin(teams, eq(teams.id, tickets.teamId))

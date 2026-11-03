@@ -20,8 +20,10 @@
   );
 }
 
-/* Dark is the source scheme. Light is a warm cream paper (Paddy). */
-:root {
+/* Dark is the source scheme. Light is a warm cream paper (Paddy). .light pins a
+   light band inside the dark app, for paper like the QR poster. */
+:root,
+.light {
   --background: #fefefe;
   --card: #f7f7f4;
   --foreground: #26251e;
@@ -59,9 +61,10 @@
   --shadow-outline: color-mix(in srgb, var(--background) 40%, transparent);
 }
 
-/* Tints mix from the literals above. Declared on .dark too so a dark band recomputes them. */
+/* Tints mix from the literals above. Declared on .dark and .light too so a band recomputes them. */
 :root,
-.dark {
+.dark,
+.light {
   --surface-raised: color-mix(in srgb, var(--card) 93%, var(--foreground));
   --faint-foreground: color-mix(
     in srgb,

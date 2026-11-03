@@ -1,15 +1,33 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDuration, formatDurationInWords, parseWibInput } from "./format";
+import {
+  formatDateTime,
+  formatDuration,
+  formatDurationInWords,
+  parseSiteInput,
+} from "./format";
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 
-describe("parseWibInput", () => {
-  it("reads a datetime-local value as WIB", () => {
-    expect(parseWibInput("2026-11-01T10:30").toISOString()).toBe(
+describe("parseSiteInput", () => {
+  it("reads a datetime-local value in the building's zone", () => {
+    expect(parseSiteInput("2026-11-01T10:30").toISOString()).toBe(
       "2026-11-01T03:30:00.000Z",
     );
+    expect(
+      parseSiteInput("2026-11-01T10:30", "Asia/Jayapura").toISOString(),
+    ).toBe("2026-11-01T01:30:00.000Z");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("shows the building's local time and names its zone", () => {
+    const moment = new Date("2026-11-01T03:30:00.000Z");
+    expect(formatDateTime(moment, "en")).toContain("10:30");
+    expect(formatDateTime(moment, "en")).toMatch(/ WIB$/);
+    expect(formatDateTime(moment, "en", "Asia/Makassar")).toContain("11:30");
+    expect(formatDateTime(moment, "en", "Asia/Makassar")).toMatch(/ WITA$/);
   });
 });
 

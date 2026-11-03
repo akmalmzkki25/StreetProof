@@ -1,14 +1,21 @@
-import { ROLES, type Role } from "@streetproof/domain";
+import {
+  asSiteTimeZone,
+  ROLES,
+  SITE_TIME_ZONES,
+  type Role,
+} from "@streetproof/domain";
 import { eq } from "drizzle-orm";
 import { recordAudit } from "./audit";
 import type { Db } from "./client";
 import { insertAccount } from "./members";
 import { locations, memberships, sites, tenants } from "./schema";
+import { isValidIntakeCode } from "./sites";
 
 export type SetupInput = {
   tenantName: string;
   siteName: string;
   intakeCode: string;
+  timezone: string;
   locationNames: readonly string[];
   adminName: string;
   adminEmail: string;
@@ -25,7 +32,6 @@ const MAX_NAME = 100;
 const MAX_LOCATIONS = 50;
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 128;
-const INTAKE_CODE = /^[a-z0-9][a-z0-9-]{2,39}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Names arrive comma separated, so blanks and repeats are dropped here.
@@ -54,7 +60,10 @@ export function setupProblem(input: SetupInput & { password: string }) {
   if (names.some((name) => !name.trim() || name.length > MAX_NAME)) {
     return `Names must be 1 to ${MAX_NAME} characters.`;
   }
-  if (!INTAKE_CODE.test(input.intakeCode)) {
+  if (!(SITE_TIME_ZONES as readonly string[]).includes(input.timezone)) {
+    return `The time zone must be one of ${SITE_TIME_ZONES.join(", ")}.`;
+  }
+  if (!isValidIntakeCode(input.intakeCode)) {
     return "The report link code needs 3 to 40 lowercase letters, numbers or dashes, starting with a letter or number.";
   }
   if (
@@ -110,6 +119,7 @@ export async function setupTenant(
         tenantId: tenant.id,
         name: input.siteName.trim(),
         intakeCode: input.intakeCode,
+        timezone: asSiteTimeZone(input.timezone),
       })
       .returning({ id: sites.id });
     if (!site) throw new Error("Site insert returned nothing.");

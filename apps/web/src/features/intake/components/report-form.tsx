@@ -22,7 +22,9 @@ import { Link } from "@/components/locale-link";
 import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";
+import { PlacePicker } from "@/features/places/components/place-picker";
 import { useI18n } from "@/lib/i18n/client";
+import type { MapPoint } from "@/lib/map";
 import { MAX_PHOTOS } from "@streetproof/media/photos";
 import { VoiceNoteButton } from "./voice-note-button";
 
@@ -32,12 +34,15 @@ export function ReportForm({
   intakeCode,
   locations,
   canRecordVoice,
+  siteCenter,
 }: {
   intakeCode: string;
   locations: { id: string; name: string }[];
   canRecordVoice: boolean;
+  siteCenter: MapPoint | null;
 }) {
   const { t } = useI18n();
+  const [isPinOpen, setIsPinOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(
     submitReportAction.bind(null, intakeCode),
     initialState,
@@ -144,6 +149,26 @@ export function ReportForm({
             />
           </Field>
         ) : null}
+
+        {isPinOpen ? (
+          <PlacePicker
+            id="report-pin"
+            label="Pin on the map (optional)"
+            description="Helps the team find damage outdoors or in a large area."
+            initial={null}
+            center={siteCenter}
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="self-start"
+            onClick={() => setIsPinOpen(true)}
+          >
+            {t("Add a map pin")}
+          </Button>
+        )}
 
         <Field>
           <FieldLabel htmlFor="description">

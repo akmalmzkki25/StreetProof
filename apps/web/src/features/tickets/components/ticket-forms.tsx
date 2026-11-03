@@ -221,9 +221,11 @@ export function AssignForm({
   revision,
   technicians,
   teams,
+  zoneLabel,
 }: TicketRef & {
   technicians: { id: string; name: string }[];
   teams: { id: string; name: string }[];
+  zoneLabel: string;
 }) {
   const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
@@ -256,7 +258,9 @@ export function AssignForm({
           />
         ) : null}
         <Field>
-          <FieldLabel htmlFor="dueAt">{t("Due by, WIB (optional)")}</FieldLabel>
+          <FieldLabel htmlFor="dueAt">
+            {t("Due by, {zone} (optional)", { zone: zoneLabel })}
+          </FieldLabel>
           <Input id="dueAt" name="dueAt" type="datetime-local" />
         </Field>
       </FieldGroup>
@@ -329,7 +333,11 @@ const waitingOptions = [
   { value: "waiting_for_access", label: "Access to the area" },
 ];
 
-export function WaitForm({ ticketId, revision }: TicketRef) {
+export function WaitForm({
+  ticketId,
+  revision,
+  zoneLabel,
+}: TicketRef & { zoneLabel: string }) {
   const { t } = useI18n();
   const [state, formAction, isPending] = useActionState(
     waitAction,
@@ -358,7 +366,7 @@ export function WaitForm({ ticketId, revision }: TicketRef) {
         </Field>
         <Field>
           <FieldLabel htmlFor="nextReviewAt">
-            {t("Check again on (WIB)")}
+            {t("Check again on ({zone})", { zone: zoneLabel })}
           </FieldLabel>
           <Input
             id="nextReviewAt"

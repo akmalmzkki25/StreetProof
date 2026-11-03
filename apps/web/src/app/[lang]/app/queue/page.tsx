@@ -37,7 +37,9 @@ function readFilters(params: SearchParams) {
   };
 }
 
-export default function QueuePage({ searchParams }: PageProps<"/[lang]/app/queue">) {
+export default function QueuePage({
+  searchParams,
+}: PageProps<"/[lang]/app/queue">) {
   return (
     <>
       <PageHeader title="Operator queue" />

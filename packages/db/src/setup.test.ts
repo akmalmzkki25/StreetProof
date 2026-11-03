@@ -25,6 +25,7 @@ function answers(overrides: Partial<Parameters<typeof setupProblem>[0]> = {}) {
     tenantName: "Gedung Uji",
     siteName: "Menara Uji",
     intakeCode: "menara-uji",
+    timezone: "Asia/Makassar",
     locationNames: ["Lobby", "Lantai 2"],
     adminName: "Admin Uji",
     adminEmail: "admin@uji.example.test",

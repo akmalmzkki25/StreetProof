@@ -29,7 +29,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { parseWibInput } from "@/lib/format";
+import { parseSiteInput } from "@/lib/format";
 import { localePath, LOCALES } from "@/lib/i18n/translate";
 import { requireMember, requireRole, type Member } from "@/lib/member";
 import { readPhotos, storePhotos } from "@/lib/photo-upload";
@@ -294,13 +294,15 @@ export async function assignAction(
     return { error: fields.error.issues[0]?.message ?? "Check the form." };
   }
 
-  const dueAt = fields.data.dueAt ? parseWibInput(fields.data.dueAt) : null;
+  const ticket = await ticketInScope(member, fields.data.ticketId);
+  if (!ticket) return unavailable;
+
+  const dueAt = fields.data.dueAt
+    ? parseSiteInput(fields.data.dueAt, ticket.timeZone)
+    : null;
   if (dueAt && dueAt.getTime() < Date.now()) {
     return { error: "The deadline has already passed." };
   }
-
-  const ticket = await ticketInScope(member, fields.data.ticketId);
-  if (!ticket) return unavailable;
 
   const outcome = await assignTicket(getDb(), {
     tenantId: member.tenantId,
@@ -424,7 +426,10 @@ export async function waitAction(
     to,
     expectedRevision,
     provided: ["reason", "next_review_at"],
-    payload: { reason, nextReviewAt },
+    payload: {
+      reason,
+      nextReviewAt: parseSiteInput(nextReviewAt, ticket.timeZone).toISOString(),
+    },
   });
   return finish(outcome, ticketId);
 }

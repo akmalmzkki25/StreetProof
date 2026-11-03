@@ -20,6 +20,7 @@ export function navLinksFor(roles: readonly Role[]): NavLink[] {
     ...(roles.includes("tenant_admin")
       ? [
           { href: "/app/members", label: "Members" },
+          { href: "/app/sites", label: "Sites" },
           { href: "/app/audit", label: "Audit log" },
         ]
       : []),

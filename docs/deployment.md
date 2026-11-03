@@ -66,6 +66,10 @@ Set `SMTP_URL` and `MAIL_FROM` to send status notices, receipts, recovered statu
 
 Emails have only been tested against Mailpit, so send one through the real provider before relying on it.
 
+## Maps
+
+Maps use MapLibre with OpenFreeMap tiles (`tiles.openfreemap.org`, OpenStreetMap data, no key and no usage limit). Address search goes through `GET /api/places` on the web server to `GEOCODER_URL`, Photon by default, so reporters' searches never leave the browser for a third party. The public Photon server is fair use and may throttle; for real traffic, run your own Photon and point `GEOCODER_URL` at it. The content security policy allows the tile origin for images, connections and nothing else, and MapLibre's worker from `blob:`.
+
 ## Telegram
 
 Optional. Create a bot with `@BotFather`, then set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_BOT_USERNAME` (without the `@`). Without them, the `telegram-bot` service exits straight away and nothing in the app mentions Telegram. It uses long polling, so it needs no public address, but only one process can poll a token at a time: don't run a local copy with the production token.

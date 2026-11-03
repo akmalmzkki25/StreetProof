@@ -14,16 +14,25 @@ describe("securityHeaders", () => {
     });
 
     expect(policy).toContain(
-      "img-src 'self' data: blob: https://photos.example.test;",
+      "img-src 'self' data: blob: https://tiles.openfreemap.org https://photos.example.test;",
     );
   });
 
   it("still answers when the storage address is missing or malformed", () => {
     for (const photoEndpoint of [undefined, "", "not a url"]) {
       expect(policyOf({ photoEndpoint, isDevelopment: false })).toContain(
-        "img-src 'self' data: blob:;",
+        "img-src 'self' data: blob: https://tiles.openfreemap.org;",
       );
     }
+  });
+
+  it("lets maps load tiles and run their worker, and nothing else connects out", () => {
+    const policy = policyOf({ photoEndpoint: undefined, isDevelopment: false });
+
+    expect(policy).toContain(
+      "connect-src 'self' https://tiles.openfreemap.org;",
+    );
+    expect(policy).toContain("worker-src 'self' blob:");
   });
 
   it("lets our own pages use the microphone, and no frames can", () => {

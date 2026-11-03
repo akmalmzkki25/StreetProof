@@ -233,6 +233,17 @@ describe.skipIf(!url)("Telegram bot (needs the seeded local database)", () => {
     } as never);
   }
 
+  function shareLocation(bot: Bot, chat: number) {
+    const base = messageBase(chat);
+    return bot.handleUpdate({
+      ...base,
+      message: {
+        ...base.message,
+        location: { latitude: -6.1908, longitude: 106.7651 },
+      },
+    } as never);
+  }
+
   function press(bot: Bot, chat: number, data: string, language = "en") {
     nextUpdate += 1;
     return bot.handleUpdate({
@@ -506,6 +517,40 @@ describe.skipIf(!url)("Telegram bot (needs the seeded local database)", () => {
     for (let index = 0; index < 4; index += 1) await sendPhoto(bot, chat);
     expect(lastText(sent)).toContain("most photos");
     await say(bot, chat, "/cancel");
+  });
+
+  it("takes a shared location in place of choosing one, and keeps the pin", async () => {
+    const { bot, sent } = harness();
+    const chat = newChat();
+    await say(bot, chat, "/start s_graha-tower-a");
+
+    await shareLocation(bot, chat);
+    expect(texts(sent).some((text) => text.includes("pinned"))).toBe(true);
+    expect(lastText(sent)).toContain("What did you see");
+
+    await say(bot, chat, "Pothole by the car park gate");
+    await sendPhoto(bot, chat);
+    await press(bot, chat, "report:send");
+
+    const [row] = await db
+      .select({
+        ticketId: reports.canonicalTicketId,
+        latitude: reports.latitude,
+        longitude: reports.longitude,
+        locationText: reports.locationText,
+        locationId: reports.locationId,
+      })
+      .from(telegramReportSubscriptions)
+      .innerJoin(reports, eq(reports.id, telegramReportSubscriptions.reportId))
+      .where(eq(telegramReportSubscriptions.chatId, String(chat)));
+    if (!row) throw new Error("No report was filed.");
+    ticketIds.add(row.ticketId);
+    expect(row).toMatchObject({
+      latitude: -6.1908,
+      longitude: 106.7651,
+      locationText: "Shared location",
+      locationId: null,
+    });
   });
 
   it("refuses an unknown site code", async () => {

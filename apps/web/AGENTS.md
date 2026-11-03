@@ -18,7 +18,7 @@ Dev server defaults to http://localhost:3000. Design system live showcase: `/des
 
 ## Env
 
-Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET`, `SMTP_URL` and `MAIL_FROM` (email stays off without them), `MONITORING_TOKEN` (`/api/monitoring` answers 404 without it) `META_API_KEY` (voice notes only) and `TELEGRAM_BOT_USERNAME` (Telegram links stay hidden without it). Database and storage access go through `@streetproof/db`.
+Uses the root `.env`; `next.config.ts` loads it with `process.loadEnvFile`. Web reads `APP_URL`, `AUTH_SECRET`, `SMTP_URL` and `MAIL_FROM` (email stays off without them), `MONITORING_TOKEN` (`/api/monitoring` answers 404 without it) `META_API_KEY` (voice notes only), `TELEGRAM_BOT_USERNAME` (Telegram links stay hidden without it) and `GEOCODER_URL` (address search, Photon by default). Database and storage access go through `@streetproof/db`.
 
 ## Auth
 

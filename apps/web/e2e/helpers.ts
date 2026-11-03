@@ -29,6 +29,7 @@ export const ACCOUNTS = {
   technician: "technician@streetproof.test",
   otherTechnician: "technician2@streetproof.test",
   supervisor: "supervisor@streetproof.test",
+  admin: "admin@streetproof.test",
   otherTenantOperator: "operator@kampus.streetproof.test",
 } as const;
 
