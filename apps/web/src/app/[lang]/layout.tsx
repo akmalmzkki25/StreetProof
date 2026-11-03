@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
 
   return (
     <html lang={locale} className="h-full" suppressHydrationWarning>
-      <body className="min-h-full bg-background text-foreground antialiased">
+      <body className="flex min-h-svh flex-col bg-background text-foreground antialiased">
         <Providers>
           <LocaleProvider locale={locale}>
             {children}

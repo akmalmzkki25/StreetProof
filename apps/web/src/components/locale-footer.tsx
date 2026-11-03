@@ -23,7 +23,11 @@ export function LocaleFooter() {
         hrefLang={other}
         lang={other}
         prefetch={false}
-        className={buttonVariants({ variant: "ghost", size: "sm" })}
+        // 32px like other app controls, with a 44px touch area.
+        className={buttonVariants({
+          variant: "ghost",
+          className: "relative after:absolute after:-inset-1.5",
+        })}
       >
         {other === "id" ? "Bahasa Indonesia" : "English"}
       </NextLink>

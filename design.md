@@ -49,6 +49,7 @@ These mix from the source colors. They live on `:root` and `.dark` so a dark ban
 | `--accent` (quiet hover wash) | `color-mix(foreground 6%, transparent)`                |
 | `--border`                    | `color-mix(foreground var(--hair-alpha), transparent)` |
 | `--input`                     | `color-mix(foreground 12%, transparent)`               |
+| `--field-edge`                | `color-mix(muted-foreground 80%, background)`          |
 | `--rule`                      | `color-mix(foreground 11%, background)`                |
 | `--ring`, `--sidebar-primary` | `--brand`                                              |
 | `--popover`                   | `--card`                                               |
@@ -63,7 +64,12 @@ Tailwind classes: `bg-brand`, `text-brand-text`, `bg-surface-raised`, `text-fain
 - Rose is for state, focus, links, and small highlights. Do not fill large areas with it.
 - The primary action is the light pill (`--primary`), not rose.
 - Red is for urgency and errors only.
-- Contrast pairs to check: page, panel, popover, primary pill, brand rose, secondary, muted, raised panel, brand text on page, destructive on page, faint text on page.
+- Contrast pairs to check: page, panel, popover, primary pill, brand rose, secondary, muted, raised panel, brand text on page, destructive on page, faint text on page, field edge on page and on panel (3:1).
+- Browser surfaces take the palette: a 32% rose `::selection`, a rose caret in fields, and a `--faint-foreground` scrollbar.
+
+### Illustration hues
+
+The isometric drawings use `--iso-rose`, `--iso-blue`, `--iso-amber`, `--iso-green` and `--iso-cyan`, each with an `-end` pair, and `<mark>` uses `--mark`. They live on `:root`, are the same in both themes, and never mark state.
 
 ## 3. Typography
 
@@ -89,6 +95,8 @@ Buttons use `text-[13px]` at the default size and `font-medium` (510). `CardTitl
 Rules:
 
 - Headings sit at 510 with tight tracking. Titles sit at 590. Body sits at 400.
+- `type-display-xl`, `type-display` and `type-headline` balance their lines (`text-wrap: balance`).
+- Help text under a field (`FieldDescription`) is `type-caption`.
 - Headings are never bold and never uppercase. Uppercase is only for `type-label-mono`.
 - A strong run-in phrase uses `font-medium`, not `font-bold`.
 - Links in body copy use `text-brand-text` with an underline and `underline-offset-4`.
@@ -142,7 +150,7 @@ Depth is a surface step plus a hairline. Flat panels do not cast a drop shadow.
 
 - **Glass:** `packages/ui/src/styles/globals.css`. Background at 82%, `blur(20px)`. It turns solid for `prefers-reduced-transparency` and `prefers-contrast: more`. High contrast adds a 1px foreground outline. The sticky header adds `border`. Buttons never get glass.
 - **Blur exception:** the home hero headline uses `blur-in` once on load. Section headings use `blur-in-view` once when they enter view. No other blur.
-- **Floating layers** (popovers, menus, dialogs): `shadow-lg`. Popovers and menus scale from their trigger (`origin-(--transform-origin)`). Modals stay centered.
+- **Floating layers** (popovers, menus, selects, dialogs): solid `bg-popover` and `shadow-lg`, never translucent or blurred. Popovers and menus scale from their trigger (`origin-(--transform-origin)`). Modals stay centered over a 30% dim with no blur.
 - **Bands:** a section can sit on `bg-surface-raised/40`. A sunken group uses `rounded-4xl bg-surface-raised shadow-inset`.
 
 ## 6. Layout
@@ -179,7 +187,7 @@ Sizes: `xs` 24px, `sm` 28px, `default` 32px, `lg` 44px, plus matching `icon` siz
 
 ### Fields
 
-Quiet fields with a hairline. Focus shows a rose ring (`ring-3 ring-ring/40`). Invalid uses `border-destructive` and `ring-destructive/20`.
+Quiet fields: a 6% fill and a `border-field-edge` edge at 3:1, so a field can be found on the page and on a panel. Checkboxes and radios take the same edge. Focus shows a rose ring (`ring-3 ring-ring/40`). Invalid uses `border-destructive` and `ring-destructive/20`. A file input's picker is a small secondary pill.
 
 A field is a label, the control, and either help text (`FieldDescription`) or an error (`FieldError`). Disabled fields use `data-disabled`.
 
@@ -244,7 +252,9 @@ Rules:
 - When press and resize happen on the same element, give each property its own duration (`transition-resize-press`: 500ms `ease-in-out` for size, 160ms `ease-out` for scale).
 - When a gesture needs JS physics, use a motion spring: `{ type: "spring", bounce: 0, duration: 0.4 }`. Use `bounce: 0.2` only after a flick or throw. Start from the current on-screen value and pass the release velocity.
 - Exception: the home hero moon turns toward the cursor, at most ±20°, with the default spring.
-- `prefers-reduced-motion`: replace movement with a short fade (`fade-in`, 300ms). Keep color changes.
+- `prefers-reduced-motion`: replace movement with a short fade (`fade-in`, 300ms). Keep color changes. Popups, dialogs and sheets keep their fade and drop the zoom and slide.
+- Never animate `width`, `height`, `top` or `left`. The sidebar collapses at once and progress bars jump to their value.
+- A keyboard focus ring appears at once, also inside drawings (the home stack's accept knob turns rose).
 
 ## 9. Recipes
 

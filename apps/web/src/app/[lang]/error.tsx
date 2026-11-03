@@ -4,7 +4,7 @@ import { RouteError } from "@/components/route-error";
 
 export default function ErrorPage({ retry }: { retry: () => void }) {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col justify-center">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center">
       <RouteError retry={retry} />
     </main>
   );

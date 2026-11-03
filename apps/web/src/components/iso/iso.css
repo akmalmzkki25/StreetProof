@@ -109,26 +109,26 @@
   stroke-width: 0.6px;
 }
 
-/* Hues, copied from Halmahera. Every object picks one pair. */
+/* Hues from the globals.css tokens. Every object picks one pair. */
 .iso-hue-rose {
-  --hue: oklch(72% 0.2 15);
-  --hue-end: oklch(58% 0.22 30);
+  --hue: var(--iso-rose);
+  --hue-end: var(--iso-rose-end);
 }
 .iso-hue-blue {
-  --hue: oklch(68% 0.18 255);
-  --hue-end: oklch(52% 0.2 280);
+  --hue: var(--iso-blue);
+  --hue-end: var(--iso-blue-end);
 }
 .iso-hue-amber {
-  --hue: oklch(83% 0.17 85);
-  --hue-end: oklch(67% 0.19 50);
+  --hue: var(--iso-amber);
+  --hue-end: var(--iso-amber-end);
 }
 .iso-hue-green {
-  --hue: oklch(78% 0.18 150);
-  --hue-end: oklch(60% 0.15 180);
+  --hue: var(--iso-green);
+  --hue-end: var(--iso-green-end);
 }
 .iso-hue-cyan {
-  --hue: oklch(80% 0.12 205);
-  --hue-end: oklch(62% 0.14 230);
+  --hue: var(--iso-cyan);
+  --hue-end: var(--iso-cyan-end);
 }
 
 /* Glow: a vivid copy of a part, faded in over the neutral body. Same in both themes. */
@@ -217,8 +217,15 @@
 .iso-accept .iso-glow {
   pointer-events: auto;
 }
+/* The keyboard ring of the drawing: rose like every other ring, and instant. */
+.iso-accept:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
 .iso-accept:focus-visible .iso-edge {
+  stroke: var(--ring);
   stroke-width: 1.6px;
+  transition: none;
 }
 .iso-knob {
   transition: transform 160ms var(--ease-out);

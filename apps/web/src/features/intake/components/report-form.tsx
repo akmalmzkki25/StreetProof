@@ -162,8 +162,7 @@ export function ReportForm({
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="self-start"
+            className="self-start max-sm:h-11"
             onClick={() => setIsPinOpen(true)}
           >
             {t("Add a map pin")}

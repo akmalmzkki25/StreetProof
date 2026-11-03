@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RecoverLinkPage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-4 py-12">
       <Suspense fallback={<RecoverLinkSkeleton />}>
         <RecoverLinkContent />
       </Suspense>

@@ -1,3 +1,10 @@
+/* Hallmark · checked: 2026-11-03 · genre: modern-minimal (inferred)
+ * floor: fixed 10 (10a, 26a, 27, 29, 40, 44d, 48, 67, F3, F16) · structural: 4 printed (58, 77, 79, 84)
+ * left: 26a static on page files and 48 on the .light and .dark theme blocks, read as false positives
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · waive 39b · the language link is 32px with a 44px touch area from after:-inset-1.5 · on each page the link is a footer control, and the report form fields and buttons it sits under stand 44px on a phone */
+/* Hallmark · dismissed 70 · the report form posts to the submitReport server action, and "Report sent" shows only after it returns */
+/* Hallmark · dismissed F18 · data-slot here is the shadcn component name (button, field-label, empty-title), not an image slot */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -87,6 +94,12 @@
     transparent
   );
   --input: color-mix(in srgb, var(--foreground) 12%, transparent);
+  /* A field's edge reaches 3:1 on the page and on a panel, so it can be found. */
+  --field-edge: color-mix(
+    in srgb,
+    var(--muted-foreground) 80%,
+    var(--background)
+  );
   --rule: color-mix(in srgb, var(--foreground) 11%, var(--background));
   --ring: var(--brand);
   --sidebar: var(--card);
@@ -97,6 +110,22 @@
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+}
+
+/* Hues for the isometric drawings, copied from Halmahera, and the <mark>
+   highlight. Same in both themes. */
+:root {
+  --iso-rose: oklch(72% 0.2 15);
+  --iso-rose-end: oklch(58% 0.22 30);
+  --iso-blue: oklch(68% 0.18 255);
+  --iso-blue-end: oklch(52% 0.2 280);
+  --iso-amber: oklch(83% 0.17 85);
+  --iso-amber-end: oklch(67% 0.19 50);
+  --iso-green: oklch(78% 0.18 150);
+  --iso-green-end: oklch(60% 0.15 180);
+  --iso-cyan: oklch(80% 0.12 205);
+  --iso-cyan-end: oklch(62% 0.14 230);
+  --mark: oklch(86% 0.17 95);
 }
 
 @theme inline {
@@ -120,6 +149,7 @@
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-field-edge: var(--field-edge);
   --color-border: var(--border);
   --color-rule: var(--rule);
   --color-destructive: var(--destructive);
@@ -226,6 +256,7 @@
   font-weight: 510;
   line-height: 1;
   letter-spacing: -0.022em;
+  text-wrap: balance;
 }
 
 @utility type-display {
@@ -234,6 +265,7 @@
   font-weight: 510;
   line-height: 1;
   letter-spacing: -0.022em;
+  text-wrap: balance;
 }
 
 @utility type-headline {
@@ -242,6 +274,7 @@
   font-weight: 510;
   line-height: 1;
   letter-spacing: -0.022em;
+  text-wrap: balance;
 }
 
 @utility type-title {
@@ -617,6 +650,14 @@
   }
   html {
     @apply font-sans;
+    scrollbar-color: var(--faint-foreground) transparent;
+  }
+  ::selection {
+    background-color: color-mix(in srgb, var(--brand) 32%, transparent);
+  }
+  input,
+  textarea {
+    caret-color: var(--brand);
   }
 
   ::view-transition-old(root),
@@ -631,5 +672,20 @@
     ::view-transition-new(*) {
       animation: none !important;
     }
+  }
+}
+
+/* With reduced motion, popups and dialogs keep their fade and drop the zoom and
+   slide. Unlayered, so it wins over the animate-in utilities. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    --tw-enter-scale: 1;
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-enter-rotate: 0;
+    --tw-exit-scale: 1;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-exit-rotate: 0;
   }
 }

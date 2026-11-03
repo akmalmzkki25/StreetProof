@@ -1,0 +1,14 @@
+{
+  "scanned": "2026-11-03",
+  "findings": {
+    "system": "design.md at the root, locked (Halmahera language on shadcn tokens)",
+    "fonts": "Inter Variable for headings and UI, Geist Mono for IDs and dates (packages/ui/src/styles/globals.css)",
+    "palette": "dark #08090a source scheme, cream light #fefefe, one rose accent oklch(64.5% 0.246 16.439) (globals.css :root, .light and .dark)",
+    "motion": "own tokens: 160ms colour fades, blur-in on the home headline, rise-in-view (globals.css)",
+    "spacing": "Tailwind v4 defaults, max-w-6xl container, py-16 sections (design.md section 6)",
+    "framework": "Next.js 16.4 App Router, Tailwind v4, Base UI via @streetproof/ui",
+    "genre": "modern-minimal (inferred: B2B facility operations tool)"
+  },
+  "preserve": ["design.md", "font stack", "palette", "motion tokens", "spacing"],
+  "introduce": []
+}

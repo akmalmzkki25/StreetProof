@@ -12,7 +12,7 @@ const DEMO_INTAKE_CODE = "graha-tower-a";
 export default async function HomePage() {
   const { t } = await getI18n();
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex flex-1 flex-col">
       <main className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-4 py-16 sm:px-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-4">

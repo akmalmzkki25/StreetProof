@@ -15,7 +15,7 @@ export default function ReportPage({
   params,
 }: PageProps<"/[lang]/report/[code]">) {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-lg flex-col gap-8 px-4 py-12">
+    <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-8 px-4 py-12">
       <Suspense fallback={<ReportSkeleton />}>
         <ReportContent codePromise={params.then((value) => value.code)} />
       </Suspense>

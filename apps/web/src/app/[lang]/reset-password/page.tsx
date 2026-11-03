@@ -16,7 +16,7 @@ export default function ResetPasswordPage({
   searchParams,
 }: PageProps<"/[lang]/reset-password">) {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-4 py-16">
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-4 py-16">
       <Suspense fallback={<ResetPasswordSkeleton />}>
         <ResetPasswordContent
           token={searchParams.then(({ token }) =>

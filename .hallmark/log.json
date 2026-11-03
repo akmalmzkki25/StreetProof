@@ -1,0 +1,31 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "polish",
+  "scope": "site",
+  "prompt": "StreetProof public pages and shared UI, polished inside design.md",
+  "theme": "brand (design.md, locked)",
+  "fixed": [
+   "10a",
+   "26a",
+   "27",
+   "29",
+   "40",
+   "44d",
+   "48",
+   "67",
+   "F3",
+   "F16"
+  ],
+  "structural": [
+   "58",
+   "77",
+   "79",
+   "84"
+  ],
+  "waived": [
+   "39b"
+  ],
+  "date": "2026-11-03"
+ }
+]

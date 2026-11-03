@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-sm flex-col justify-center gap-8 px-4 py-16">
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-4 py-16">
       <Suspense fallback={<ForgotPasswordSkeleton />}>
         <ForgotPasswordContent />
       </Suspense>
