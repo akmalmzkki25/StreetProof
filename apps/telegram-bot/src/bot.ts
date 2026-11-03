@@ -6,6 +6,7 @@ import {
 } from "@streetproof/db";
 import { Bot, type Context } from "grammy";
 
+import { handleAnswerText, startAnswer } from "./answer-flow";
 import {
   chatIdOf,
   createRateLimiter,
@@ -104,6 +105,9 @@ async function handleCallback(ctx: Context, deps: BotDeps, data: string) {
     case "review":
       if (first) await reviewProof(ctx, deps, first);
       return;
+    case "answer":
+      if (first) await startAnswer(ctx, deps, first);
+      return;
     case "decide":
       if (second) {
         await startDecision(
@@ -175,6 +179,9 @@ export function installHandlers(bot: Bot, deps: BotDeps) {
         return;
       case "decision":
         await handleDecisionText(ctx, deps, state, text);
+        return;
+      case "answer":
+        await handleAnswerText(ctx, deps, state, text);
         return;
       default:
         await sayKey(ctx, "flowIdle");

@@ -46,7 +46,13 @@ export type DecisionState = {
   expectedRevision: number;
 };
 
-export type ChatState = ReportState | ProofState | DecisionState;
+export type AnswerState = {
+  flow: "answer";
+  reportId: string;
+  clarificationId: string;
+};
+
+export type ChatState = ReportState | ProofState | DecisionState | AnswerState;
 
 export async function loadState(db: Db, chatId: string) {
   return (await getConversation(db, chatId)) as ChatState | null;

@@ -1,6 +1,7 @@
 import {
   createDb,
   linkDuplicate,
+  requestClarification,
   schema,
   submitReport,
   subscribeChatToReport,
@@ -25,7 +26,8 @@ const rootEnv = fileURLToPath(new URL("../../../.env", import.meta.url));
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 const url = process.env.DATABASE_URL;
 
-const { duplicateLinks, idempotencyKeys, memberships, outbox } = schema;
+const { clarifications, duplicateLinks, idempotencyKeys } = schema;
+const { memberships, outbox } = schema;
 const { reporterCredentials, reporterNotifications, reports } = schema;
 const { sites, telegramMembers, tenants, ticketEvents, tickets, user } = schema;
 
@@ -301,6 +303,45 @@ describe.skipIf(!url)(
         expect(sent[0]?.buttons).toBeUndefined();
         expect(sent[0]?.text).not.toContain(report.reporterToken);
         expect(sent[0]?.text).not.toContain(report.ticketId);
+      });
+
+      it("puts the question and an Answer button in front of its reporter", async () => {
+        const report = await newReport(null);
+        const chatId = await follow(report);
+        const operator = await operatorOf(report.tenantId);
+        const asked = await requestClarification(db, {
+          tenantId: report.tenantId,
+          ticketId: report.ticketId,
+          actor: operator,
+          expectedRevision: 0,
+          question: "Which floor is the sink on?",
+        });
+        expect(asked.ok).toBe(true);
+        const [job] = await db
+          .select()
+          .from(outbox)
+          .where(
+            and(
+              eq(outbox.topic, NOTIFICATION_TOPIC),
+              eq(sql`${outbox.payload}->>'ticketId'`, report.ticketId),
+            ),
+          );
+        if (!job) throw new Error("no job");
+        const { sent, sendTelegram } = chats();
+
+        await runNotificationJob(
+          { db, sendMail: null, sendTelegram, appUrl },
+          job,
+        );
+
+        const message = sent.find((item) => item.chatId === chatId);
+        expect(message?.text).toContain('"Which floor is the sink on?"');
+        expect(message?.buttons?.[0]?.callbackData).toBe(
+          `answer:${report.reportId}`,
+        );
+        await db
+          .delete(clarifications)
+          .where(eq(clarifications.ticketId, report.ticketId));
       });
 
       it("offers the assigned technician a button with the current revision", async () => {

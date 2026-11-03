@@ -4,6 +4,7 @@ import {
   createMemberLinkCode,
   createReportLinkCode,
   listChatReports,
+  requestClarification,
   schema,
   submitReport,
   transitionTicket,
@@ -24,7 +25,8 @@ const rootEnv = fileURLToPath(new URL("../../../.env", import.meta.url));
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 const url = process.env.DATABASE_URL;
 
-const { assignments, completionSubmissions, idempotencyKeys } = schema;
+const { assignments, clarifications, completionSubmissions } = schema;
+const { idempotencyKeys } = schema;
 const { memberships, outbox, proofChecks, reporterCredentials } = schema;
 const { reports, sites, telegramConversations, telegramLinkCodes } = schema;
 const { telegramMembers, telegramReportSubscriptions, tenants } = schema;
@@ -92,6 +94,9 @@ describe.skipIf(!url)("Telegram bot (needs the seeded local database)", () => {
         .delete(completionSubmissions)
         .where(inArray(completionSubmissions.ticketId, ids));
       await db.delete(assignments).where(inArray(assignments.ticketId, ids));
+      await db
+        .delete(clarifications)
+        .where(inArray(clarifications.ticketId, ids));
 
       const ticketReports = await db
         .select({ id: reports.id })
@@ -780,6 +785,46 @@ describe.skipIf(!url)("Telegram bot (needs the seeded local database)", () => {
         .set({ active: true })
         .where(eq(memberships.userId, userId));
     }
+  });
+
+  it("lets a reporter answer the building team's question in the chat", async () => {
+    const { bot, sent } = harness();
+    const chat = newChat();
+    const { ticketId, reportId } = await fileReportInChat(bot, chat);
+    const question = "Is the water coming from the ceiling or the sink?";
+    const asked = await requestClarification(db, {
+      tenantId,
+      ticketId,
+      actor: {
+        userId: await memberIdOf("operator@streetproof.test"),
+        roles: ["operator"],
+      },
+      expectedRevision: 0,
+      question,
+    });
+    expect(asked.ok).toBe(true);
+
+    // Someone else's chat can't see or answer it.
+    const stranger = newChat();
+    await press(bot, stranger, `answer:${reportId}`);
+    expect(lastText(sent)).toContain("no longer open");
+    expect(lastText(sent)).not.toContain(question);
+
+    await press(bot, chat, `answer:${reportId}`);
+    expect(lastText(sent)).toContain(question);
+    await say(bot, chat, "x");
+    expect(lastText(sent)).toContain("2 to 2,000");
+    await say(bot, chat, "From the ceiling, near the light.");
+    expect(lastText(sent)).toContain("will read your answer");
+
+    const [row] = await db
+      .select({ answer: clarifications.answer })
+      .from(clarifications)
+      .where(eq(clarifications.reportId, reportId));
+    expect(row?.answer).toBe("From the ceiling, near the light.");
+
+    await press(bot, chat, `answer:${reportId}`);
+    expect(lastText(sent)).toContain("no longer open");
   });
 
   it("drops the link and subscriptions when asked to stop", async () => {

@@ -28,6 +28,22 @@ const MESSAGES = {
   },
   somewhereElse: { en: "Somewhere else", id: "Tempat lain" },
   sharedLocation: { en: "Shared location", id: "Lokasi yang dibagikan" },
+  askAnswer: {
+    en: 'The building team asks:\n\n"{question}"\n\nWrite your answer.',
+    id: 'Tim gedung bertanya:\n\n"{question}"\n\nTulis jawaban Anda.',
+  },
+  answerInvalid: {
+    en: "Write your answer in 2 to 2,000 characters.",
+    id: "Tulis jawaban dalam 2 sampai 2.000 karakter.",
+  },
+  answerSent: {
+    en: "Thanks. The building team will read your answer.",
+    id: "Terima kasih. Tim gedung akan membaca jawaban Anda.",
+  },
+  questionClosed: {
+    en: "This question is no longer open.",
+    id: "Pertanyaan ini sudah tidak terbuka.",
+  },
   locationPinned: {
     en: "Location pinned on the map for the building team.",
     id: "Lokasi sudah ditandai di peta untuk tim gedung.",

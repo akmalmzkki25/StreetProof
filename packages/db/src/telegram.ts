@@ -215,6 +215,23 @@ export async function subscribeChatToReport(
     .onConflictDoNothing();
 }
 
+export async function isChatFollowingReport(
+  db: Db,
+  chatId: string,
+  reportId: string,
+) {
+  const [row] = await db
+    .select({ id: telegramReportSubscriptions.id })
+    .from(telegramReportSubscriptions)
+    .where(
+      and(
+        eq(telegramReportSubscriptions.chatId, chatId),
+        eq(telegramReportSubscriptions.reportId, reportId),
+      ),
+    );
+  return row !== undefined;
+}
+
 export type TelegramReportStatus = {
   reference: string;
   stage: ReporterStage;
@@ -319,6 +336,8 @@ export type TelegramRecipient = {
   locale: TelegramLocale;
   audience: TelegramAudience;
   reference: string | null;
+  // The report a reporter follows, so a question can offer an Answer button.
+  reportId: string | null;
 };
 
 function asLocale(value: string): TelegramLocale {
@@ -364,6 +383,7 @@ async function reporterRecipients(db: Db, ticketId: string) {
     locale: asLocale(row.locale),
     audience: "reporter" as const,
     reference: reportReference(row.reportId),
+    reportId: row.reportId,
   }));
 }
 
@@ -391,6 +411,7 @@ async function supervisorRecipients(
     locale: asLocale(row.locale),
     audience: "supervisor_review" as const,
     reference: null,
+    reportId: null,
   }));
 }
 
@@ -442,6 +463,7 @@ export async function listTelegramRecipients(
         locale: asLocale(assignee.locale),
         audience,
         reference: null,
+        reportId: null,
       });
     }
   }

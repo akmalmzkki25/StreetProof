@@ -1,4 +1,5 @@
 import {
+  findOpenQuestion,
   getTicketHeadline,
   listTelegramRecipients,
   recordTelegramNotice,
@@ -77,6 +78,12 @@ const LABELS = {
   accept: { id: "Terima tugas", en: "Accept work" },
   resume: { id: "Lanjut kerjakan", en: "Resume work" },
   review: { id: "Tinjau bukti", en: "Review proof" },
+  answer: { id: "Jawab", en: "Answer" },
+} as const;
+
+const QUESTION_TEXT = {
+  id: "Tim gedung bertanya tentang laporan Anda:",
+  en: "The building team asks about your report:",
 } as const;
 
 function staffButtons(
@@ -123,16 +130,37 @@ export async function sendTelegramNotices(
   const headline = await getTicketHeadline(db, event.ticketId);
   const ticketUrl = `${appUrl}/app/tickets/${event.ticketId}`;
 
-  for (const { chatId, locale, audience, reference } of recipients) {
+  for (const { chatId, locale, audience, reference, reportId } of recipients) {
+    // The question itself, and a way to answer it here, for the reporter whose
+    // report it was asked about. A linked duplicate's reporter just hears.
+    const question =
+      notice === "question" && reportId
+        ? await findOpenQuestion(db, reportId)
+        : null;
     const message =
       audience === "reporter"
         ? {
             chatId,
             // Never who is working on it, or why: a reporter sees the collapsed view.
             text: [
-              notice ? REPORTER_TEXT[notice][locale] : "",
+              question
+                ? QUESTION_TEXT[locale]
+                : notice
+                  ? REPORTER_TEXT[notice][locale]
+                  : "",
+              ...(question ? [`"${question.question}"`] : []),
               `${LABELS.reference[locale]}: ${reference}`,
             ].join("\n"),
+            ...(question && reportId
+              ? {
+                  buttons: [
+                    {
+                      text: LABELS.answer[locale],
+                      callbackData: `answer:${reportId}`,
+                    },
+                  ],
+                }
+              : {}),
           }
         : {
             chatId,
