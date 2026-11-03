@@ -2,7 +2,12 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@streetproof/ui/components/sidebar";
 import { Link } from "@/components/locale-link";
 
@@ -15,13 +20,16 @@ import { SidebarNavLinks } from "./nav-items";
 
 function Brand() {
   return (
-    <Link
-      href="/app"
-      className="flex items-center gap-2 rounded-md px-2 py-1 font-heading text-sm font-semibold focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
-    >
-      <StreetProofMark className="shrink-0" />
-      StreetProof
-    </Link>
+    <SidebarMenu>
+      <SidebarMenuItem className="mt-1">
+        <SidebarMenuButton render={<Link href="/app" />}>
+          <StreetProofMark className="size-6! shrink-0" />
+          <span className="font-heading text-sm font-semibold">
+            StreetProof
+          </span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
 
@@ -46,8 +54,12 @@ export async function AppSidebar() {
 
   return (
     <SidebarFrame>
-      <SidebarContent className="p-2">
-        <SidebarNavLinks links={navLinksFor(member.roles)} />
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarNavLinks links={navLinksFor(member.roles)} />
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser

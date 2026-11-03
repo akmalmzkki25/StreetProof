@@ -45,7 +45,7 @@ export async function DamageFigure({ regions }: { regions: Region[] }) {
           alt={t("Report photo with the AI suggested area marked: {label}", {
             label: first.label,
           })}
-          className="block w-full"
+          className="block w-full outline outline-1 -outline-offset-1 outline-black/10 dark:outline-white/10"
         />
         <svg
           aria-hidden="true"

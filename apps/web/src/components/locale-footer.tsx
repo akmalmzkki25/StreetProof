@@ -17,7 +17,7 @@ export function LocaleFooter() {
   const other = locale === "id" ? "en" : "id";
 
   return (
-    <footer className="flex justify-end px-4 pb-4 sm:px-8">
+    <footer className="flex justify-end px-4 pb-4 sm:px-8 print:hidden">
       <NextLink
         href={localePath(other, path)}
         hrefLang={other}

@@ -24,7 +24,7 @@ export function FollowOnTelegram() {
   }
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-col items-start gap-2 print:hidden">
       <Button variant="outline" disabled={isPending} onClick={follow}>
         {t("Get updates on Telegram")}
       </Button>

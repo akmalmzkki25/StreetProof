@@ -252,6 +252,20 @@ export const ID_MESSAGES: Record<string, string> = {
   "Your answer": "Jawaban Anda",
   "Send answer": "Kirim jawaban",
   "You answered this question": "Anda sudah menjawab pertanyaan ini",
+  "Needs your answer": "Perlu jawaban Anda",
+  "Nothing needed from you.": "Tidak ada yang perlu Anda lakukan.",
+  "All done.": "Semuanya sudah beres.",
+  "Closed without repair.": "Ditutup tanpa perbaikan.",
+  "If the problem comes back, send a new report.":
+    "Jika masalahnya muncul lagi, kirim laporan baru.",
+  "If the problem is still there, send a new report.":
+    "Jika masalahnya masih ada, kirim laporan baru.",
+  "Step {step} of {total}": "Langkah {step} dari {total}",
+  "Updated {time}": "Diperbarui {time}",
+  "Report progress: step {step} of {total}":
+    "Kemajuan laporan: langkah {step} dari {total}",
+  "Report progress: closed without repair":
+    "Kemajuan laporan: ditutup tanpa perbaikan",
   "Your report": "Laporan Anda",
   "This status link isn't available": "Tautan status ini tidak tersedia",
   "It may have expired or been replaced. Ask the building team if you need an update.":
@@ -389,7 +403,6 @@ export const ID_MESSAGES: Record<string, string> = {
   "Missing information": "Informasi yang kurang",
   "Limits of this suggestion": "Batasan saran ini",
   "Reporter-provided": "Dari pelapor",
-  "Operator-reviewed": "Ditinjau operator",
 
   // Ticket: completion and proof
   "Completion proof": "Bukti penyelesaian",
@@ -419,6 +432,8 @@ export const ID_MESSAGES: Record<string, string> = {
   Verified: "Terverifikasi",
   Rejected: "Ditolak",
   "Not verified": "Belum diverifikasi",
+  "Show the evidence": "Tampilkan bukti",
+  "Hide the evidence": "Sembunyikan bukti",
   Confirmed: "Terkonfirmasi",
   "Not confirmed": "Belum dikonfirmasi",
   Sent: "Terkirim",

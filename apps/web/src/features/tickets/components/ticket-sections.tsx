@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { categoryLabel, PRIORITY_LABELS, STATUS_LABELS } from "../labels";
 import { UnlinkDuplicateForm } from "./duplicate-forms";
 import { NoteForm } from "./note-form";
+import { PhotoLightbox } from "./photo-lightbox";
 import { ProofCheckPanel } from "./proof-check-panel";
 import { ReissueLinkForm } from "./reissue-link-form";
 
@@ -44,20 +45,13 @@ async function PhotoGrid({
   );
 
   return (
-    <div className={cn("grid gap-3", columns)}>
-      {signed.map((photo, index) => (
-        <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer">
-          {/* Signed, short-lived URLs from the private bucket. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photo.url}
-            alt={`${t(label)} ${index + 1}`}
-            loading="lazy"
-            className="aspect-square w-full rounded-2xl object-cover"
-          />
-        </a>
-      ))}
-    </div>
+    <PhotoLightbox
+      className={columns}
+      photos={signed.map((photo, index) => ({
+        ...photo,
+        alt: `${t(label)} ${index + 1}`,
+      }))}
+    />
   );
 }
 
@@ -203,21 +197,30 @@ export async function Reports({
       {ticket.reports.map((report) => (
         <article
           key={report.id}
-          className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
+          className={cn(
+            "grid gap-6 rounded-4xl bg-card p-6 shadow-card",
+            report.photos.length > 0 && "@2xl:grid-cols-[minmax(0,1fr)_14rem]",
+          )}
         >
-          <p className="whitespace-pre-wrap">{report.description}</p>
-          <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
-            <span className="text-foreground">
-              {report.locationName ?? report.locationText}
-            </span>
-            <span>
-              {formatDateTime(report.createdAt, locale, ticket.timeZone)}
-            </span>
-          </p>
-          <PhotoGrid photos={report.photos} label="Report photo" />
-          {canReissueLink ? (
-            <ReissueLinkForm ticketId={ticket.id} reportId={report.id} />
-          ) : null}
+          <div className="flex min-w-0 flex-col gap-3">
+            <p className="whitespace-pre-wrap">{report.description}</p>
+            <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+              <span className="text-foreground">
+                {report.locationName ?? report.locationText}
+              </span>
+              <span>
+                {formatDateTime(report.createdAt, locale, ticket.timeZone)}
+              </span>
+            </p>
+            {canReissueLink ? (
+              <ReissueLinkForm ticketId={ticket.id} reportId={report.id} />
+            ) : null}
+          </div>
+          <PhotoGrid
+            photos={report.photos}
+            label="Report photo"
+            columns={report.photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}
+          />
         </article>
       ))}
     </section>
@@ -244,32 +247,42 @@ export async function LinkedReports({
         link.reports.map((report) => (
           <article
             key={report.id}
-            className="flex flex-col gap-3 rounded-4xl bg-card p-6 shadow-card"
+            className={cn(
+              "grid gap-6 rounded-4xl bg-card p-6 shadow-card",
+              report.photos.length > 0 &&
+                "@2xl:grid-cols-[minmax(0,1fr)_14rem]",
+            )}
           >
-            <p className="whitespace-pre-wrap">{report.description}</p>
-            <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
-              <span className="text-foreground">
-                {report.locationName ?? report.locationText}
-              </span>
-              <span>
-                {formatDateTime(report.createdAt, locale, ticket.timeZone)}
-              </span>
-            </p>
-            <PhotoGrid photos={report.photos} label="Linked report photo" />
-            <p>
-              <span className="text-muted-foreground">
-                {t("Linked because:")}{" "}
-              </span>
-              {link.reason}
-            </p>
-            {canOpenSource ? (
-              <Link
-                href={`/app/tickets/${link.ticketId}`}
-                className="self-start text-brand-text underline underline-offset-4"
-              >
-                {t("Open this report")}
-              </Link>
-            ) : null}
+            <div className="flex min-w-0 flex-col gap-3">
+              <p className="whitespace-pre-wrap">{report.description}</p>
+              <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
+                <span className="text-foreground">
+                  {report.locationName ?? report.locationText}
+                </span>
+                <span>
+                  {formatDateTime(report.createdAt, locale, ticket.timeZone)}
+                </span>
+              </p>
+              <p>
+                <span className="text-muted-foreground">
+                  {t("Linked because:")}{" "}
+                </span>
+                {link.reason}
+              </p>
+              {canOpenSource ? (
+                <Link
+                  href={`/app/tickets/${link.ticketId}`}
+                  className="self-start text-brand-text underline underline-offset-4"
+                >
+                  {t("Open this report")}
+                </Link>
+              ) : null}
+            </div>
+            <PhotoGrid
+              photos={report.photos}
+              label="Linked report photo"
+              columns={report.photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}
+            />
           </article>
         )),
       )}
@@ -383,47 +396,56 @@ export async function InternalNotes({ ticket }: { ticket: TicketDetail }) {
   );
 }
 
-export async function Reviewed({ ticket }: { ticket: TicketDetail }) {
+export async function Facts({ ticket }: { ticket: TicketDetail }) {
   if (!ticket.category) return null;
   const { t, locale } = await getI18n();
+  const isOverdueNow = isOverdue(ticket, new Date());
+  const isPriorityHigh =
+    ticket.priority === "urgent" || ticket.priority === "high";
+  const facts = [
+    { label: t("Category"), value: t(categoryLabel(ticket.category) ?? "") },
+    {
+      label: t("Priority"),
+      value: ticket.priority
+        ? t(PRIORITY_LABELS[ticket.priority])
+        : t("Not set"),
+      isAlert: isPriorityHigh,
+    },
+    {
+      label: t("Location"),
+      value: ticket.locationName ?? t("As the reporter described"),
+    },
+    { label: t("Technician"), value: ticket.assigneeName },
+    { label: t("Team"), value: ticket.teamName },
+    {
+      label: t("Due by"),
+      value: ticket.dueAt
+        ? `${formatDateTime(ticket.dueAt, locale, ticket.timeZone)}${isOverdueNow ? ` ${t("(overdue)")}` : ""}`
+        : null,
+      isAlert: isOverdueNow,
+      isMono: true,
+    },
+  ];
+
   return (
-    <Panel id="reviewed" title="Operator-reviewed">
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2">
-        <dt className="text-muted-foreground">{t("Category")}</dt>
-        <dd>{t(categoryLabel(ticket.category) ?? "")}</dd>
-        <dt className="text-muted-foreground">{t("Priority")}</dt>
-        <dd>
-          {ticket.priority ? t(PRIORITY_LABELS[ticket.priority]) : t("Not set")}
-        </dd>
-        <dt className="text-muted-foreground">{t("Location")}</dt>
-        <dd>{ticket.locationName ?? t("As the reporter described")}</dd>
-        {ticket.assigneeName ? (
-          <>
-            <dt className="text-muted-foreground">{t("Technician")}</dt>
-            <dd>{ticket.assigneeName}</dd>
-          </>
-        ) : null}
-        {ticket.teamName ? (
-          <>
-            <dt className="text-muted-foreground">{t("Team")}</dt>
-            <dd>{ticket.teamName}</dd>
-          </>
-        ) : null}
-        {ticket.dueAt ? (
-          <>
-            <dt className="text-muted-foreground">{t("Due by")}</dt>
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 @2xl:grid-cols-3 @5xl:grid-cols-6">
+      {facts.map((fact) =>
+        fact.value ? (
+          <div key={fact.label} className="flex min-w-0 flex-col gap-0.5">
+            <dt className="type-caption text-muted-foreground">{fact.label}</dt>
             <dd
-              className={
-                isOverdue(ticket, new Date()) ? "text-destructive" : undefined
-              }
+              className={cn(
+                "font-medium",
+                fact.isMono && "font-mono text-sm",
+                fact.isAlert && "text-destructive",
+              )}
             >
-              {formatDateTime(ticket.dueAt, locale, ticket.timeZone)}
-              {isOverdue(ticket, new Date()) ? ` ${t("(overdue)")}` : ""}
+              {fact.value}
             </dd>
-          </>
-        ) : null}
-      </dl>
-    </Panel>
+          </div>
+        ) : null,
+      )}
+    </dl>
   );
 }
 
@@ -451,13 +473,29 @@ function eventLabel(event: TicketDetail["events"][number]) {
 export async function Timeline({ ticket }: { ticket: TicketDetail }) {
   const { t, locale } = await getI18n();
   return (
-    <section aria-labelledby="timeline" className="flex flex-col gap-4">
+    <section aria-labelledby="timeline" className="flex flex-col gap-5">
       <h2 id="timeline" className="type-title">
         {t("History")}
       </h2>
-      <ol className="flex flex-col gap-3">
-        {ticket.events.map((event) => (
-          <li key={event.id}>
+      <ol className="flex flex-col">
+        {ticket.events.map((event, index) => (
+          <li
+            key={event.id}
+            className={cn(
+              "relative pb-6 pl-8 last:pb-0",
+              index < ticket.events.length - 1 &&
+                "after:absolute after:top-[22px] after:-bottom-[3px] after:left-[5px] after:w-px after:bg-rule",
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "absolute top-[7px] left-0 size-[11px] rounded-full border-2",
+                index === ticket.events.length - 1
+                  ? "border-brand bg-brand"
+                  : "border-faint-foreground bg-background",
+              )}
+            />
             <p>{t(eventLabel(event))}</p>
             <p className="type-caption flex flex-wrap gap-x-2 text-muted-foreground">
               <span>

@@ -1,0 +1,27 @@
+@keyframes dial-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes dial-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dial-rise {
+    animation: dial-rise 480ms var(--ease-out) var(--delay, 0ms) both;
+  }
+  .dial-lit {
+    animation: dial-fade 480ms var(--ease-out) 320ms both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dial-rise {
+    animation: dial-fade 300ms var(--ease-out) both;
+  }
+}

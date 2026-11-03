@@ -15,7 +15,7 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b glass px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b glass px-4 sm:px-6">
       <Suspense fallback={<SidebarTrigger />}>
         <PageHeaderStart title={title} />
       </Suspense>

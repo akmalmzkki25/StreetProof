@@ -318,3 +318,25 @@
     transform: scale(1.5);
   }
 }
+
+@media print {
+  .dark .iso {
+    --iso-top: var(--card);
+    --iso-shade-0: color-mix(in srgb, var(--foreground) 9%, var(--background));
+    --iso-shade-1: color-mix(in srgb, var(--foreground) 7%, var(--background));
+    --iso-shade-2: color-mix(in srgb, var(--foreground) 5%, var(--background));
+    --iso-shade-3: color-mix(in srgb, var(--foreground) 3%, var(--background));
+    --iso-hi: color-mix(in srgb, var(--foreground) 62%, var(--background));
+    --iso-mid: color-mix(in srgb, var(--foreground) 38%, var(--background));
+    --iso-lo: color-mix(in srgb, var(--foreground) 22%, var(--background));
+    --iso-faint: color-mix(in srgb, var(--foreground) 11%, var(--background));
+  }
+
+  .dark .iso-glow .iso-edge {
+    stroke: color-mix(in oklab, var(--hue-end) 70%, black);
+  }
+
+  .dark .iso-trace {
+    stroke: var(--hue-end);
+  }
+}

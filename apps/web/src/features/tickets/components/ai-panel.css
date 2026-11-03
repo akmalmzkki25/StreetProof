@@ -1,0 +1,56 @@
+@property --ai-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 200deg;
+}
+
+@keyframes ai-halo-turn {
+  to {
+    --ai-angle: 560deg;
+  }
+}
+
+.ai-halo {
+  --ai-gradient: conic-gradient(
+    from var(--ai-angle),
+    var(--chart-2),
+    var(--brand),
+    var(--chart-3),
+    var(--chart-5),
+    var(--chart-2)
+  );
+  animation: ai-halo-turn 24s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-halo {
+    animation: none;
+  }
+}
+
+.ai-evidence {
+  interpolate-size: allow-keywords;
+}
+
+.ai-evidence::details-content {
+  block-size: 0;
+  overflow: clip;
+  opacity: 0;
+  transition:
+    block-size 240ms var(--ease-out),
+    opacity 160ms var(--ease-out),
+    content-visibility 240ms allow-discrete;
+}
+
+.ai-evidence[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-evidence::details-content {
+    transition:
+      opacity 160ms var(--ease-out),
+      content-visibility 160ms allow-discrete;
+  }
+}

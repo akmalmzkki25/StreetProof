@@ -2,7 +2,7 @@
 
 Live showcase: `/design-system` in `apps/web`. When the tokens in `packages/ui/src/styles/globals.css` change, update this file in the same change.
 
-This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s warm cream light surfaces. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is cream paper. The app defaults to dark. The `.light` class pins a light band inside the dark app; it's for paper, like the printable QR poster, and nothing on screen.
+This file maps the Halmahera design language to shadcn/ui tokens, with Paddy’s warm cream light surfaces. The values match `packages/ui/src/styles/globals.css`. Dark is the source scheme. Light is cream paper. The app defaults to dark. The `.light` class pins a light band inside the dark app; it's for paper, like the printable QR poster, and nothing on screen. Any page printed from the dark app also gets the light tokens (`@media print` on `.dark`), with colors and fills kept, so a printout is never pale grey on white.
 
 ## 1. Character
 
@@ -149,9 +149,9 @@ Depth is a surface step plus a hairline. Flat panels do not cast a drop shadow.
 | `shadow-lg`    | Floating windows and menus                         |
 
 - **Glass:** `packages/ui/src/styles/globals.css`. Background at 82%, `blur(20px)`. It turns solid for `prefers-reduced-transparency` and `prefers-contrast: more`. High contrast adds a 1px foreground outline. The sticky header adds `border`. Buttons never get glass.
-- **Blur exception:** the home hero headline uses `blur-in` once on load. Section headings use `blur-in-view` once when they enter view. No other blur.
+- **Blur exception:** the home hero headline uses `blur-in` once on load. Section headings use `blur-in-view` once when they enter view. The one other blur is the AI suggestion on a ticket: a dim halo (a conic gradient of `--chart-2`, `--brand`, `--chart-3` and `--chart-5`, blurred behind the panel, with a 1px gradient edge) that marks machine output apart from what a person wrote. It turns once every 24s, and that loop is the one ambient motion in the app. Under `prefers-reduced-motion` it stands still, and under `prefers-contrast: more` the blur is dropped. No other blur.
 - **Floating layers** (popovers, menus, selects, dialogs): solid `bg-popover` and `shadow-lg`, never translucent or blurred. Popovers and menus scale from their trigger (`origin-(--transform-origin)`). Modals stay centered over a 30% dim with no blur.
-- **Bands:** a section can sit on `bg-surface-raised/40`. A sunken group uses `rounded-4xl bg-surface-raised shadow-inset`.
+- **Bands:** a section can sit on `bg-surface-raised/40`. A sunken group uses `rounded-4xl bg-surface-raised shadow-inset`; when it wraps panels with `p-3`, its own corners are 24px (the panel's 12px plus the 12px padding) so the curves stay concentric. In forced-colors mode, `shadow-card` and `shadow-inset` panels get a 1px outline, since box-shadow is dropped.
 
 ## 6. Layout
 
@@ -252,8 +252,9 @@ Rules:
 - When press and resize happen on the same element, give each property its own duration (`transition-resize-press`: 500ms `ease-in-out` for size, 160ms `ease-out` for scale).
 - When a gesture needs JS physics, use a motion spring: `{ type: "spring", bounce: 0, duration: 0.4 }`. Use `bounce: 0.2` only after a flick or throw. Start from the current on-screen value and pass the release velocity.
 - Exception: the home hero moon turns toward the cursor, at most ±20°, with the default spring.
+- A disclosure (`details`) opens with a 240ms `ease-out` height and a 160ms fade, and its chevron turns over 200ms. It's a response to a click, so it is allowed. Under `prefers-reduced-motion` only the fade stays.
 - `prefers-reduced-motion`: replace movement with a short fade (`fade-in`, 300ms). Keep color changes. Popups, dialogs and sheets keep their fade and drop the zoom and slide.
-- Never animate `width`, `height`, `top` or `left`. The sidebar collapses at once and progress bars jump to their value.
+- Never animate `width`, `height`, `top` or `left`, except that disclosure height. The sidebar collapses at once and progress bars jump to their value.
 - A keyboard focus ring appears at once, also inside drawings (the home stack's accept knob turns rose).
 
 ## 9. Recipes
@@ -261,7 +262,7 @@ Rules:
 Build these from tokens and components only.
 
 - **Floating navbar.** `rounded-full border glass`. Ghost links. The active link is a rose pill (`bg-brand text-brand-foreground`). One light CTA on the end.
-- **App sidebar.** `/app/*` uses the shadcn sidebar: `bg-sidebar` (card) with a hairline, compact 6px menu rows (as in Paddy), the active row rose. Below `md` it becomes a sheet behind a menu button.
+- **App sidebar.** `/app/*` uses the shadcn sidebar: `bg-sidebar` (card) with a hairline, compact 6px menu rows (as in Paddy), the active row rose. The product name is a menu row (`font-heading text-sm font-semibold`) beside the mark. Below `md` it becomes a sheet behind a menu button.
 - **Pricing card.** `Card`, a `type-headline` price, a destructive badge for a short offer, a feature list with rose check icons, a full-width primary button, and a full-width secondary button.
 - **Testimonials.** A two-tone `type-headline` (ink line, then `text-muted-foreground`). One `bg-card` card and one `bg-primary` card. Five rose stars, the quote, then an avatar and a name.
 - **Sunken panel with media cards.** `rounded-4xl bg-surface-raised shadow-inset`, then the media card pattern from section 4. Horizontal scroll on small screens.

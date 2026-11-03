@@ -135,7 +135,7 @@ export async function NextStep({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3 rounded-[24px] bg-surface-raised p-3 shadow-inset">
       {canAccept || canWork ? (
         <Panel id="progress" title="Your next step">
           {canAccept ? (

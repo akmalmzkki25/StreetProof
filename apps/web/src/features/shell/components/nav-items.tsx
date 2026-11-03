@@ -10,7 +10,6 @@ import {
   Wrench01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { Separator } from "@streetproof/ui/components/separator";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -76,15 +75,9 @@ export function PageHeaderStart({ title }: { title?: string | undefined }) {
   const { t } = useI18n();
   return (
     <>
-      <SidebarTrigger aria-label={t("Open the menu")} />
+      <SidebarTrigger className="-ml-1" aria-label={t("Open the menu")} />
       {title ? (
-        <>
-          <Separator
-            orientation="vertical"
-            className="h-4 data-vertical:self-center"
-          />
-          <h1 className="min-w-0 truncate font-medium">{t(title)}</h1>
-        </>
+        <h1 className="min-w-0 truncate text-sm font-medium">{t(title)}</h1>
       ) : null}
     </>
   );
