@@ -50,9 +50,11 @@ export default defineConfig({
             DATABASE_URL: E2E_DATABASE_URL,
             APP_URL: baseURL,
             MONITORING_TOKEN: "e2e-monitoring-token",
-            // Never a mail server or the model, whatever the root .env holds.
+            // Never a mail server, Telegram or the model, whatever the root .env holds.
             SMTP_URL: "",
             META_API_KEY: "",
+            TELEGRAM_BOT_TOKEN: "",
+            TELEGRAM_BOT_USERNAME: "streetproof_e2e_bot",
           },
         },
       }),

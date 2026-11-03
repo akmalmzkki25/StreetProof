@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
     "@streetproof/contracts",
     "@streetproof/domain",
     "@streetproof/db",
+    "@streetproof/media",
   ],
   cacheComponents: true,
   partialPrefetching: true,

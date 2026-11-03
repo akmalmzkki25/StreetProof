@@ -41,7 +41,8 @@ await db.execute(sql`
   truncate table
     idempotency_keys, reporter_credentials, ai_drafts, outbox, ticket_events,
     clarifications, duplicate_links, uploads, proof_checks, verifications, completion_submissions, assignments,
-    ticket_notes, damage_regions, reporter_notifications, audit_log, reports, tickets, teams, memberships, locations, sites, tenants,
+    ticket_notes, damage_regions, reporter_notifications, telegram_notices, telegram_report_subscriptions, telegram_link_codes,
+    telegram_conversations, telegram_members, audit_log, reports, tickets, teams, memberships, locations, sites, tenants,
     verification, account, session, "user"
   cascade
 `);

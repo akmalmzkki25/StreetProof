@@ -165,6 +165,11 @@ export const ID_MESSAGES: Record<string, string> = {
   "Try the report form": "Coba formulir laporan",
   "Report forms:": "Formulir laporan:",
   "Synthetic data": "Data sintetis",
+  "Get updates on Telegram": "Dapatkan kabar lewat Telegram",
+  "That didn't work. Try again in a while.": "Tidak berhasil. Coba lagi nanti.",
+  "Report on Telegram instead": "Lapor lewat Telegram saja",
+  "Connect Telegram": "Hubungkan Telegram",
+  "Reconnect Telegram": "Hubungkan ulang Telegram",
 
   // Sign in and passwords
   "Sign in": "Masuk",

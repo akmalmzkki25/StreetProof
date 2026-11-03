@@ -29,7 +29,7 @@ import { Textarea } from "@streetproof/ui/components/textarea";
 import { startTransition, useActionState, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/client";
-import { MAX_PHOTOS } from "@/lib/photos";
+import { MAX_PHOTOS } from "@streetproof/media/photos";
 
 import {
   assignAction,

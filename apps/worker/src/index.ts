@@ -8,6 +8,7 @@ import {
 } from "@streetproof/db";
 import { createMailer } from "@streetproof/db/mail";
 import { createStorage, storageConfigFromEnv } from "@streetproof/db/storage";
+import { createTelegramSender } from "@streetproof/db/telegram-send";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -55,6 +56,7 @@ const storage = createStorage(storageConfigFromEnv());
 const callModel = createMetaClient({ apiKey, baseUrl, model });
 const callSam = createSamClient({ apiKey, baseUrl });
 const sendMail = createMailer();
+const sendTelegram = createTelegramSender();
 const modelDeps = { db, callModel, readPhoto: storage.getObjectBytes, model };
 
 // In the order they're claimed: an operator waits on a draft, while a proof check
@@ -85,7 +87,8 @@ const HANDLERS: readonly {
   },
   {
     topic: NOTIFICATION_TOPIC,
-    run: (job) => runNotificationJob({ db, sendMail, appUrl }, job),
+    run: (job) =>
+      runNotificationJob({ db, sendMail, sendTelegram, appUrl }, job),
     onCrash: (job) => handleUnexpectedNotificationFailure(db, job),
   },
 ];
@@ -129,7 +132,11 @@ async function runOnce(): Promise<number> {
   return POLL_INTERVAL_MS;
 }
 
-logEvent("info", "Worker started", { model, email: sendMail !== null });
+logEvent("info", "Worker started", {
+  model,
+  email: sendMail !== null,
+  telegram: sendTelegram !== null,
+});
 let lastHeartbeatAt = 0;
 while (!isStopping) {
   try {

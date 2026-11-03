@@ -1,0 +1,28 @@
+{
+  "name": "@streetproof/telegram-bot",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@streetproof/db": "workspace:*",
+    "@streetproof/domain": "workspace:*",
+    "@streetproof/media": "workspace:*",
+    "grammy": "^1.46.0",
+    "ogg-opus-decoder": "^1.7.5",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "drizzle-orm": "^0.45.4",
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.0"
+  }
+}

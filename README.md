@@ -13,8 +13,8 @@ This is a monorepo: the web app, API, worker, shared packages, Python evaluation
 | Path                     | Contents                                                                                       |
 | ------------------------ | ---------------------------------------------------------------------------------------------- |
 | `plan/en`, `plan/id`     | Research, business model, product requirements, technical design, delivery and marketing plans |
-| `apps/`                  | Deployable apps (`web`, `worker`)                                                              |
-| `packages/`              | Shared TypeScript packages (`ui`, `domain`, `db`, `contracts`)                                 |
+| `apps/`                  | Deployable apps (`web`, `worker`, `telegram-bot`)                                              |
+| `packages/`              | Shared TypeScript packages (`ui`, `domain`, `db`, `contracts`, `media`)                        |
 | `py/`                    | Python packages for AI evaluation and experiments                                              |
 | `docs/hackathon.md`      | Hackathon reference: dates, tracks, models, rules                                              |
 | `docs/meta-model-api.md` | Meta models and endpoints we consume, mapped to the plan                                       |
@@ -38,6 +38,7 @@ Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm tes
 
 ```bash
 pnpm --filter @streetproof/web dev   # http://localhost:3000 — design system at /design-system
+pnpm --filter @streetproof/telegram-bot dev   # needs TELEGRAM_BOT_TOKEN, see docs/deployment.md
 ```
 
 To run the whole product from Docker images, see [docs/deployment.md](docs/deployment.md).

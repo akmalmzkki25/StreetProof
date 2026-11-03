@@ -7,6 +7,7 @@ import { Suspense } from "react";
 
 import { ReportForm } from "@/features/intake/components/report-form";
 import { getI18n } from "@/lib/i18n/server";
+import { telegramUrl } from "@/lib/telegram";
 
 export const metadata: Metadata = { title: "Report damage" };
 
@@ -30,6 +31,7 @@ async function ReportContent({
   const site = await findIntakeSite(getDb(), code);
   if (!site) notFound();
   const { t } = await getI18n();
+  const telegramLink = telegramUrl(`s_${code}`);
 
   return (
     <>
@@ -41,6 +43,14 @@ async function ReportContent({
             "No account needed. For fire, injury or anything dangerous, leave the area and call building security first. This form is not monitored for emergencies.",
           )}
         </p>
+        {telegramLink ? (
+          <a
+            href={telegramLink}
+            className="type-caption self-start text-brand-text underline underline-offset-4"
+          >
+            {t("Report on Telegram instead")}
+          </a>
+        ) : null}
       </header>
       <ReportForm
         intakeCode={code}

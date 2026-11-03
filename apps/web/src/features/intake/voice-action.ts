@@ -1,10 +1,10 @@
 "use server";
 
+import { transcribeWav } from "@streetproof/media/transcribe";
+import { isWav } from "@streetproof/media/wav";
 import { headers } from "next/headers";
 
 import { createRateLimiter } from "@/lib/rate-limit";
-import { transcribeWav } from "@/lib/transcribe";
-import { isWav } from "@/lib/wav";
 
 export type VoiceNoteResult =
   { ok: true; text: string } | { ok: false; error: string };

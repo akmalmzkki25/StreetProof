@@ -19,6 +19,10 @@
       "dependsOn": ["^build", "@streetproof/db#test"],
       "outputs": ["coverage/**"]
     },
+    "@streetproof/telegram-bot#test": {
+      "dependsOn": ["^build", "@streetproof/worker#test"],
+      "outputs": ["coverage/**"]
+    },
     "dev": {
       "cache": false,
       "persistent": true

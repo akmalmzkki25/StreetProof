@@ -29,10 +29,10 @@ HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1),()=>process.exit(1))"
 CMD ["node", "apps/web/server.js"]
 
-# --- Tools: the worker, migrations and seeds, run from TypeScript with tsx ---
+# --- Tools: the worker, Telegram bot, migrations and seeds, run with tsx -------
 FROM base AS tools
 COPY . .
-RUN pnpm install --frozen-lockfile --offline --filter "@streetproof/worker..." --filter "@streetproof/db..."
+RUN pnpm install --frozen-lockfile --offline --filter "@streetproof/worker..." --filter "@streetproof/telegram-bot..." --filter "@streetproof/db..."
 RUN rm -rf apps/web
 ENV NODE_ENV=production
 USER node

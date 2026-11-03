@@ -4,7 +4,7 @@ import { Button } from "@streetproof/ui/components/button";
 import { useEffect, useRef, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/client";
-import { encodeWav } from "@/lib/wav";
+import { encodeWav } from "@streetproof/media/wav";
 
 import { transcribeVoiceNote } from "../voice-action";
 

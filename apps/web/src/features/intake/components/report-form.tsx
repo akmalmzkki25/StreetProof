@@ -23,7 +23,7 @@ import { startTransition, useActionState, useRef, useState } from "react";
 
 import { submitReportAction, type ReportFormState } from "../actions";
 import { useI18n } from "@/lib/i18n/client";
-import { MAX_PHOTOS } from "@/lib/photos";
+import { MAX_PHOTOS } from "@streetproof/media/photos";
 import { VoiceNoteButton } from "./voice-note-button";
 
 const initialState: ReportFormState = { status: "idle", error: null };

@@ -17,6 +17,7 @@
     "@streetproof/contracts": "workspace:*",
     "@streetproof/db": "workspace:*",
     "@streetproof/domain": "workspace:*",
+    "@streetproof/media": "workspace:*",
     "@streetproof/ui": "workspace:*",
     "@tanstack/react-table": "^9.3.1",
     "babel-plugin-react-compiler": "1.0.0",

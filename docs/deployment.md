@@ -58,6 +58,12 @@ Set `SMTP_URL` and `MAIL_FROM` to send status notices, receipts, recovered statu
 
 Emails have only been tested against Mailpit, so send one through the real provider before relying on it.
 
+## Telegram
+
+Optional. Create a bot with `@BotFather`, then set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_BOT_USERNAME` (without the `@`). Without them, the `telegram-bot` service exits straight away and nothing in the app mentions Telegram. It uses long polling, so it needs no public address, but only one process can poll a token at a time: don't run a local copy with the production token.
+
+Once it's set, staff connect from the menu under their name, reporters from their status page, and a site's report form links to its own chat. Photos and messages pass through Telegram's servers, so check that against the data you handle before using it with real reports.
+
 ## Monitoring
 
 Set `MONITORING_TOKEN`, then call:

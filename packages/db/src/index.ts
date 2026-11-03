@@ -13,5 +13,6 @@ export * from "./completion-commands";
 export * from "./duplicate-commands";
 export * as schema from "./schema";
 export * from "./reports";
+export * from "./telegram";
 export * from "./ticket-commands";
 export * from "./ticket-queries";

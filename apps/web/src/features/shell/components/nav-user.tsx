@@ -2,6 +2,7 @@
 
 import {
   ComputerIcon,
+  Link01Icon,
   Logout01Icon,
   MoonFastWindIcon,
   Sun03Icon,
@@ -34,6 +35,7 @@ import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 
 import { signOut } from "@/features/auth/actions";
+import { connectTelegramAction } from "@/features/telegram/actions";
 import { useI18n } from "@/lib/i18n/client";
 import {
   localePath,
@@ -60,10 +62,12 @@ export function NavUser({
   name,
   email,
   tenantName,
+  telegram,
 }: {
   name: string;
   email: string;
   tenantName: string;
+  telegram: "off" | "linked" | "unlinked";
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
@@ -73,6 +77,11 @@ export function NavUser({
 
   function changeLocale(next: Locale) {
     router.push(`${localePath(next, path)}${window.location.search}`);
+  }
+
+  async function openTelegram() {
+    const { url } = await connectTelegramAction();
+    if (url) window.location.assign(url);
   }
 
   const identity = (
@@ -168,6 +177,17 @@ export function NavUser({
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             </DropdownMenuGroup>
+            {telegram === "off" ? null : (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={openTelegram}>
+                  <HugeiconsIcon icon={Link01Icon} />
+                  {telegram === "linked"
+                    ? t("Reconnect Telegram")
+                    : t("Connect Telegram")}
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => void signOut()}>
               <HugeiconsIcon icon={Logout01Icon} />

@@ -100,6 +100,7 @@ export async function listQueue(
     .select({
       id: tickets.id,
       status: tickets.status,
+      revision: tickets.revision,
       summary: tickets.summary,
       category: tickets.category,
       priority: tickets.priority,

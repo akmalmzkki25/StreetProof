@@ -19,8 +19,10 @@ import { Suspense } from "react";
 import { ClarificationAnswerForm } from "@/features/reporter-status/components/clarification-answer-form";
 import { ReceiptExchange } from "@/features/reporter-status/components/receipt-exchange";
 import { readReceipt } from "@/features/reporter-status/cookie";
+import { FollowOnTelegram } from "@/features/telegram/components/follow-on-telegram";
 import { formatDateTime } from "@/lib/format";
 import { getI18n } from "@/lib/i18n/server";
+import { isTelegramEnabled } from "@/lib/telegram";
 
 export const metadata: Metadata = {
   title: "Report status",
@@ -135,6 +137,7 @@ async function ReportStatus() {
           )}
         </article>
       ))}
+      {isTelegramEnabled() ? <FollowOnTelegram /> : null}
       <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3">
         <dt className="text-muted-foreground">{t("Reference")}</dt>
         <dd className="font-mono">{status.reference}</dd>

@@ -684,6 +684,83 @@ export const reporterNotifications = pgTable(
   ],
 );
 
+// --- Telegram ---------------------------------------------------------------------
+
+// A staff account's chat. Permissions come from memberships on every action, so
+// deactivating a member also stops their chat.
+export const telegramMembers = pgTable("telegram_members", {
+  userId: text()
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  chatId: text().notNull().unique(),
+  locale: text().notNull().default("en"),
+  linkedAt: createdAt(),
+});
+
+// A chat following one report. Grants status updates and nothing else.
+export const telegramReportSubscriptions = pgTable(
+  "telegram_report_subscriptions",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    tenantId: uuid().notNull(),
+    reportId: uuid().notNull(),
+    chatId: text().notNull(),
+    locale: text().notNull().default("en"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    unique().on(table.reportId, table.chatId),
+    index().on(table.chatId),
+    foreignKey({
+      columns: [table.tenantId, table.reportId],
+      foreignColumns: [reports.tenantId, reports.id],
+    }).onDelete("cascade"),
+  ],
+);
+
+// One-time codes behind a t.me link. Only the SHA-256 is stored.
+export const telegramLinkCodes = pgTable(
+  "telegram_link_codes",
+  {
+    codeHash: text().primaryKey(),
+    userId: text().references(() => user.id, { onDelete: "cascade" }),
+    reportId: uuid().references(() => reports.id, { onDelete: "cascade" }),
+    tenantId: uuid().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    usedAt: timestamp({ withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    check(
+      "telegram_link_codes_one_target",
+      sql`(${table.userId} is null) <> (${table.reportId} is null)`,
+    ),
+  ],
+);
+
+// Where a chat is in a multi-step flow, so a restart doesn't lose someone's report.
+export const telegramConversations = pgTable("telegram_conversations", {
+  chatId: text().primaryKey(),
+  state: jsonb().$type<Record<string, unknown>>().notNull(),
+  updatedAt: updatedAt(),
+});
+
+// One row per message sent, so a retried job doesn't repeat itself.
+export const telegramNotices = pgTable(
+  "telegram_notices",
+  {
+    chatId: text().notNull(),
+    ticketId: uuid()
+      .notNull()
+      .references(() => tickets.id, { onDelete: "cascade" }),
+    eventSeq: integer().notNull(),
+    sentAt: createdAt(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.chatId, table.ticketId, table.eventSeq] }),
+  ],
+);
+
 // Who did what outside the ticket workflow: sign-ins, account changes, ticket views.
 export const auditLog = pgTable(
   "audit_log",

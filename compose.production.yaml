@@ -81,6 +81,7 @@ services:
       # Voice notes are transcribed on the server, with the key kept there.
       META_API_KEY: ${META_API_KEY:?}
       META_API_BASE_URL: ${META_API_BASE_URL:-https://api.meta.ai/v1}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
     ports:
       - ${WEB_PORT:-3000}:3000
     depends_on:
@@ -97,6 +98,25 @@ services:
       META_API_KEY: ${META_API_KEY:?}
       META_API_BASE_URL: ${META_API_BASE_URL:-https://api.meta.ai/v1}
       META_MODEL: ${META_MODEL:-muse-spark-1.3}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
+  # Exits straight away without a token, and restarts only after a crash, so an
+  # unused bot doesn't loop.
+  telegram-bot:
+    build:
+      context: .
+      target: tools
+    restart: on-failure
+    working_dir: /repo/apps/telegram-bot
+    command: ["node", "--import", "tsx", "src/index.ts"]
+    environment:
+      <<: *app-env
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      META_API_KEY: ${META_API_KEY:?}
+      META_API_BASE_URL: ${META_API_BASE_URL:-https://api.meta.ai/v1}
     depends_on:
       prepare:
         condition: service_completed_successfully

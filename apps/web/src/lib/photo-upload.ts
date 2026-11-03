@@ -1,10 +1,10 @@
 import "server-only";
 
 import type { ReportPhoto } from "@streetproof/db";
+import { sanitizePhoto } from "@streetproof/media/photo-sanitize";
+import { detectPhotoFormat, photoProblem } from "@streetproof/media/photos";
 import { randomUUID } from "node:crypto";
 
-import { sanitizePhoto } from "./photo-sanitize";
-import { detectPhotoFormat, photoProblem } from "./photos";
 import { getStorage } from "./storage";
 
 type ReadPhoto = {

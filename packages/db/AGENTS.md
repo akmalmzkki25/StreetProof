@@ -36,6 +36,10 @@ A duplicate is a relationship, not a status. `linkDuplicate` and `unlinkDuplicat
 
 `submitReport(db, input)` in `src/reports.ts` creates the ticket, report, photo rows, first event, outbox row and receipt in one transaction. A retry with the same idempotency key and digest returns the same report, revokes the old receipt and issues a new one, up to the rotation limit; a changed digest is rejected. The raw receipt token is returned once and only its SHA-256 is stored. `getReporterStatus` returns null for any invalid receipt, so callers can't tell why it failed.
 
+## Telegram
+
+`src/telegram.ts` keeps which chat belongs to which account or report. A one-time code from the web app, stored only as a SHA-256, is what connects them. `findTelegramMember` reads active memberships on every action, so deactivating a member also stops their chat. A subscription grants status updates and nothing else. `src/telegram-send.ts` sends one plain-text message and is null without a token, like `createMailer`.
+
 ## Env
 
 `DATABASE_URL`, `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_REGION`, all from the root `.env`. Scripts load it through `scripts/load-root-env.ts`; library code only reads `process.env`.

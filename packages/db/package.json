@@ -8,6 +8,7 @@
     "./schema": "./src/schema.ts",
     "./demo": "./src/demo.ts",
     "./mail": "./src/mail.ts",
+    "./telegram-send": "./src/telegram-send.ts",
     "./storage": "./src/storage.ts"
   },
   "scripts": {
