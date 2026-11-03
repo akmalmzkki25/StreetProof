@@ -124,6 +124,7 @@ Database and storage (Docker services must be running; see `.env.example`):
 pnpm db:generate      # write a SQL migration from packages/db/src/schema.ts
 pnpm db:migrate       # apply migrations to DATABASE_URL
 pnpm db:seed          # reset demo data: synthetic tenant, site, users, bucket
+pnpm db:setup         # add a real organisation, its first site and admin
 ```
 
 Python (3.12, uv), also from the root:

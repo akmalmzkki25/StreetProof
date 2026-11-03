@@ -32,6 +32,7 @@ cp .env.example .env   # one .env for the whole monorepo; fill in the Docker cre
 pnpm db:migrate        # Postgres in Docker
 pnpm db:seed           # synthetic tenants, demo accounts, private MinIO bucket
 pnpm db:seed:demo      # same, plus the demo tickets in docs/demo-scenarios.md
+pnpm db:setup          # or instead: your own organisation, building and first admin
 ```
 
 Common tasks run from the root: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm test:e2e`, `uv run pytest`, `uv run ruff check .`

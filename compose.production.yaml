@@ -121,6 +121,22 @@ services:
       prepare:
         condition: service_completed_successfully
 
+  # Asks for the first organisation, building, locations and admin, then adds them.
+  # Only runs when asked for by name, with a terminal: run --rm setup
+  setup:
+    profiles: [setup]
+    build:
+      context: .
+      target: tools
+    working_dir: /repo/packages/db
+    command: ["node", "--import", "tsx", "scripts/setup.ts"]
+    stdin_open: true
+    tty: true
+    environment: *app-env
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+
   # Wipes the database and loads docs/demo-scenarios.md. Refuses if any tenant
   # isn't synthetic, and only runs when asked for by name.
   demo-seed:

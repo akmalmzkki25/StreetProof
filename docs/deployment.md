@@ -11,7 +11,15 @@
    docker compose -f compose.production.yaml --env-file .env.production up -d --build
    ```
 
-3. Load the synthetic demo once. This wipes the database, and it refuses if any tenant isn't synthetic:
+3. Either set up the first organisation, or load the synthetic demo.
+
+   For a real organisation, answer the prompts for its name, first building, that building's report link code, its locations, and the admin's name, email, roles and password. Nothing is created unless every answer passes. The admin then signs in and adds members, teams and further sites in the app. Run it again for another organisation:
+
+   ```bash
+   docker compose -f compose.production.yaml --env-file .env.production run --rm setup
+   ```
+
+   For the demo, load the synthetic data once. This wipes the database, and it refuses if any tenant isn't synthetic, so it can't run after a real setup:
 
    ```bash
    docker compose -f compose.production.yaml --env-file .env.production run --rm demo-seed

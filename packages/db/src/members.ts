@@ -88,6 +88,35 @@ async function isSiteOfTenant(
 
 // An account is global but a membership isn't, so an email used elsewhere is
 // refused instead of quietly joining this tenant to someone else's account.
+// Null means the email is taken.
+export async function insertAccount(
+  tx: Transaction,
+  input: { name: string; email: string; passwordHash: string },
+) {
+  const email = input.email.toLowerCase();
+  const [taken] = await tx
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, email));
+  if (taken) return null;
+
+  const userId = randomUUID();
+  await tx.insert(user).values({
+    id: userId,
+    name: input.name,
+    email,
+    emailVerified: true,
+  });
+  await tx.insert(account).values({
+    id: randomUUID(),
+    accountId: userId,
+    providerId: "credential",
+    userId,
+    password: input.passwordHash,
+  });
+  return userId;
+}
+
 export async function createMember(
   db: Db,
   input: MemberAccess & {
@@ -105,27 +134,8 @@ export async function createMember(
     ) {
       return { ok: false, code: "unknown_site" };
     }
-    const email = input.email.toLowerCase();
-    const [taken] = await tx
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.email, email));
-    if (taken) return { ok: false, code: "email_taken" };
-
-    const userId = randomUUID();
-    await tx.insert(user).values({
-      id: userId,
-      name: input.name,
-      email,
-      emailVerified: true,
-    });
-    await tx.insert(account).values({
-      id: randomUUID(),
-      accountId: userId,
-      providerId: "credential",
-      userId,
-      password: input.passwordHash,
-    });
+    const userId = await insertAccount(tx, input);
+    if (!userId) return { ok: false, code: "email_taken" };
     await tx.insert(memberships).values(
       input.roles.map((role) => ({
         tenantId: input.tenantId,
