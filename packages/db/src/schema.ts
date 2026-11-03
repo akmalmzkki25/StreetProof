@@ -782,6 +782,23 @@ export const telegramNotices = pgTable(
   ],
 );
 
+// One row per deadline reminder, claimed before it's sent so two workers can't
+// both send it. A new deadline on the same ticket gets its own reminders.
+export const deadlineNotices = pgTable(
+  "deadline_notices",
+  {
+    ticketId: uuid()
+      .notNull()
+      .references(() => tickets.id, { onDelete: "cascade" }),
+    kind: text().notNull().$type<"due_soon" | "overdue">(),
+    dueAt: timestamp({ withTimezone: true }).notNull(),
+    sentAt: createdAt(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.ticketId, table.kind, table.dueAt] }),
+  ],
+);
+
 // Who did what outside the ticket workflow: sign-ins, account changes, ticket views.
 export const auditLog = pgTable(
   "audit_log",

@@ -111,6 +111,36 @@ export function recoveryMail(input: {
   };
 }
 
+// To staff, who may read either language, so it carries both like the rest.
+export function deadlineMail(input: {
+  to: string;
+  kind: "due_soon" | "overdue";
+  title: string;
+  location: string;
+  due: string;
+  ticketUrl: string;
+}): Mail {
+  const isOverdue = input.kind === "overdue";
+  return {
+    to: input.to,
+    subject: isOverdue
+      ? `Lewat tenggat / Overdue: ${input.title}`
+      : `Tenggat dekat / Due soon: ${input.title}`,
+    text: [
+      isOverdue
+        ? `Pekerjaan ini melewati tenggat ${input.due}.`
+        : `Pekerjaan ini bertenggat ${input.due}.`,
+      isOverdue
+        ? `This work passed its deadline of ${input.due}.`
+        : `This work is due by ${input.due}.`,
+      "",
+      input.title,
+      ...(input.location ? [input.location] : []),
+      input.ticketUrl,
+    ].join("\n"),
+  };
+}
+
 export function passwordResetMail(input: { to: string; url: string }): Mail {
   return {
     to: input.to,

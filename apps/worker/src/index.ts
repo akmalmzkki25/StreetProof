@@ -23,6 +23,7 @@ import {
   LOCATE_DAMAGE_TOPIC,
   runLocateDamageJob,
 } from "./locate-damage-job";
+import { DEADLINE_SWEEP_MS, runDeadlineSweep } from "./deadline-job";
 import { createMetaClient, createSamClient } from "./meta-client";
 import {
   handleUnexpectedNotificationFailure,
@@ -138,11 +139,23 @@ logEvent("info", "Worker started", {
   telegram: sendTelegram !== null,
 });
 let lastHeartbeatAt = 0;
+let lastDeadlineSweepAt = 0;
 while (!isStopping) {
   try {
     if (Date.now() - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
       await recordHeartbeat(db, "worker");
       lastHeartbeatAt = Date.now();
+    }
+    if (Date.now() - lastDeadlineSweepAt >= DEADLINE_SWEEP_MS) {
+      lastDeadlineSweepAt = Date.now();
+      const reminders = await runDeadlineSweep({
+        db,
+        sendMail,
+        sendTelegram,
+        appUrl,
+      });
+      if (reminders > 0)
+        logEvent("info", "Deadline reminders sent", { reminders });
     }
     const delay = await runOnce();
     if (delay > 0) await sleep(delay);
