@@ -711,4 +711,11 @@ export const ID_MESSAGES: Record<string, string> = {
   "Signed in as {email}, at {tenant}.": "Masuk sebagai {email}, di {tenant}.",
   Profile: "Profil",
   Telegram: "Telegram",
+  Yes: "Ya",
+  "Ticket ID": "ID tiket",
+  Title: "Judul",
+  Assignee: "Teknisi",
+  Due: "Tenggat",
+  Reports: "Laporan",
+  "Export CSV": "Ekspor CSV",
 };

@@ -62,6 +62,8 @@ export type QueueFilter = {
   search?: string;
   category?: string;
   priority?: TicketPriority;
+  // The queue shows the latest 100; an export asks for more.
+  limit?: number;
 };
 
 // So a typed % or _ means itself rather than "anything".
@@ -96,6 +98,7 @@ export async function listQueue(
   scope: MemberScope,
   filter: QueueFilter = {},
 ) {
+  const assignee = alias(user, "assignee");
   const rows = await db
     .select({
       id: tickets.id,
@@ -109,12 +112,15 @@ export async function listQueue(
       dueAt: tickets.dueAt,
       locationName: locations.name,
       teamName: teams.name,
+      assigneeName: assignee.name,
+      siteName: sites.name,
       timeZone: sites.timezone,
     })
     .from(tickets)
     .innerJoin(sites, eq(sites.id, tickets.siteId))
     .leftJoin(locations, eq(locations.id, tickets.locationId))
     .leftJoin(teams, eq(teams.id, tickets.teamId))
+    .leftJoin(assignee, eq(assignee.id, tickets.currentAssigneeId))
     .where(
       and(
         inScope(scope),
@@ -138,7 +144,7 @@ export async function listQueue(
       ),
     )
     .orderBy(desc(tickets.updatedAt))
-    .limit(QUEUE_LIMIT);
+    .limit(filter.limit ?? QUEUE_LIMIT);
 
   if (rows.length === 0) return [];
 
