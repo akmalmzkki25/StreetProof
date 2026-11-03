@@ -105,8 +105,8 @@ export const ID_MESSAGES: Record<string, string> = {
   Name: "Nama",
   Email: "Email",
   "First password": "Kata sandi awal",
-  'Pass it on privately. They can change it through "Forgot your password?" when email is set up.':
-    'Sampaikan secara pribadi. Mereka bisa menggantinya lewat "Lupa kata sandi?" jika email sudah disiapkan.',
+  "Pass it on privately. They can change it on their Account page after signing in.":
+    "Sampaikan secara pribadi. Mereka bisa menggantinya di halaman Akun setelah masuk.",
   Roles: "Peran",
   "Your roles": "Peran Anda",
   "All sites": "Semua lokasi",
@@ -697,4 +697,18 @@ export const ID_MESSAGES: Record<string, string> = {
   "Red is where the reporter put the pin. Grey is the building.":
     "Merah adalah pin dari pelapor. Abu-abu adalah gedungnya.",
   Where: "Lokasi di peta",
+  "Name saved.": "Nama disimpan.",
+  "Current password": "Kata sandi saat ini",
+  "New password again": "Ulangi kata sandi baru",
+  "Password changed. You're signed out everywhere else.":
+    "Kata sandi diganti. Sesi Anda di perangkat lain sudah keluar.",
+  "Change password": "Ganti kata sandi",
+  "Your work and reviews come to your Telegram chat. Connecting again moves them to another chat.":
+    "Tugas dan tinjauan Anda dikirim ke chat Telegram. Menghubungkan ulang memindahkannya ke chat lain.",
+  "Get new work, corrections and proof to review in Telegram, and act on them there.":
+    "Terima tugas baru, permintaan perbaikan, dan bukti untuk ditinjau di Telegram, lalu tindak lanjuti di sana.",
+  Account: "Akun",
+  "Signed in as {email}, at {tenant}.": "Masuk sebagai {email}, di {tenant}.",
+  Profile: "Profil",
+  Telegram: "Telegram",
 };

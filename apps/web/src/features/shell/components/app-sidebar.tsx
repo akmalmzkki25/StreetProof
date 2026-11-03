@@ -1,4 +1,3 @@
-import { getDb, isTelegramLinked } from "@streetproof/db";
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +8,6 @@ import { Link } from "@/components/locale-link";
 
 import { StreetProofMark } from "@/components/street-proof-mark";
 import { getCurrentMember } from "@/lib/member";
-import { isTelegramEnabled } from "@/lib/telegram";
 
 import { navLinksFor } from "../nav-links";
 import { NavUser } from "./nav-user";
@@ -46,12 +44,6 @@ export async function AppSidebar() {
   const member = await getCurrentMember();
   if (!member) return <SidebarFrame />;
 
-  const telegram = !isTelegramEnabled()
-    ? "off"
-    : (await isTelegramLinked(getDb(), member.userId))
-      ? "linked"
-      : "unlinked";
-
   return (
     <SidebarFrame>
       <SidebarContent className="p-2">
@@ -62,7 +54,6 @@ export async function AppSidebar() {
           name={member.name}
           email={member.email}
           tenantName={member.tenantName}
-          telegram={telegram}
         />
       </SidebarFooter>
     </SidebarFrame>

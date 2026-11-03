@@ -101,7 +101,7 @@ export function AddMemberForm({ sites }: { sites: Site[] }) {
           />
           <FieldDescription>
             {t(
-              'Pass it on privately. They can change it through "Forgot your password?" when email is set up.',
+              "Pass it on privately. They can change it on their Account page after signing in.",
             )}
           </FieldDescription>
         </Field>

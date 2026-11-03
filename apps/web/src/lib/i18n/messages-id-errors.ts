@@ -149,6 +149,12 @@ export const ID_ERRORS: Record<string, string> = {
     "Kode laporan itu sudah dipakai gedung lain.",
   "This site already has a location with that name.":
     "Gedung ini sudah punya lokasi dengan nama itu.",
+  "Enter your name.": "Isi nama Anda.",
+  "Enter your current password.": "Isi kata sandi Anda saat ini.",
+  "The new passwords don't match.": "Kedua kata sandi baru tidak sama.",
+  "Too many tries. Try again in a while.":
+    "Terlalu banyak percobaan. Coba lagi nanti.",
+  "Your current password isn't right.": "Kata sandi saat ini salah.",
   "Keep each location under 100 characters.":
     "Setiap lokasi maksimal 100 karakter.",
 };

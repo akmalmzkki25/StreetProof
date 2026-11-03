@@ -43,8 +43,9 @@ test("a member can connect Telegram from the account menu", async ({
   );
   await page.goto("/app/work");
   await page.getByRole("button", { name: /Budi Technician/ }).click();
+  await page.getByRole("menuitem", { name: "Account" }).click();
 
-  await page.getByRole("menuitem", { name: "Connect Telegram" }).click();
+  await page.getByRole("button", { name: "Connect Telegram" }).click();
 
   await page.waitForURL(/^https:\/\/t\.me\/streetproof_e2e_bot\?start=l_/);
 });
