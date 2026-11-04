@@ -58,8 +58,11 @@ services:
       timeout: 5s
       retries: 20
 
-  # Applies migrations and creates the bucket, then exits.
+  # Applies migrations and creates the bucket, then exits. "no" is spelled out
+  # because Coolify gives every service without a policy unless-stopped, which
+  # reruns this forever and keeps web waiting for it to complete.
   prepare:
+    restart: "no"
     build:
       context: .
       target: tools
